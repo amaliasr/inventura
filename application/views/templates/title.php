@@ -1,0 +1,1 @@
+<title><?= $title ?> | INVENTURA</title>

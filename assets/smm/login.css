@@ -1,0 +1,69 @@
+html {
+    background-color: #30475E !important;
+}
+
+.background {
+    height: 100vh;
+    width: 100vw;
+}
+
+.bg-dongker {
+    background-color: #30475E;
+}
+
+.text-dongker {
+    color: #30475E;
+}
+
+.bg-dark-grey {
+    background-color: #3C4048;
+}
+
+.text-dark-grey {
+    color: #3C4048;
+}
+
+.bg-rainbow {
+    background: rgb(208, 103, 58);
+    background: linear-gradient(66deg, rgba(208, 103, 58, 1) 0%, rgba(130, 51, 233, 1) 100%);
+}
+
+.text-rainbow {
+    color: rgb(208, 103, 58);
+    color: linear-gradient(66deg, rgba(208, 103, 58, 1) 0%, rgba(130, 51, 233, 1) 100%);
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+@-webkit-keyframes color-change-2x {
+    0% {
+        background: #19dcea;
+    }
+
+    100% {
+        background: #b22cff;
+    }
+}
+
+@keyframes color-change-2x {
+    0% {
+        background: #19dcea;
+    }
+
+    100% {
+        background: #b22cff;
+    }
+}
+
+.color-change-2x {
+    -webkit-animation: color-change-2x 2s linear infinite alternate both;
+    animation: color-change-2x 2s linear infinite alternate both;
+}
+.bg-hijau{
+    background-color: #A3B899 !important;
+}
