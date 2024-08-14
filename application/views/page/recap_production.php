@@ -1,4 +1,5 @@
 <link href="<?= base_url(); ?>assets/smm/report.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/purchase_order.css" rel="stylesheet" type="text/css">
 <link href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.css">
 <link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.js"></script>
@@ -16,7 +17,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">HISTORY PAYMENTS</h1>
+                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PRODUCTION</h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -35,14 +36,14 @@
                         </div>
                     </div>
                     <div class="col-auto d-flex align-items-end">
-                        <!-- <div class="dropdown">
+                        <div class="dropdown">
                             <button class="btn btn-outline-primary btn-sm dropdown-toggle border-radius-20 shadow-none small-text btnSimpan" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-download me-2"></span>Downloads
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
-                        </div> -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -50,9 +51,16 @@
             <div class="col-12 mb-2">
                 <div class="card shadow-none border-radius-20">
                     <div class="card-body">
-                        <p class="fw-bolder m-0">Detail</p>
-                        <div class="table-responsible" id="dataTable">
+                        <div class="row">
+                            <div class="col-12 px-4" id="statusLine">
 
+                            </div>
+                        </div>
+                        <div class="row me-0">
+                            <div class="col-12 pe-0">
+                                <div class="table-responsible" id="dataTable">
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -276,26 +284,106 @@
     $('#modal').on('hidden.bs.modal', function(e) {
         clearModal();
     })
-    var user_id = '<?= $this->session->userdata('employee_id') ?>'
-    var divisi_id = '<?= $this->session->userdata('department_id') ?>'
-    var data_supplier = ""
+
+    var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
     var data_report = ""
+    var data_report_showed = []
     var date_start = getFirstDate()
     var date_end = currentDate()
-    var detailMode = false
-    var is_mutation_only = 0
+    var statusLineVariable = [{
+            id: 0,
+            name: 'Complete',
+            selected: true,
+            functions: 'countDataComplete()',
+            getData: 'chooseDataComplete()'
+        },
+        {
+            id: 1,
+            name: 'On Process',
+            selected: false,
+            functions: 'countDataOnProcess()',
+            getData: 'chooseDataOnProcess()'
+        }
+    ]
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
         loadData()
     })
 
+    function chooseDataComplete() {
+        var data = data_report.recap_production_complete.data
+        return data
+    }
+
+    function countDataComplete() {
+        return chooseDataComplete().length
+    }
+
+
+    function chooseDataOnProcess() {
+        var data = data_report.recap_production_on_process.data
+        return data
+    }
+
+    function countDataOnProcess() {
+        return chooseDataOnProcess().length
+    }
+
+    function statusLineSwitch(id, getData) {
+        let updatedData = statusLineVariable.map(item => {
+            return {
+                ...item,
+                selected: false
+            };
+        });
+        let updatedData2 = updatedData.map(item => {
+            if (item.id == id) {
+                return {
+                    ...item,
+                    selected: true
+                };
+            }
+            return item;
+        });
+        statusLineVariable = updatedData2
+        data_report_showed = eval(getData)
+        statusLine()
+    }
+
+    function statusLine() {
+        var html = ''
+        html += '<div class="row justify-content-between">'
+        html += '<div class="col h-100">'
+        html += '<div class="row" style="height:30px">'
+        statusLineVariable.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
+
+        });
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        $('#statusLine').html(html)
+        dataTable()
+    }
+
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
         const today = new Date();
         var month = today.getMonth() + 1;
         var year = today.getFullYear();
-
+        if (month < 10) {
+            month = "0" + month;
+        }
         // Format tanggal menjadi string 'YYYY-MM-DD'
         const formattedDate = year + "-" + month + "-01";
 
@@ -305,6 +393,7 @@
     function loadData() {
         setDaterange()
         dateRangeString()
+
     }
 
     function dateRangeString() {
@@ -329,16 +418,15 @@
         })
     }
 
-
     function simpanData() {
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getPaymentHistory'); ?>'
+        var url = '<?php echo api_url('getRecapProduction'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
-            userId: user_id,
+            warehouse_id: warehouse_id,
         }
         kelolaData(data, type, url, button)
     }
@@ -365,14 +453,12 @@
                 showOverlay('hide')
                 dateRangeString()
                 $(button).prop("disabled", false);
-                data_report = response.data.paymentHistory
-                if (data_report) {
-                    if (data_report.length) {
-                        updatedStructure()
-                    } else {
-                        // tidak ada data
-                        $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
-                    }
+                data_report = response.data
+                var checkData = data_report.recap_production_complete.total
+                var checkData2 = data_report.recap_production_on_process.total
+                if (checkData && checkData2) {
+                    data_report_showed = data_report.recap_production_complete.data
+                    statusLine()
                 } else {
                     $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
                 }
@@ -399,15 +485,14 @@
     function headTable() {
         var html = ''
         html += '<tr>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">#</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">No. Invoice</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">Tgl. Bayar</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">Supplier</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">No. PO</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">Nominal</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">Type</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">Created By</th>'
-        html += '<th class="align-middle text-center small-text" style="background-color: white;">Note</th>'
+        html += '<th class="align-middle text-center small-text bg-white">#</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Warehouse</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Item</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Material<br>QTY</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Material<br>Weight</th>'
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
@@ -415,85 +500,53 @@
 
     function bodyTable() {
         var html = ''
-        $.each(data_report, function(key, value) {
-            if (value['nominal'] == null) {
-                value['nominal'] = 0
-            }
+        var dataFind = deepCopy(data_report_showed)
+        $.each(dataFind, function(key, value) {
             html += '<tr>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + value['doc_number'] + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + formatDate(value['datetime']) + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + value['supplier'].name + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + value['po'].no_po + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-end">' + number_format(value['nominal']) + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + value['type'] + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + value['employee_creator'].name + '</td>'
-            html += '<td style="background-color: white;" class="align-middle small-text text-center">' + value['note'] + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
+            html += '<td class="bg-white align-middle small-text">' + value.warehouse.name + '</td>'
+            html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.qty)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.weight)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.material_qty)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.material_weight)) + '</td>'
+            html += '</tr>'
         })
         $('#bodyTable').html(html)
         $('#tableDetail').DataTable({
             ordering: false, // Menonaktifkan pengurutan
             pageLength: 200,
-            scrollY: "400px",
+            scrollY: "600px",
             scrollX: true,
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
+            fixedColumns: {
+                left: 5
+            },
             paging: false,
+            "initComplete": function(settings, json) {
+                $('div.dataTables_filter input').attr('placeholder', 'Search...');
+            },
         })
-        // table_scroll('tableDetail')
     }
 
-    function cetakReport(x, y, merge) {
-        var viewBy = ''
-        if (y == 1) {
-            viewBy = 'Detail'
+    function deepCopy(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
+    function checkNumberIsNull(value) {
+        if (value == null) {
+            return 0
+        } else {
+            return value
         }
-        eval('var url = "<?= base_url() ?>report/' + x + 'PersonEarn' + viewBy + '"')
-        var params = "*$" + date_start + "*$" + date_end + "*$" + supplierId + "*$" + viewBy + "*$" + merge;
-        window.open(url + '?params=' + encodeURIComponent(params), '_blank');
-    }
-
-    function table_scroll(className) {
-        const slider = document.querySelector("." + className);
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-
-        slider.addEventListener("mousedown", (e) => {
-            document.querySelector("." + className).style.cursor = "grabbing";
-            isDown = true;
-            slider.classList.add("active");
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
-        });
-
-        slider.addEventListener("mouseleave", () => {
-            isDown = false;
-            document.querySelector("." + className).style.cursor = "grab";
-            slider.classList.remove("active");
-        });
-
-        slider.addEventListener("mouseup", () => {
-            isDown = false;
-            document.querySelector("." + className).style.cursor = "grab";
-            slider.classList.remove("active");
-        });
-
-        slider.addEventListener("mousemove", (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            document.querySelector("." + className).style.cursor = "grabbing";
-            const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 3; // scroll-fast
-            slider.scrollLeft = scrollLeft - walk;
-        });
     }
 
     function exportExcel() {
-        supplier_id = $('#selectItem').val()
-        var url = '<?= base_url('report/exportReportPO') ?>';
-        var params = "*$" + supplier_id + "*$" + date_start + "*$" + date_end;
+        var url = '<?= base_url('report/excelProductionRecap') ?>';
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end;
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 

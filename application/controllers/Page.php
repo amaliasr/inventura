@@ -113,4 +113,28 @@ class Page extends CI_Controller
         $data['warehouse_id'] = $this->warehouse_id;
         $this->template->views('page/shippings', $data);
     }
+    public function recap_production()
+    {
+        $data['title'] = 'Production Recap';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $this->template->views('page/recap_production', $data);
+    }
+    public function cetakSuratJalan()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $data['id'] = $explodedParams[1];
+        $data['document_number'] = $explodedParams[2];
+        $data['qrcode'] = $explodedParams[3];
+        $data['datas'] = json_decode($this->curl->simple_get(api_url('getShipmentPrint?id=' . $data['id'])))->data->shipment;
+        // $this->load->view('print/cetakSuratJalan', $data);
+        $html = $this->load->view('print/cetakSuratJalan', $data, true);
+        $this->pdf->setPaper('A4', 'potrait');
+        $this->pdf->filename = "SURAT JALAN " . $data['document_number'] . ".pdf";
+        $this->pdf->loadHtml($html);
+        $this->pdf->render();
+        $this->pdf->stream("SURAT JALAN " . $data['document_number'] . ".pdf", array("Attachment" => 0));
+    }
 }

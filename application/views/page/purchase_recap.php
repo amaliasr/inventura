@@ -397,7 +397,6 @@
     function headTable() {
         var html = ''
         html += '<tr>'
-<<<<<<< HEAD:application/views/page/purchase_recap.php
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
         html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
@@ -406,25 +405,6 @@
         html += '<th class="align-middle text-center small-text bg-white">Price</th>'
         html += '<th class="align-middle text-center small-text bg-white">Tax Out Come</th>'
         html += '<th class="align-middle text-center small-text bg-white">Total</th>'
-=======
-        html += '<th class="align-middle text-center" rowspan="2" style="background-color: white;">#</th>'
-        html += '<th class="align-middle text-center" rowspan="2" style="background-color: white;">EID</th>'
-        html += '<th class="align-middle text-center" rowspan="2" style="background-color: white;">Nama</th>'
-        html += '<th class="align-middle text-center" rowspan="2" style="background-color: white;">No. Meja</th>'
-        html += '<th class="align-middle text-center" colspan="5">ISTIRAHAT</th>'
-        html += '<th class="align-middle text-center" colspan="5">IBADAH</th>'
-        html += '<th class="align-middle text-center" rowspan="2" style="background-color: white;">Notes</th>'
-        html += '</tr>'
-
-        html += '<tr>'
-        for (let i = 0; i < 2; i++) {
-            html += '<th class="align-middle text-center small-text" style="background-color: white;">MENIT</th>'
-            html += '<th class="align-middle text-center small-text" style="background-color: white;">MENIT<br>TERLAMBAT</th>'
-            html += '<th class="align-middle text-center small-text" style="background-color: white;">FREQ</th>'
-            html += '<th class="align-middle text-center small-text" style="background-color: white;">FREQ<br>TERLAMBAT</th>'
-            html += '<th class="align-middle text-center small-text" style="background-color: white;">HARI YG<br>TERLAMBAT</th>'
-        }
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportLeavePass.php
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
@@ -443,7 +423,6 @@
                 value.total = 0
             }
             html += '<tr>'
-<<<<<<< HEAD:application/views/page/purchase_recap.php
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
@@ -452,28 +431,6 @@
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.price) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
-=======
-            html += '<td class="text-center small-text" style="background-color: white;">' + a++ + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.eid + '</td>'
-            html += '<td class="text-center small-text text-nowrap" style="background-color: white;">' + e.name + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.row_code + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.minute_usage_istirahat + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.minutes_over_istirahat + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.freq_istirahat + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.freq_over_istirahat + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.total_day_over_istirahat + '</td>'
-
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.minute_usage_ibadah + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.minutes_over_ibadah + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.freq_ibadah + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.freq_over_ibadah + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">' + e.total_day_over_ibadah + '</td>'
-            html += '<td class="text-center small-text" style="background-color: white;">'
-            if (e.freq_over_istirahat > 0) {
-                html += '<span class="badge bg-danger pointer" onclick="seeLate(' + e.id + ')">Lihat</span>'
-            }
-            html += '</td>'
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportLeavePass.php
             html += '</tr>'
         })
         $('#bodyTable').html(html)
@@ -492,51 +449,9 @@
         })
     }
 
-<<<<<<< HEAD:application/views/page/purchase_recap.php
     function exportExcel() {
         var url = '<?= base_url('report/excelPurchaseRecap') ?>';
         var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end;
-=======
-    function seeLate(id) {
-        var data = data_report.reportLeavePassLog.find((v, k) => {
-            if (v.id == id) return true
-        })
-        $('#modal').modal('show')
-        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable');
-        var html_header = '';
-        html_header += '<h5 class="modal-title">History Keterlambatan</h5>';
-        html_header += '<button type="button" class="btn-close"></button>';
-        $('#modalHeader').html(html_header);
-        var html_body = '';
-        html_body += '<table class="table">'
-        var a = 0
-        if (data.notes) {
-            data.notes.forEach(e => {
-                if (e) {
-                    html_body += '<tr>'
-                    // html_body += '<td class="text-center small-text" style="background-color: white;">' + e.date + '</td>'
-                    html_body += '<td class="small-text" style="background-color: white;">' + e + '</td>'
-                    html_body += '</tr>'
-                    a++
-                }
-            })
-        }
-        if (a == 0) {
-            html_body += '<tr>'
-            html_body += '<td class="text-center small-text" style="background-color: white;">Tidak Ada Notes</td>'
-            html_body += '</tr>'
-        }
-        html_body += '</table>'
-        $('#modalBody').html(html_body)
-        var html_footer = '';
-        html_footer += '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>'
-        $('#modalFooter').html(html_footer)
-    }
-
-    function cetakReport(x, y) {
-        eval('var url = "<?= base_url() ?>report/' + x + 'LeavePass"')
-        var params = "*$" + date_start + "*$" + date_end
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportLeavePass.php
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 

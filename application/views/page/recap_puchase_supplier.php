@@ -16,12 +16,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-<<<<<<< HEAD:application/views/page/recap_puchase_supplier.php
                 <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PURCHASE SUPPLIER</h1>
-=======
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">REPORT PERSON SALARY</h1>
-                <h5 class="fw-bolder m-0 text-orange mb-2">GILING</h5>
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportPersonEarn.php
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -45,18 +40,7 @@
                                 <span class="fa fa-download me-2"></span>Downloads
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-<<<<<<< HEAD:application/views/page/recap_puchase_supplier.php
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
-=======
-                                <!-- <li><a class="dropdown-item" href="javascript:void(0);" onclick="cetakReport('pdf',0)">PDF (Raw)</a></li> -->
-                                <!-- <li><a class="dropdown-item" href="javascript:void(0);" onclick="cetakReport('pdf',1)">PDF (Formatted)</a></li> -->
-                                <li class="ps-3"><b class="small-text text-grey">Date Merged</b></li>
-                                <li><a class="dropdown-item" href="javascript:void(0);" onclick="cetakReport('excel',0,1)">Excel Summary</a></li>
-                                <li><a class="dropdown-item" href="javascript:void(0);" onclick="cetakReport('excel',1,1)">Excel Detail</a></li>
-                                <li class="ps-3"><b class="small-text text-grey">Date Splited</b></li>
-                                <li><a class="dropdown-item" href="javascript:void(0);" onclick="cetakReport('excel',0,0)">Excel Summary</a></li>
-                                <li><a class="dropdown-item" href="javascript:void(0);" onclick="cetakReport('excel',1,0)">Excel Detail</a></li>
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportPersonEarn.php
                             </ul>
                         </div>
                     </div>
@@ -344,35 +328,6 @@
         })
     }
 
-<<<<<<< HEAD:application/views/page/recap_puchase_supplier.php
-=======
-    function formMachine() {
-        var html = ''
-        data_user.machine.forEach(e => {
-            var select = ''
-            if (e.id == 15) {
-                select = 'selected'
-            }
-            html += '<option value="' + e.id + '" ' + select + '>' + e.code + '</option>'
-        });
-        $('#selectMachine').html(html)
-        $('#selectMachine').selectpicker('refresh');
-        $('#selectMachine').selectpicker({
-
-        });
-        // autoSave()
-        // simpanData()
-        arrangeVariable()
-    }
-
-    function arrangeVariable() {
-        machineId = arrayToString($('#selectMachine').map(function() {
-            return $(this).val();
-        }).get())
-        detailMode = JSON.parse($('#selectView').val())
-    }
-
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportPersonEarn.php
     function simpanData() {
         // ----------------------------------------- //
         var type = 'GET'
@@ -496,19 +451,9 @@
         })
     }
 
-<<<<<<< HEAD:application/views/page/recap_puchase_supplier.php
     function exportExcel() {
         var url = '<?= base_url('report/excelPurchaseSupplierRecap') ?>';
         var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end;
-=======
-    function cetakReport(x, y, merge) {
-        var viewBy = ''
-        if (y == 1) {
-            viewBy = 'Detail'
-        }
-        eval('var url = "<?= base_url() ?>report/' + x + 'PersonEarn' + viewBy + '"')
-        var params = "*$" + date_start + "*$" + date_end + "*$" + machineId + "*$" + viewBy + "*$" + merge;
->>>>>>> fc4bb4bbec346a9c5ccc7faed52dce2cce0e7714:application/views/report/reportPersonEarn.php
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
