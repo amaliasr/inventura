@@ -352,8 +352,8 @@ function formatIndonesianDate($dateString)
                 <th class="th_main p-10 small" style="width: 20px;">No</th>
                 <th class="th_main p-10 small">Nama Barang</th>
                 <th class="th_main p-10 small">Grade</th>
-                <th class="th_main p-10 small">QTY</th>
-                <th class="th_main p-10 small">Berat (kg)</th>
+                <th class="th_main p-10 small">QTY (Gross)</th>
+                <th class="th_main p-10 small">Berat Bruto (kg)</th>
             </tr>
             <?php if ($datas->details) {
                 $totalQty = 0;

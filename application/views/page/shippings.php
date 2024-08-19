@@ -483,18 +483,31 @@
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
             }
-            var badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">PROSES</span>'
-            if (value.is_receive_all == 1) {
-                badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">DITERIMA</span>'
-            } else if (value.is_receive_all == 0) {
-                badge = '<span class="badge rounded-pill bg-danger super-small-text p-2 w-100">BARANG HILANG</span>'
+            var badge = ''
+            if (value.is_load_all == 1) {
+                if (value.is_receive_all == 1) {
+                    badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">DITERIMA LENGKAP</span>'
+                } else if (value.is_receive_all == 0) {
+                    badge = '<span class="badge rounded-pill bg-danger super-small-text p-2 w-100">DITERIMA SEBAGIAN</span>'
+                } else {
+                    badge = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">IN TRANSIT</span>'
+                }
+            } else {
+                badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">PROSES MUAT</span>'
+
             }
+
             html += '<td class="bg-white align-middle small-text text-center">' + badge + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">'
             html += '<button class="super-small-text btn btn-sm btn-outline-dark py-1 px-2 shadow-none" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>'
             html += '<div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuButton">'
             if (value.is_load_all) {
                 html += '<a class="dropdown-item" onclick="cetakSuratJalan(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
+                if (!value.is_receive) {
+                    html += '<div class="text-center pe-2 ps-2 mt-2">'
+                    html += '<button class="btn btn-sm btn-danger w-100" onclick="batalMuat(' + "'" + value.id + "'" + ')">Batal Muat</button>'
+                    html += '</div>'
+                }
             } else {
                 html += '<a class="dropdown-item disabled" aria-disabled="true"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
             }
@@ -533,5 +546,65 @@
         eval('var url = "<?= base_url() ?>page/cetakSuratJalan"')
         var params = "*$" + id + "*$" + document_number + "*$" + image
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
+    }
+
+    function batalMuat(id) {
+        Swal.fire({
+            text: 'Apakah Anda yakin ingin Membatalkan Selesai Muat untuk Surat Jalan ini ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                simpanData(id)
+            }
+        })
+    }
+
+    function simpanData(id) {
+        var type = 'POST'
+        var button = '.btnSimpan'
+        var url = '<?php echo api_produksi('setShipment'); ?>'
+        var data = {
+            shipment: [{
+                "id": id,
+                "is_load_all": null
+            }]
+        }
+        kelolaData(data, type, url, button)
+    }
+
+    function kelolaData(data, type, url, button) {
+        $.ajax({
+            url: url,
+            type: type,
+            data: data,
+            error: function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                });
+                $(button).prop("disabled", false);
+            },
+            beforeSend: function() {
+                $(button).prop("disabled", true);
+            },
+            success: function(response) {
+                if (response.success == true) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Data Berhasil Tersimpan',
+                        icon: 'success',
+                    }).then((responses) => {
+                        $(button).prop("disabled", false);
+                        loadData()
+                    })
+                }
+            }
+        });
     }
 </script>

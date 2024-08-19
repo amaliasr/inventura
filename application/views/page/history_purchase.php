@@ -1,4 +1,5 @@
 <link href="<?= base_url(); ?>assets/smm/report.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/datatable_custom.css" rel="stylesheet" type="text/css">
 <link href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.css">
 <link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.js"></script>
@@ -421,6 +422,8 @@
     var total_qty = 0
     var total_weight = 0
     var total_price = 0
+    var total_tax_out_come = 0
+    var total_total = 0
 
     function bodyTable() {
         var html = ''
@@ -461,7 +464,9 @@
             html += '</tr>'
             total_qty += parseInt(value.qty)
             total_weight += parseFloat(value.weight)
-            total_price += parseFloat(value.total)
+            total_price += parseFloat(value.price)
+            total_tax_out_come += parseFloat(value.tax_out_come)
+            total_total += parseFloat(value.total)
         })
         $('#bodyTable').html(html)
         footTable()
@@ -473,9 +478,9 @@
         html += '<th class="bg-white align-middle small-text text-end" colspan="7">Total</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '</tr>'
@@ -488,10 +493,10 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            fixedColumns: {
-                left: 5
-            },
             paging: false,
+            "initComplete": function(settings, json) {
+                $('div.dataTables_filter input').attr('placeholder', 'Search...');
+            },
         })
     }
 

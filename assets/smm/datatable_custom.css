@@ -1,0 +1,16 @@
+.filter-border {
+    border-bottom: 2px solid #27374D;
+}
+
+.bg-light-blue {
+    background-color: #9DB2BF;
+}
+
+div.dataTables_wrapper div.dataTables_filter input {
+    border-radius: 20px;
+    width: 200px;
+}
+
+div.dataTables_wrapper div.dataTables_filter {
+    font-size: 0px;
+}

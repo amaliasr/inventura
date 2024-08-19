@@ -1,4 +1,5 @@
 <link href="<?= base_url(); ?>assets/smm/report.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/datatable_custom.css" rel="stylesheet" type="text/css">
 <link href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.css">
 <link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.js"></script>
@@ -57,11 +58,17 @@
             <div class="col-12 mb-2">
                 <div class="card shadow-none border-radius-20">
                     <div class="card-body">
-                        <p class="fw-bolder m-0">Detail</p>
-                        <div class="table-responsible" id="dataTable">
+                        <div class="row">
+                            <div class="col-12 px-4" id="statusLine">
 
+                            </div>
                         </div>
-
+                        <div class="row me-0">
+                            <div class="col-12 pe-0">
+                                <div class="table-responsible" id="dataTable">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -287,6 +294,7 @@
     var data_report = ""
     var kerangka_mapping = null
     var data_report_mapping = []
+    var data_report_mapping_showed = []
     var is_mapping = 0
     var date_start = getFirstDate()
     var date_end = currentDate()
@@ -349,11 +357,35 @@
             variable: 'end'
         }
     ]
+    var statusLineFirst = {
+        id: 0,
+        name: 'All Data',
+        selected: true,
+        functions: 'countAllData()',
+        getData: 'chooseDataAllData()'
+    }
+    var statusLineVariable = []
+    var dataGroup = []
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
         loadData()
     })
+
+    function chooseDataAllData(id = null) {
+        if (id == null) {
+            var data = data_report_mapping
+        } else {
+            var data = data_report_mapping.filter((v, k) => {
+                if (v.item.id == id) return true
+            })
+        }
+        return data
+    }
+
+    function countAllData(id = null) {
+        return chooseDataAllData(id).length
+    }
 
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
@@ -479,6 +511,8 @@
     }
 
     function mapping(is_mapping) {
+        dataGroup = []
+        statusLineVariable = []
         var data = deepCopy(data_report)
         var ker_mapping = {
             'start': ['start'],
@@ -502,6 +536,94 @@
             selectedChild = child
             data_report_mapping = data
         }
+        data_report_mapping_showed = data_report_mapping
+        dataGroup = transformDataIntoGroupItem(data_report_mapping)
+        var a = 1
+        statusLineVariable.push(statusLineFirst)
+        dataGroup.forEach(e => {
+            statusLineVariable.push({
+                id: e.id,
+                name: e.code,
+                selected: false,
+                functions: 'countAllData(' + e.id + ')',
+                getData: 'chooseDataAllData(' + e.id + ')'
+            })
+        });
+        statusLine()
+    }
+
+    function transformDataIntoGroupItem(data) {
+        const result = [];
+        const uniqueItems = {};
+
+        data.forEach(entry => {
+            const {
+                id,
+                name,
+                code,
+                alias
+            } = entry.item;
+
+            if (!uniqueItems[id]) {
+                uniqueItems[id] = {
+                    id,
+                    name,
+                    code,
+                    alias
+                };
+            }
+        });
+
+        for (const key in uniqueItems) {
+            result.push(uniqueItems[key]);
+        }
+
+        return result;
+    }
+
+    function statusLineSwitch(id, getData) {
+        let updatedData = statusLineVariable.map(item => {
+            return {
+                ...item,
+                selected: false
+            };
+        });
+        let updatedData2 = updatedData.map(item => {
+            if (item.id == id) {
+                return {
+                    ...item,
+                    selected: true
+                };
+            }
+            return item;
+        });
+        statusLineVariable = updatedData2
+        data_report_mapping_showed = eval(getData)
+        statusLine()
+    }
+
+    function statusLine() {
+        var html = ''
+        html += '<div class="row justify-content-between">'
+        html += '<div class="col h-100">'
+        html += '<div class="row" style="height:30px">'
+        statusLineVariable.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
+
+        });
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        $('#statusLine').html(html)
         updatedStructure()
     }
 
@@ -516,6 +638,8 @@
         html += '</thead>'
         html += '<tbody id="bodyTable">'
         html += '</tbody>'
+        html += '<tfoot id="footTable">'
+        html += '</tfoot>'
         html += '</table>'
         $('#dataTable').html(html)
         headTable()
@@ -543,22 +667,48 @@
         $('#headTable').html(html)
         bodyTable()
     }
+    var total = {}
 
     function bodyTable() {
         var html = ''
-        $.each(data_report_mapping, function(key, value) {
+        total = {}
+        var dataFind = deepCopy(data_report_mapping_showed)
+        $.each(dataFind, function(key, value) {
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
             parent.forEach(e => {
                 selectedChild.forEach(el => {
+                    if (!total[e.variable]) {
+                        total[e.variable] = {}
+                    }
+                    if (!total[e.variable][el.variable]) {
+                        total[e.variable][el.variable] = 0
+                    }
+                    total[e.variable][el.variable] += value[e.variable][el.variable]
                     html += '<td class="bg-white align-middle small-text text-center">' + value[e.variable][el.variable] + '</td>'
                 })
             })
             html += '</tr>'
         })
         $('#bodyTable').html(html)
+        footTable()
+    }
+
+    function footTable() {
+        var html = ''
+        html += '<tr>'
+        html += '<th class="bg-white align-middle small-text text-end"></th>'
+        html += '<th class="bg-white align-middle small-text text-end"></th>'
+        html += '<th class="bg-white align-middle small-text text-end">Total</th>'
+        parent.forEach(e => {
+            selectedChild.forEach(el => {
+                html += '<th class="bg-white align-middle small-text text-center">' + number_format(total[e.variable][el.variable]) + '</th>'
+            })
+        });
+        html += '</tr>'
+        $('#footTable').html(html)
         $('#tableDetail').DataTable({
             ordering: false, // Menonaktifkan pengurutan
             pageLength: 200,
@@ -568,9 +718,12 @@
             paging: false,
             fixedHeader: true,
             fixedColumns: {
-                left: 5
+                left: 3
             },
             paging: false,
+            "initComplete": function(settings, json) {
+                $('div.dataTables_filter input').attr('placeholder', 'Search...');
+            },
         })
     }
 

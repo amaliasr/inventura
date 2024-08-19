@@ -1,4 +1,5 @@
 <link href="<?= base_url(); ?>assets/smm/report.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/datatable_custom.css" rel="stylesheet" type="text/css">
 <link href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.css">
 <link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.js"></script>
@@ -389,6 +390,8 @@
         html += '</thead>'
         html += '<tbody id="bodyTable">'
         html += '</tbody>'
+        html += '<tfoot id="footTable">'
+        html += '</tfoot>'
         html += '</table>'
         $('#dataTable').html(html)
         headTable()
@@ -409,9 +412,19 @@
         $('#headTable').html(html)
         bodyTable()
     }
+    var total_qty = 0
+    var total_weight = 0
+    var total_price = 0
+    var total_tax_out_come = 0
+    var total_total = 0
 
     function bodyTable() {
         var html = ''
+        total_qty = 0
+        total_weight = 0
+        total_price = 0
+        total_tax_out_come = 0
+        total_total = 0
         $.each(data_report, function(key, value) {
             if (!value.tax_out_come) {
                 value.tax_out_come = 0
@@ -432,8 +445,27 @@
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
             html += '</tr>'
+            total_qty += parseFloat(value.qty)
+            total_weight += parseFloat(value.weight)
+            total_price += parseFloat(value.price)
+            total_tax_out_come += parseFloat(value.tax_out_come)
+            total_total += parseFloat(value.total)
         })
         $('#bodyTable').html(html)
+        footTable()
+    }
+
+    function footTable() {
+        var html = ''
+        html += '<tr>'
+        html += '<th class="bg-white align-middle small-text text-end" colspan="3">Total</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
+        html += '</tr>'
+        $('#footTable').html(html)
         $('#tableDetail').DataTable({
             ordering: false, // Menonaktifkan pengurutan
             pageLength: 200,
@@ -442,10 +474,10 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            fixedColumns: {
-                left: 5
-            },
             paging: false,
+            "initComplete": function(settings, json) {
+                $('div.dataTables_filter input').attr('placeholder', 'Search...');
+            },
         })
     }
 

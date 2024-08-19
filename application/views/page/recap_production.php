@@ -1,5 +1,5 @@
 <link href="<?= base_url(); ?>assets/smm/report.css" rel="stylesheet" type="text/css">
-<link href="<?= base_url(); ?>assets/smm/purchase_order.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/datatable_custom.css" rel="stylesheet" type="text/css">
 <link href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.css">
 <link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.js"></script>
@@ -456,12 +456,12 @@
                 data_report = response.data
                 var checkData = data_report.recap_production_complete.total
                 var checkData2 = data_report.recap_production_on_process.total
-                if (checkData && checkData2) {
-                    data_report_showed = data_report.recap_production_complete.data
-                    statusLine()
-                } else {
-                    $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
-                }
+                // if (checkData && checkData2) {
+                data_report_showed = data_report.recap_production_complete.data
+                statusLine()
+                // } else {
+                //     $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
+                // }
             }
         });
     }
@@ -472,11 +472,13 @@
 
     function dataTable() {
         var html = ''
-        html += '<table class="table table-bordered table-hover table-sm small w-100 tableDetail" id="tableDetail" style="width: 100%;white-space:nowrap;cursor: grab;overflow:auto;">'
+        html += '<table class="table table-bordered table-hover table-sm small w-100 tableDetail" id="tableDetail">'
         html += '<thead id="headTable">'
         html += '</thead>'
         html += '<tbody id="bodyTable">'
         html += '</tbody>'
+        html += '<tfoot id="footTable">'
+        html += '</tfoot>'
         html += '</table>'
         $('#dataTable').html(html)
         headTable()
@@ -497,8 +499,16 @@
         $('#headTable').html(html)
         bodyTable()
     }
+    var total_qty = 0
+    var total_weight = 0
+    var total_warehouse_qty = 0
+    var total_warehouse_weight = 0
 
     function bodyTable() {
+        total_qty = 0
+        total_weight = 0
+        total_warehouse_qty = 0
+        total_warehouse_weight = 0
         var html = ''
         var dataFind = deepCopy(data_report_showed)
         $.each(dataFind, function(key, value) {
@@ -507,13 +517,30 @@
             html += '<td class="bg-white align-middle small-text">' + value.warehouse.name + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.qty)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.weight)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.material_qty)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(checkNumberIsNull(value.material_weight)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.qty)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.weight)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_qty)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_weight)) + '</td>'
             html += '</tr>'
+            total_qty += checkNumberIsNull(value.qty)
+            total_weight += checkNumberIsNull(value.weight)
+            total_warehouse_qty += checkNumberIsNull(value.material_qty)
+            total_warehouse_weight += checkNumberIsNull(value.material_weight)
         })
         $('#bodyTable').html(html)
+        footTable()
+    }
+
+    function footTable() {
+        var html = ''
+        html += '<tr>'
+        html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_qty) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_weight) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_qty) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_weight) + '</th>'
+        html += '</tr>'
+        $('#footTable').html(html)
         $('#tableDetail').DataTable({
             ordering: false, // Menonaktifkan pengurutan
             pageLength: 200,
@@ -522,9 +549,6 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            fixedColumns: {
-                left: 5
-            },
             paging: false,
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
