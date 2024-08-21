@@ -351,8 +351,9 @@ function abbreviateName($fullName)
                 <td width="50%" style="vertical-align: top;">
                     <?php if ($is_pajak == 'true') { ?>
                         <p class="m-0 small"><b>NB</b></p>
-                        <p class="m-0 small">PAJAK DAERAH 0.5% DITANGGUNG SUPPLIER</p>
+                        <p class="m-0 small" style="margin-bottom: 10px;">PAJAK DAERAH 0.5% DITANGGUNG SUPPLIER</p>
                     <?php } ?>
+                    <img src="<?= base64_decode(str_replace(' ', '', $qrcode)) ?>" style="width:70px; height:70px">
                 </td>
                 <td width="25%" class="text-center p-10" style="vertical-align: top;">
                     <p class="m-0 small"><b>SUPPLIER</b></p>

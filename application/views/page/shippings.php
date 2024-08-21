@@ -532,7 +532,7 @@
     }
 
     function cetakSuratJalan(id, document_number) {
-        var text = id
+        var text = '#SJ-' + id
         var qrcode = new QRCode("qrcode", {
             text: text,
             width: 100,

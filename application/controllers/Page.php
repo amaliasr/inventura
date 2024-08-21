@@ -48,6 +48,7 @@ class Page extends CI_Controller
         $data['no_invoices'] = $explodedParams[3];
         $data['is_pajak'] = $explodedParams[4];
         $data['is_harga_satuan'] = $explodedParams[5];
+        $data['qrcode'] = $explodedParams[6];
         $data['datas'] = json_decode($this->curl->simple_get(api_url('getInvoice?purchaseId=' . $data['id'])))->data;
         // $this->load->view('print/cetakInvoices', $data);
         $html = $this->load->view('print/cetakInvoices', $data, true);

@@ -953,13 +953,24 @@
     }
 
     function printInvoice(id) {
+        var text = '#INV-' + id
+        var qrcode = new QRCode("qrcode", {
+            text: text,
+            width: 100,
+            height: 100,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        imgBase64Data = qrcode._oDrawing._elCanvas.toDataURL("image/png")
+        var image = btoa(imgBase64Data)
         if (data_load_page.userPayment) {
             var name = data_load_page.userPayment.name
         } else {
             var name = admin_name
         }
         eval('var url = "<?= base_url() ?>page/cetakInvoices"')
-        var params = "*$" + id + "*$" + name + "*$" + data_detail_invoices.invoice + '*$' + is_pajak + '*$' + is_harga_satuan
+        var params = "*$" + id + "*$" + name + "*$" + data_detail_invoices.invoice + '*$' + is_pajak + '*$' + is_harga_satuan + '*$' + image
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 </script>
