@@ -30,6 +30,14 @@
                                 <p class="fw-bolder small-text m-0">Tanggal</p>
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Data Profile</p>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectDataProfile" title="Pilih Tipe Data">
+                                    <option value="DETAIL" selected>Detail</option>
+                                    <option value="SUMMARY ITEM">Summary Item</option>
+                                    <option value="SUMMARY ITEM GRADE">Summary Item Grade</option>
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -330,6 +338,7 @@
     }
 
     function simpanData() {
+        var dataProfile = $('#selectDataProfile').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
@@ -338,6 +347,7 @@
             dateStart: date_start,
             dateEnd: date_end,
             warehouse_id: warehouse_id,
+            dataProfile: dataProfile,
         }
         kelolaData(data, type, url, button)
     }
@@ -430,7 +440,7 @@
         $.each(data_report, function(key, value) {
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + ' ' + formatTime(value.shipment_at) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
@@ -498,8 +508,9 @@
     }
 
     function exportExcel() {
+        var dataProfile = $('#selectDataProfile').val()
         var url = '<?= base_url('report/excelShipmentHistory') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end;
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile;
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 

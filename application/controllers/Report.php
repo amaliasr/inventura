@@ -443,7 +443,8 @@ class Report extends CI_Controller
         $warehouse_id = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryShipmentItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->history_shipment_item->data;
+        $data_profile = $explodedParams[4];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryShipmentItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($data_profile))))->data->history_shipment_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -524,7 +525,7 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'SHIPMENT HISTORY ' . $epoch;
+        $filename = 'SHIPMENT HISTORY ' . $data_profile . ' ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

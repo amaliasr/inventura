@@ -276,7 +276,7 @@
             success: function(response) {
                 showOverlay('hide')
                 data_load_page = response['data']
-                dataTable()
+                statusLine()
             }
         })
     }
@@ -301,48 +301,16 @@
 
     function statusLine() {
         var html = ''
-        html += '<div class="row mt-4 justify-content-between">'
-        html += '<div class="col h-100">'
-        html += '<div class="row" style="height:30px">'
-        statusLineVariable.forEach(e => {
-            var text = 'text-grey'
-            var icon = 'text-grey bg-light'
-            if (e.selected) {
-                text = 'fw-bold filter-border'
-                icon = 'bg-light-blue text-white'
-            }
-            var num = eval(e.functions)
-            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
-            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
-            html += ' </div>'
-
-        });
-        html += '</div>'
-        html += '</div>'
-        html += '<div class="col-auto">'
-        html += '<div class="row h-100">'
+        html += '<div class="row justify-content-end">'
 
         html += '<div class="col-auto ps-0">'
         html += '<input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off">'
         html += '</div>'
-        html += '<div class="col-auto ps-0">'
-        html += '<select class="form-select form-select-sm float-end formFilter" aria-label=".form-select-sm example" onchange="filterStatus()" id="selectItemYangBelumTuntas">'
-        html += '</select>'
-        html += '</div>'
 
         html += '</div>'
         html += '</div>'
-        html += '<div class="col-12 border-top pt-2">'
 
-        html += '<div class="row justify-content-end">'
-        html += '<div class="col-auto">'
-        html += '<p class="m-0 small-text">Filter :</p>'
-        html += '</div>'
-        html += '<div class="col-auto">'
-        html += '</div>'
-        html += '</div>'
 
-        html += '</div>'
         html += '</div>'
         $('#statusLine').html(html)
         setDaterange()
@@ -438,7 +406,7 @@
 
     function dataTable() {
         var html = ''
-        html += '<table class="table table-hover table-bordered table-sm small w-100 mt-4" style="overflow-x: hidden;" id="tableDetail">'
+        html += '<table class="table table-hover table-sm small w-100 mt-4" style="overflow-x: hidden;" id="tableDetail">'
         html += '<thead id="headTable">'
         html += '</thead>'
         html += '<tbody id="bodyTable">'
@@ -490,7 +458,7 @@
             html += '<tr>'
             html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + a++ + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.invoice + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + formatDate(e.datetime) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + formatDate(e.datetime) + ' ' + formatTime(e.datetime) + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small" style="background-color: white;">' + e.supplier.name + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.warehouse.name + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.tax_out_come + '</td>'
@@ -518,6 +486,7 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
+            searching: false
         })
         if (id_detail_clicked) {
             headerInvoice(id_detail_clicked)
@@ -617,7 +586,7 @@
         html += '<div class="col-4 mb-2 pe-2 align-self-center text-end">'
         // button
         var checkedPajak = ''
-        if (data.tax_out_come) {
+        if (data.tax_out_come != 0) {
             checkedPajak = 'checked'
         }
         html += '<input type="checkbox" class="theme-checkbox" id="applyPajakDaerah" onchange="applyPajakDaerah()" ' + checkedPajak + '>'
@@ -694,7 +663,7 @@
             html += '<div class="d-flex align-items-center">'
             html += '<span class="me-2">Rp.</span>'
             var harga_satuan = e.price
-            if (!harga_satuan) {
+            if (harga_satuan == null) {
                 harga_satuan = 0
                 var dataLoadPage = data_load_page.itemPrice.find((value, key) => {
                     if (value.item_id == e.item.id) return true
@@ -712,6 +681,7 @@
             } else {
                 var stylenya = 'readonly style="background-color:transparent !important"'
             }
+            // console.log(harga_satuan)
             html += '<input class="form-control form-control-sm shadow-none border-0 nominal inputHargaSatuan" type="text" placeholder="0" value="' + harga_satuan + '" id="inputHargaSatuan' + a + '" data-id="' + a + '" data-weight="' + e.weight + '" oninput="updatePrice(' + "'" + a + "'" + ')" ' + stylenya + '>'
             html += '</div>'
             html += '<hr class="m-0">'
@@ -766,7 +736,7 @@
         html += '</div>'
         html += '<div class="col-5 mb-1 text-end align-self-center">'
         totalPajak = subTotal * nilaiPajak
-        html += '<p class="m-0 fw-bold text-grey-dark">- Rp. ' + number_format(totalPajak) + '</p>'
+        html += '<p class="m-0 fw-bold text-grey-dark">- Rp. <span id="numTotalPajak">' + number_format(totalPajak) + '</span></p>'
         html += '</div>'
         html += '</div>'
 
@@ -794,11 +764,17 @@
         if (boolean) {
             is_pajak = true
             $('#fieldPajak').prop('hidden', false)
+            showNumTotalPajak()
         } else {
             is_pajak = false
             $('#fieldPajak').prop('hidden', true)
         }
         totalHarga(boolean)
+    }
+
+    function showNumTotalPajak() {
+        totalPajak = subTotal * nilaiPajak
+        $('#numTotalPajak').html(number_format(totalPajak))
     }
 
     function applyHargaSatuan() {
@@ -811,6 +787,7 @@
     }
 
     function totalHarga(is_pajak_active) {
+        // console.log(subTotal)
         if (is_pajak_active) {
             totalAll = subTotal - totalPajak
         } else {
@@ -881,6 +858,9 @@
         $('.inputHargaSatuan').each(function() {
             var idDetail = $(this).data('id')
             var value = $('#inputHargaSatuan' + idDetail).val()
+            if (!value) {
+                value = 0
+            }
             var dataDetail = data_detail_invoices.purchase_details[idDetail].data_details
             dataDetail.forEach(e => {
                 purchase_detail.push({
