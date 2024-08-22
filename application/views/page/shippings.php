@@ -1,6 +1,5 @@
 <link href="<?= base_url(); ?>assets/smm/purchase_order.css" rel="stylesheet" type="text/css">
 <link href="<?= base_url(); ?>assets/smm/shipping.css" rel="stylesheet" type="text/css">
-
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
@@ -440,6 +439,8 @@
         html += '</thead>'
         html += '<tbody id="bodyTable">'
         html += '</tbody>'
+        html += '<tfoot id="footTable">'
+        html += '</tfoot>'
         html += '</table>'
         $('#dataTable').html(html)
         bodyHistory()
@@ -456,10 +457,14 @@
         });
         return total;
     }
+    var all_total_qty = 0
+    var all_total_weight = 0
 
     function bodyHistory() {
         var html = ''
         var a = 1
+        all_total_qty = 0
+        all_total_weight = 0
         var dataFind = deepCopy(data_shipment_showed)
         $.each(dataFind, function(key, value) {
             html += '<tr>'
@@ -505,7 +510,7 @@
                 html += '<a class="dropdown-item" onclick="cetakSuratJalan(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
                 if (!value.is_receive) {
                     html += '<div class="text-center pe-2 ps-2 mt-2">'
-                    html += '<button class="btn btn-sm btn-danger w-100" onclick="batalMuat(' + "'" + value.id + "'" + ')">Batal Muat</button>'
+                    html += '<button class="btn btn-sm btn-danger w-100" onclick="batalMuat(' + "'" + value.id + "'" + ')">Batal Selesai Muat</button>'
                     html += '</div>'
                 }
             } else {
@@ -514,8 +519,33 @@
             html += '</div>'
             html += '</td>'
             html += '</tr>'
+            all_total_qty += parseInt(totalQty)
+            all_total_weight += parseInt(totalWeight)
         })
         $('#bodyTable').html(html)
+        footTable()
+    }
+
+    function footTable() {
+        var html = ''
+        html += '<tr>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center">Total</th>'
+        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty) + '</th>'
+        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight) + '</th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '</tr>'
+        $('#footTable').html(html)
         $('#tableDetail').DataTable({
             ordering: false, // Menonaktifkan pengurutan
             pageLength: 200,

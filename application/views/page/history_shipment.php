@@ -289,6 +289,7 @@
     var data_report = ""
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var dataProfile = ''
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
@@ -338,7 +339,7 @@
     }
 
     function simpanData() {
-        var dataProfile = $('#selectDataProfile').val()
+        dataProfile = $('#selectDataProfile').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
@@ -413,10 +414,18 @@
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
         html += '<th class="align-middle text-center small-text bg-white">Date Ship</th>'
         html += '<th class="align-middle text-center small-text bg-white">Doc Number</th>'
+        // console.log(dataProfile)
+        if (dataProfile == 'DETAIL') {
+            html += '<th class="align-middle text-center small-text bg-white">Kode<br>Inventori</th>'
+        }
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        if (dataProfile != 'SUMMARY ITEM') {
+            html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        }
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
+        if (dataProfile != 'SUMMARY ITEM') {
+            html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
+        }
         html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
         html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Origin</th>'
         html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Destination</th>'
@@ -442,10 +451,17 @@
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + ' ' + formatTime(value.shipment_at) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
+            if (dataProfile == 'DETAIL') {
+                html += '<td class="bg-white align-middle small-text text-center">' + value.inventory.code + '</td>'
+            }
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
+            if (dataProfile != 'SUMMARY ITEM') {
+                html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
+            }
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
+            if (dataProfile != 'SUMMARY ITEM') {
+                html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
+            }
             html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_dest.name + '</td>'
@@ -474,10 +490,17 @@
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
+        if (dataProfile == 'DETAIL') {
+            html += '<th class="bg-white align-middle small-text text-end"></th>'
+        }
         html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end">Total</th>'
+        if (dataProfile != 'SUMMARY ITEM') {
+            html += '<th class="bg-white align-middle small-text text-end">Total</th>'
+        }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
+        if (dataProfile != 'SUMMARY ITEM') {
+            html += '<th class="bg-white align-middle small-text text-end"></th>'
+        }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
@@ -508,7 +531,7 @@
     }
 
     function exportExcel() {
-        var dataProfile = $('#selectDataProfile').val()
+        dataProfile = $('#selectDataProfile').val()
         var url = '<?= base_url('report/excelShipmentHistory') ?>';
         var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile;
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');

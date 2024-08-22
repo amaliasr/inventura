@@ -188,6 +188,8 @@
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
     var admin_name = '<?= $this->session->userdata('name') ?>'
     var data_invoices = ""
+    var data_invoice_detail = ""
+    var data_invoice_detail_showed = []
     var data_load_page = {}
     var data_item = ""
     var data_supplier = ""
@@ -209,18 +211,11 @@
 
         {
             id: 1,
-            name: '<span class="text-warning fa fa-warning me-1"></span>All Pending',
+            name: 'Incomplete',
             selected: false,
             functions: 'countPending()',
             getData: 'chooseDataPending()'
         },
-        {
-            id: 2,
-            name: 'Canceled',
-            selected: false,
-            functions: 'countCanceled()',
-            getData: 'chooseDataCanceled()'
-        }
     ]
     $(document).ready(function() {
         loadData()
@@ -251,6 +246,7 @@
             success: function(response) {
                 showOverlay('hide')
                 data_invoices = response['data']
+                data_invoice_detail_showed = data_invoices.dataInvoice.data
                 loadPageInvoicePrint()
             }
         })
@@ -301,8 +297,26 @@
 
     function statusLine() {
         var html = ''
-        html += '<div class="row justify-content-end">'
+        html += '<div class="row justify-content-between mt-4">'
+        // tab
+        html += '<div class="col h-100">'
+        html += '<div class="row" style="height:30px">'
+        statusLineVariable.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
 
+        });
+        html += '</div>'
+        html += '</div>'
+        // tab
         html += '<div class="col-auto ps-0">'
         html += '<input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off">'
         html += '</div>'
@@ -337,7 +351,7 @@
     }
 
     function chooseDataAllData() {
-        var data = data_pr
+        var data = data_invoices.dataInvoice.data
         return data
     }
 
@@ -347,9 +361,7 @@
 
 
     function chooseDataPending() {
-        var data = data_pr.filter((v, k) => {
-            if (v.is_complete != 1) return true
-        })
+        var data = data_invoices.dataInvoiceIncomplete.data
         return data
     }
 
@@ -357,16 +369,6 @@
         return chooseDataPending().length
     }
 
-    function chooseDataCanceled() {
-        var data = data_pr.filter((v, k) => {
-            if (v.state == 'REJECTED' || v.state == 'CANCEL') return true
-        })
-        return data
-    }
-
-    function countCanceled() {
-        return chooseDataCanceled().length
-    }
 
     function statusLineSwitch(id, getData) {
         let updatedData = statusLineVariable.map(item => {
@@ -385,22 +387,7 @@
             return item;
         });
         statusLineVariable = updatedData2
-        data_pr_showed = eval(getData)
-        var item = $('#selectItemYangBelumTuntas').val()
-        if (item && item != 'all') {
-            var array = []
-            data_pr_showed.forEach(e => {
-                var sisa = itemYangSisa.filter((value, key) => {
-                    if (value.item === parseInt(item)) return true
-                })
-                $.each(sisa, function(keys, values) {
-                    if (e.id == values['pr_id']) {
-                        array.push(e)
-                    }
-                })
-            });
-            data_pr_showed = array
-        }
+        data_invoice_detail_showed = eval(getData)
         statusLine()
     }
 
@@ -422,25 +409,38 @@
         var html = ''
         html += '<tr class="">'
         html += '<th class="align-middle small" style="background-color: white;">#</th>'
-        html += '<th class="align-middle small" style="background-color: white;">NO. INVOICE</th>'
-        html += '<th class="align-middle small" style="background-color: white;">DATE</th>'
-        html += '<th class="align-middle small" style="background-color: white;">SUPPLIER</th>'
-        html += '<th class="align-middle small" style="background-color: white;">WAREHOUSE</th>'
+        html += '<th class="align-middle small" style="background-color: white;">No. Invoice</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Date</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Supplier</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Warehouse</th>'
         html += '<th class="align-middle small" style="background-color: white;">PD</th>'
-        html += '<th class="align-middle small" style="background-color: white;">TOTAL</th>'
-        html += '<th class="align-middle small" style="background-color: white;">NOTES</th>'
-        html += '<th class="align-middle small" style="background-color: white;">USER<br>CREATE</th>'
-        html += '<th class="align-middle small" style="background-color: white;width:30px">STATUS</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Total<br>QTY</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Total<br>Berat</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Total<br>Harga</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Notes</th>'
+        html += '<th class="align-middle small" style="background-color: white;">User<br>Create</th>'
+        html += '<th class="align-middle small" style="background-color: white;width:30px">Status</th>'
         html += '<th class="align-middle small" style="background-color: white;width:20px;"></th>'
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
     }
 
+    function deepCopy(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+    var total_qty = 0
+    var total_weight = 0
+    var total_total = 0
+
     function bodyTable() {
         var html = ''
         var a = 1
-        data_invoices.dataInvoice.data.forEach(e => {
+        total_qty = 0
+        total_weight = 0
+        total_total = 0
+        var dataFind = deepCopy(data_invoice_detail_showed)
+        dataFind.forEach(e => {
             var badge = ''
             var bg = ''
             if (!e.is_ready_print && !e.is_complete) {
@@ -456,28 +456,61 @@
                 }
             }
             html += '<tr>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + a++ + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.invoice + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + formatDate(e.datetime) + ' ' + formatTime(e.datetime) + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small" style="background-color: white;">' + e.supplier.name + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.warehouse.name + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.tax_out_come + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + a++ + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + e.invoice + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + formatDate(e.datetime) + ' ' + formatTime(e.datetime) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text" style="background-color: white;">' + e.supplier.name + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + e.warehouse.name + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + e.tax_out_come + '</td>'
             if (!e.total) {
                 e.total = 0
             }
-            html += '<td class="' + bg + ' px-2 align-middle small text-end" style="background-color: white;">' + number_format(e.total) + '</td>'
+            if (!e.weight) {
+                e.weight = 0
+            }
+            if (!e.qty) {
+                e.qty = 0
+            }
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.qty) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.weight) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.total) + '</td>'
             if (!e.note) {
                 e.note = ''
             }
-            html += '<td class="' + bg + ' px-2 align-middle small" style="background-color: white;cursor: default;" title="' + e.note + '">' + shortenText(e.note, 20) + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">' + e.user_admin.name + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-end" style="background-color: white;">' + badge + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small text-center" style="background-color: white;">'
+            html += '<td class="' + bg + ' px-2 align-middle small-text" style="background-color: white;cursor: default;" title="' + e.note + '">' + shortenText(e.note, 20) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + e.user_admin.name + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + badge + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">'
             html += '<button type="button" class="btn btn-outline-dark btn-sm p-1 small-text" onclick="viewDetail(' + "'" + e.id + "'" + ')"><i class="fa fa-pencil"></i></button>'
             html += '</td>'
             html += '</tr>'
+
+            total_qty += e.qty
+            total_weight += e.weight
+            total_total += e.total
         });
         $('#bodyTable').html(html)
+        footTable()
+    }
+
+    function footTable() {
+        var html = ''
+        html += '<tr>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2">Total</th>'
+        html += '<th class="px-2 align-middle small text-center py-2">' + number_format(total_qty) + '</th>'
+        html += '<th class="px-2 align-middle small text-end py-2">' + number_format(total_weight) + '</th>'
+        html += '<th class="px-2 align-middle small text-end py-2">' + number_format(total_total) + '</th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '<th class="px-2 align-middle small text-center py-2"></th>'
+        html += '</tr>'
+        $('#footTable').html(html)
         $('#tableDetail').DataTable({
             ordering: false, // Menonaktifkan pengurutan
             pageLength: 200,
@@ -608,7 +641,9 @@
         if (!data.is_complete) {
             if (data.is_ready_print) {
                 html += '<button class="btn btn-danger small-text w-100 mt-4 shadow-none" onclick="closeInvoice(' + data.id + ',1)">Close Invoice</button>'
-                html += '<button class="btn small-text w-100 mt-1 text-danger shadow-none" id="btnHapus" onclick="deleteInvoice(' + data.id + ')"><i class="fa fa-trash me-2"></i>Hapus Invoice</button>'
+                html += '<button class="btn small-text w-100 my-1 text-danger shadow-none" id="btnHapus" onclick="deleteInvoice(' + data.id + ')"><i class="fa fa-trash me-2"></i>Hapus Invoice</button>'
+                html += '<hr class="m-0" style="height: 0.5px">'
+                html += '<button class="btn small-text w-100 my-1 text-dark-grey shadow-none" id="btnBatalMuat" onclick="batalMuat(' + data.id + ')"><i class="fa fa-times me-2"></i>Batal Selesai Timbang</button>'
             } else {
                 html += '<div class="w-100 text-center mt-4">'
                 html += '<i class="text-grey">Menunggu Proses Timbang</i>'
@@ -849,6 +884,22 @@
         })
     }
 
+    function batalMuat(id) {
+        Swal.fire({
+            text: 'Apakah Anda yakin ingin Batalkan Muatan untuk Invoice ini ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                simpanDataBatalMuat(id)
+            }
+        })
+    }
+
     function simpanData(id, is_complete, is_print = false) {
         var type = 'POST'
         var button = '#btnSimpan'
@@ -910,7 +961,21 @@
                 purchase: [id]
             }
         }
-        console.log(data)
+        // console.log(data)
+        kelolaData(data, type, url, button, false, id)
+    }
+
+    function simpanDataBatalMuat(id) {
+        var type = 'POST'
+        var button = '#btnBatalMuat'
+        var url = '<?php echo api_produksi('setInvoice'); ?>'
+        var data = {
+            purchase: [{
+                id: id,
+                is_ready_print: null,
+                ready_print_at: null,
+            }],
+        }
         kelolaData(data, type, url, button, false, id)
     }
 
