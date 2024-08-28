@@ -716,7 +716,7 @@
             if (harga_satuan == null) {
                 harga_satuan = 0
                 var dataLoadPage = data_load_page.itemPrice.find((value, key) => {
-                    if (value.item_id == e.item.id) return true
+                    if (value.item_id == e.item.id && value.item_grade_id == e.grade.id) return true
                 });
                 if (dataLoadPage) {
                     harga_satuan = dataLoadPage.price
