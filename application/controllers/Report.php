@@ -135,7 +135,10 @@ class Report extends CI_Controller
         $warehouse_id = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_purchase_item->data;
+        $itemId = $explodedParams[4];
+        $supplierId = $explodedParams[5];
+        $dataProfile = $explodedParams[6];
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&itemIds=' . $itemId . '&supplierIds=' . $supplierId . '&dataProfile=' . urlencode($dataProfile))))->data->recap_purchase_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -148,7 +151,9 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        if ($dataProfile == 'ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Price');
@@ -161,8 +166,8 @@ class Report extends CI_Controller
             if (!$value->tax_out_come) {
                 $value->tax_out_come = 0;
             }
-            if (!$value->price) {
-                $value->price = 0;
+            if (!$value->price_avg) {
+                $value->price_avg = 0;
             }
             if (!$value->total) {
                 $value->total = 0;
@@ -170,15 +175,17 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
+            if ($dataProfile == 'ITEM GRADE') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
+            }
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->price);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, round($value->price_avg, 2));
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->tax_out_come);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->total);
             $total_qty += $value->qty;
             $total_weight += $value->weight;
-            $total_price += $value->price;
+            $total_price += $value->price_avg;
             $total_tax_outcome += $value->tax_out_come;
             $total_total += $value->total;
             $jumlahRow++;
@@ -189,11 +196,13 @@ class Report extends CI_Controller
         $jumlahColumn = $jumlahColumnStart;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        if ($dataProfile == 'ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_price);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, round($total_price, 2));
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_tax_outcome);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_total);
         $jumlahColumnEnd = $jumlahColumn - 1;
@@ -202,7 +211,7 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'PURCHASE RECAP ' . $epoch;
+        $filename = 'PURCHASE RECAP ' . $dataProfile . ' ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
@@ -759,7 +768,10 @@ class Report extends CI_Controller
         $warehouse_id = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryPurchaseDetail?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->history_purchase_detail->data;
+        $itemId = $explodedParams[4];
+        $supplierId = $explodedParams[5];
+        $dataProfile = $explodedParams[6];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryPurchaseDetail?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&itemIds=' . $itemId . '&supplierIds=' . $supplierId . '&dataProfile=' . urlencode($dataProfile))))->data->history_purchase_detail->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -775,7 +787,9 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Supplier');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        if ($dataProfile == 'ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Price');
@@ -812,7 +826,9 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->supplier->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
+            if ($dataProfile == 'ITEM GRADE') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
+            }
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->price);
@@ -836,7 +852,9 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        if ($dataProfile == 'ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
@@ -849,7 +867,7 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'PURCHASE HISTORY ' . $epoch;
+        $filename = 'PURCHASE HISTORY ' . $dataProfile . ' ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

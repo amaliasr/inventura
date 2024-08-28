@@ -30,6 +30,21 @@
                                 <p class="fw-bolder small-text m-0">Tanggal</p>
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectItem" title="Pilih Item" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Supplier</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectSupplier" title="Pilih Supplier" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Data Profile</p>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" id="selectDataProfile" onchange="arrangeVariable()">
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -281,6 +296,10 @@
     var data_report = ""
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var itemId = []
+    var supplierId = []
+    var dataProfile = ''
+    var data_user = {}
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
@@ -302,9 +321,88 @@
     }
 
     function loadData() {
-        setDaterange()
-        dateRangeString()
+        $.ajax({
+            url: "<?= api_url('loadPageRecapReportPurchase'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                });
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_user = response['data']
+                setDaterange()
+                dateRangeString()
+                selectItem()
+            }
+        })
+    }
 
+    function selectItem() {
+        var html = ''
+        data_user.item.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.code + ' - ' + e.name + '</option>'
+        });
+        $('#selectItem').html(html)
+        $('#selectItem').selectpicker('refresh');
+        $('#selectItem').selectpicker({
+
+        });
+        selectSupplier()
+    }
+
+    function selectSupplier() {
+        var html = ''
+        data_user.supplier.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectSupplier').html(html)
+        $('#selectSupplier').selectpicker('refresh');
+        $('#selectSupplier').selectpicker({
+
+        });
+        selectDataProfile()
+    }
+
+    function selectDataProfile() {
+        var html = ''
+        var a = 0
+        data_user.data_profile.forEach(e => {
+            var select = ''
+            html += '<option value="' + e + '" ' + select + '>' + e + '</option>'
+            a++
+        });
+        $('#selectDataProfile').html(html)
+        $('#selectDataProfile').selectpicker('refresh');
+        $('#selectDataProfile').selectpicker({
+
+        });
+        arrangeVariable()
+    }
+
+    function arrangeVariable() {
+        itemId = $('#selectItem').map(function() {
+            return $(this).val();
+        }).get()
+        supplierId = $('#selectSupplier').map(function() {
+            return $(this).val();
+        }).get()
+        dataProfile = $('#selectDataProfile').val()
     }
 
     function dateRangeString() {
@@ -338,6 +436,9 @@
             dateStart: date_start,
             dateEnd: date_end,
             warehouse_id: warehouse_id,
+            itemIds: itemId,
+            supplierIds: supplierId,
+            dataProfile: dataProfile,
         }
         kelolaData(data, type, url, button)
     }
@@ -405,7 +506,9 @@
         html += '<th class="align-middle text-center small-text bg-white">Bale Number</th>'
         html += '<th class="align-middle text-center small-text bg-white">Supplier</th>'
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        if (dataProfile == 'ITEM GRADE') {
+            html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        }
         html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
         html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
@@ -444,7 +547,9 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.bale_number + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.supplier.name + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            if (dataProfile == 'ITEM GRADE') {
+                html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            }
             html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
@@ -475,7 +580,11 @@
     function footTable() {
         var html = ''
         html += '<tr>'
-        html += '<th class="bg-white align-middle small-text text-end" colspan="7">Total</th>'
+        if (dataProfile == 'ITEM GRADE') {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="7">Total</th>'
+        } else {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="6">Total</th>'
+        }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
@@ -502,7 +611,7 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelPurchaseHistory') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + supplierId + "*$" + dataProfile
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 

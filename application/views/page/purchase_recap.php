@@ -30,6 +30,21 @@
                                 <p class="fw-bolder small-text m-0">Tanggal</p>
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectItem" title="Pilih Item" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Supplier</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectSupplier" title="Pilih Supplier" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Data Profile</p>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" id="selectDataProfile" onchange="arrangeVariable()">
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -281,11 +296,25 @@
     var data_report = ""
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var itemId = []
+    var supplierId = []
+    var dataProfile = ''
+    var data_user = {}
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
         loadData()
     })
+
+    function arrangeVariable() {
+        itemId = $('#selectItem').map(function() {
+            return $(this).val();
+        }).get()
+        supplierId = $('#selectSupplier').map(function() {
+            return $(this).val();
+        }).get()
+        dataProfile = $('#selectDataProfile').val()
+    }
 
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
@@ -302,9 +331,80 @@
     }
 
     function loadData() {
-        setDaterange()
-        dateRangeString()
+        $.ajax({
+            url: "<?= api_url('loadPageRecapReportPurchase'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                });
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_user = response['data']
+                setDaterange()
+                dateRangeString()
+                selectItem()
+            }
+        })
 
+
+    }
+
+    function selectItem() {
+        var html = ''
+        data_user.item.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.code + ' - ' + e.name + '</option>'
+        });
+        $('#selectItem').html(html)
+        $('#selectItem').selectpicker('refresh');
+        $('#selectItem').selectpicker({
+
+        });
+        selectSupplier()
+    }
+
+    function selectSupplier() {
+        var html = ''
+        data_user.supplier.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectSupplier').html(html)
+        $('#selectSupplier').selectpicker('refresh');
+        $('#selectSupplier').selectpicker({
+
+        });
+        selectDataProfile()
+    }
+
+    function selectDataProfile() {
+        var html = ''
+        var a = 0
+        data_user.data_profile.forEach(e => {
+            var select = ''
+            html += '<option value="' + e + '" ' + select + '>' + e + '</option>'
+            a++
+        });
+        $('#selectDataProfile').html(html)
+        $('#selectDataProfile').selectpicker('refresh');
+        $('#selectDataProfile').selectpicker({
+
+        });
+        arrangeVariable()
     }
 
     function dateRangeString() {
@@ -338,6 +438,9 @@
             dateStart: date_start,
             dateEnd: date_end,
             warehouse_id: warehouse_id,
+            itemIds: itemId,
+            supplierIds: supplierId,
+            dataProfile: dataProfile,
         }
         kelolaData(data, type, url, button)
     }
@@ -402,7 +505,9 @@
         html += '<tr>'
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        if (dataProfile == 'ITEM GRADE') {
+            html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        }
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
         html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
         html += '<th class="align-middle text-center small-text bg-white">Price</th>'
@@ -425,12 +530,13 @@
         total_price = 0
         total_tax_out_come = 0
         total_total = 0
+        var html_popover = {}
         $.each(data_report, function(key, value) {
             if (!value.tax_out_come) {
                 value.tax_out_come = 0
             }
-            if (!value.price) {
-                value.price = 0
+            if (!value.price_avg) {
+                value.price_avg = 0
             }
             if (!value.total) {
                 value.total = 0
@@ -438,30 +544,45 @@
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            if (dataProfile == 'ITEM GRADE') {
+                html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            }
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.price) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end" id="popoverHover' + key + '" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Price List">' + number_format(roundToTwo(value.price_avg)) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
             html += '</tr>'
             total_qty += parseFloat(value.qty)
             total_weight += parseFloat(value.weight)
-            total_price += parseFloat(value.price)
+            total_price += parseFloat(value.price_avg)
             total_tax_out_come += parseFloat(value.tax_out_come)
             total_total += parseFloat(value.total)
+            if (!html_popover[key]) {
+                html_popover[key] = ''
+            }
+            value.prices.forEach(e => {
+                if (!e) {
+                    e = 0
+                }
+                html_popover[key] += '<p class="m-0 small-text">' + number_format(roundToTwo(e)) + '</p>'
+            });
         })
         $('#bodyTable').html(html)
-        footTable()
+        footTable(html_popover)
     }
 
-    function footTable() {
+    function footTable(html_popover) {
         var html = ''
         html += '<tr>'
-        html += '<th class="bg-white align-middle small-text text-end" colspan="3">Total</th>'
+        if (dataProfile == 'ITEM GRADE') {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="3">Total</th>'
+        } else {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="2">Total</th>'
+        }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_price)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
         html += '</tr>'
@@ -479,11 +600,26 @@
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
         })
+        $.each(data_report, function(key, value) {
+            var popoverTriggerEl = document.getElementById('popoverHover' + key)
+            var popover = new bootstrap.Popover(popoverTriggerEl, {
+                placement: 'bottom', // Menentukan posisi popover
+                trigger: 'hover focus', // Menentukan trigger popover (dalam contoh ini, hover)
+                html: true,
+                content: html_popover[key],
+                customClass: 'custom-popover',
+            });
+        });
+    }
+
+    function arrayToString(arr) {
+        var resultString = arr.join(',');
+        return resultString;
     }
 
     function exportExcel() {
         var url = '<?= base_url('report/excelPurchaseRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end;
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + supplierId + "*$" + dataProfile
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 

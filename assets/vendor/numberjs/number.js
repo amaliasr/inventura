@@ -794,7 +794,6 @@
 			"\\u" + ("0000" + dec_point.charCodeAt(0).toString(16)).slice(-4);
 		var u_sep =
 			"\\u" + ("0000" + thousands_sep.charCodeAt(0).toString(16)).slice(-4);
-
 		// Fix the number, so that it's an actual number.
 		number = (number + "")
 			.replace(".", dec_point) // because the number if passed in as a float (having . as decimal point per definition) we need to replace this with the passed in decimal point character
@@ -830,6 +829,10 @@
 			s[1] += new Array(decimals - s[1].length + 1).join("0");
 		}
 		// console.log("s value:" + s);
-		return s.join(dec_point);
+		var tt = s.join(dec_point)
+		if(!tt){
+			tt = 0
+		}
+		return tt;
 	};
 })(jQuery);

@@ -1,5 +1,19 @@
 <link href="<?= base_url(); ?>assets/smm/purchase_order.css" rel="stylesheet" type="text/css">
 <link href="<?= base_url(); ?>assets/smm/invoice.css" rel="stylesheet" type="text/css">
+<style>
+    .text-rekom {
+        color: #94B9DB !important;
+    }
+
+    .litepicker .container__months .month-item {
+        box-sizing: content-box !important;
+        width: 280px !important;
+    }
+
+    .container__months {
+        width: 280px !important;
+    }
+</style>
 <main>
     <!-- Main page content-->
     <header class="page-header page-header-dark pb-10">
@@ -512,7 +526,7 @@
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
-            ordering: false, // Menonaktifkan pengurutan
+            ordering: true, // Menonaktifkan pengurutan
             pageLength: 200,
             scrollY: "600px",
             scrollX: true,
@@ -698,6 +712,7 @@
             html += '<div class="d-flex align-items-center">'
             html += '<span class="me-2">Rp.</span>'
             var harga_satuan = e.price
+            var isHargaRecom = ''
             if (harga_satuan == null) {
                 harga_satuan = 0
                 var dataLoadPage = data_load_page.itemPrice.find((value, key) => {
@@ -705,6 +720,7 @@
                 });
                 if (dataLoadPage) {
                     harga_satuan = dataLoadPage.price
+                    isHargaRecom = 'text-rekom'
                 }
             }
             if (!harga_satuan) {
@@ -717,9 +733,10 @@
                 var stylenya = 'readonly style="background-color:transparent !important"'
             }
             // console.log(harga_satuan)
-            html += '<input class="form-control form-control-sm shadow-none border-0 nominal inputHargaSatuan" type="text" placeholder="0" value="' + harga_satuan + '" id="inputHargaSatuan' + a + '" data-id="' + a + '" data-weight="' + e.weight + '" oninput="updatePrice(' + "'" + a + "'" + ')" ' + stylenya + '>'
+            html += '<input class="form-control form-control-sm shadow-none border-0 nominal inputHargaSatuan ' + isHargaRecom + '" type="text" placeholder="0" value="' + harga_satuan + '" id="inputHargaSatuan' + a + '" data-id="' + a + '" data-weight="' + e.weight + '" oninput="updatePrice(' + "'" + a + "'" + ')" ' + stylenya + ' >'
             html += '</div>'
             html += '<hr class="m-0">'
+            // html += isHargaRecom
             html += '</div>'
             html += '<div class="col-3 text-end align-self-center">'
             html += '<div class="d-flex align-items-center justify-content-between small-text fw-bolder">'
@@ -909,8 +926,11 @@
         $('.inputHargaSatuan').each(function() {
             var idDetail = $(this).data('id')
             var value = $('#inputHargaSatuan' + idDetail).val()
-            if (!value) {
+            if (value == null) {
                 value = 0
+            }
+            if (value == '') {
+                value = null
             }
             var dataDetail = data_detail_invoices.purchase_details[idDetail].data_details
             dataDetail.forEach(e => {
