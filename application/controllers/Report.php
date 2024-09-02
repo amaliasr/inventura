@@ -783,7 +783,9 @@ class Report extends CI_Controller
         $total_total = 0;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Create Date');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Bale Number');
+        if ($dataProfile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Bale Number');
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Supplier');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
@@ -795,8 +797,10 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Price');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Tax Out Come');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Total');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade Cutoff');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade Latest');
+        if ($dataProfile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade Cutoff');
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade Latest');
+        }
         $jumlahRow = 2;
         $no = 1;
         foreach ($body as $key => $value) {
@@ -810,19 +814,12 @@ class Report extends CI_Controller
             if (!$value->total) {
                 $value->total = 0;
             }
-            if (!$value->grade_cutoff) {
-                $grade_cutoff = '';
-            } else {
-                $grade_cutoff = $value->grade_cutoff->name;
-            }
-            if (!$value->grade_latest) {
-                $grade_latest = '';
-            } else {
-                $grade_latest = $value->grade_latest->name;
-            }
+
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d', strtotime($value->datetime)));
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->bale_number);
+            if ($dataProfile == 'DETAIL') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->bale_number);
+            }
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->supplier->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
@@ -834,8 +831,20 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->price);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->tax_out_come);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->total);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $grade_cutoff);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $grade_latest);
+            if ($dataProfile == 'DETAIL') {
+                if (!$value->grade_cutoff) {
+                    $grade_cutoff = '';
+                } else {
+                    $grade_cutoff = $value->grade_cutoff->name;
+                }
+                if (!$value->grade_latest) {
+                    $grade_latest = '';
+                } else {
+                    $grade_latest = $value->grade_latest->name;
+                }
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $grade_cutoff);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $grade_latest);
+            }
             $jumlahRow++;
             $total_qty += $value->qty;
             $total_weight += $value->weight;
@@ -851,8 +860,7 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
-        if ($dataProfile == 'ITEM GRADE') {
+        if ($dataProfile != 'ITEM') {
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
@@ -861,6 +869,10 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_price);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_tax_out_come);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_total);
+        if ($dataProfile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
         $jumlahColumnEnd = $jumlahColumn - 1;
         $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
         // tampil totalan
@@ -963,6 +975,120 @@ class Report extends CI_Controller
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
         $filename = 'PRODUCTION RECAP ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function excelProductionHistory()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $warehouse_id = $explodedParams[1];
+        $date_start = date('Y-m-d', strtotime($explodedParams[2]));
+        $date_end = date('Y-m-d', strtotime($explodedParams[3]));
+        $itemId = $explodedParams[4];
+        $dataProfile = $explodedParams[5];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryProduction?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&itemIds=' . $itemId . '&dataProfile=' . urlencode($dataProfile))))->data;
+        $spreadsheet = new Spreadsheet();
+        $dataVariable = ['history_production_complete', 'history_production_on_process'];
+        $dataVariableTitle = ['Complete', 'On Process'];
+        for ($k = 0; $k < count($dataVariable); $k++) {
+            if ($k == 0) {
+                $worksheet[] = $spreadsheet->getActiveSheet()->setTitle($dataVariableTitle[$k]);
+            } else {
+                $worksheet[] = $spreadsheet->createSheet()->setTitle($dataVariableTitle[$k]);
+            }
+        }
+        // exit();
+        for ($k = 0; $k < count($dataVariable); $k++) {
+            $total_qty = 0;
+            $total_weight = 0;
+            $total_material_qty = 0;
+            $total_material_weight = 0;
+            $jumlahColumnStart = 1;
+            $jumlahColumn = $jumlahColumnStart;
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Date');
+            if ($dataProfile == 'DETAIL') {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Kode Inventory');
+            }
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Kode Item');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Nama Item');
+            if ($dataProfile == 'ITEM GRADE') {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+            }
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Material QTY');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Material Weight');
+            $jumlahRow = 2;
+            $no = 1;
+            foreach ($body->{$dataVariable[$k]}->data as $key => $value) {
+                $jumlahColumn = $jumlahColumnStart;
+                if (!$value->qty) {
+                    $value->qty = 0;
+                }
+                if (!$value->weight) {
+                    $value->weight = 0;
+                }
+                if (!$value->material_qty) {
+                    $value->material_qty = 0;
+                }
+                if (!$value->material_weight) {
+                    $value->material_weight = 0;
+                }
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d m:i:s', strtotime($value->datetime)));
+                if ($dataProfile == 'DETAIL') {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->code);
+                }
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+                if ($dataProfile == 'ITEM GRADE') {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
+                }
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->material_qty);
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->material_weight);
+                $jumlahRow++;
+                $total_qty += $value->qty;
+                $total_weight += $value->weight;
+                $total_material_qty += $value->material_qty;
+                $total_material_weight += $value->material_weight;
+            }
+            $jumlahColumnEnd = $jumlahColumn - 1;
+            $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+            // tampil totalan
+            $jumlahColumn = $jumlahColumnStart;
+            if ($dataProfile == 'ITEM') {
+                for ($i = 0; $i < 4; $i++) {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+                }
+            } else {
+                for ($i = 0; $i < 5; $i++) {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+                }
+            }
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_material_qty);
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_material_weight);
+            $jumlahColumnEnd = $jumlahColumn - 1;
+            $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+            // tampil totalan
+        }
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'PRODUCTION HISTORY ' . $dataProfile . ' ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

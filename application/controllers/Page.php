@@ -138,4 +138,11 @@ class Page extends CI_Controller
         $this->pdf->render();
         $this->pdf->stream("SURAT JALAN " . $data['document_number'] . ".pdf", array("Attachment" => 0));
     }
+    public function history_production()
+    {
+        $data['title'] = 'Production History';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $this->template->views('page/history_production', $data);
+    }
 }

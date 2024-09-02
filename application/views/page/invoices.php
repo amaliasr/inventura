@@ -196,6 +196,7 @@
 
     $('#modal').on('hidden.bs.modal', function(e) {
         id_detail_clicked = ''
+        newNumberInvoice = ''
         clearModal();
     })
     var user_id = '<?= $this->session->userdata('id') ?>'
@@ -432,6 +433,7 @@
         html += '<th class="align-middle small" style="background-color: white;">Total<br>Berat</th>'
         html += '<th class="align-middle small" style="background-color: white;">Total<br>Harga</th>'
         html += '<th class="align-middle small" style="background-color: white;">Notes</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Notes<br>Purchase</th>'
         html += '<th class="align-middle small" style="background-color: white;">User<br>Create</th>'
         html += '<th class="align-middle small" style="background-color: white;width:30px">Status</th>'
         html += '<th class="align-middle small" style="background-color: white;width:20px;"></th>'
@@ -491,7 +493,11 @@
             if (!e.note) {
                 e.note = ''
             }
+            if (!e.note_purchase) {
+                e.note_purchase = ''
+            }
             html += '<td class="' + bg + ' px-2 align-middle small-text" style="background-color: white;cursor: default;" title="' + e.note + '">' + shortenText(e.note, 20) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text" style="background-color: white;cursor: default;" title="' + e.note_purchase + '">' + shortenText(e.note_purchase, 20) + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">' + e.user_admin.name + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + badge + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small-text text-center" style="background-color: white;">'
@@ -564,6 +570,7 @@
         html += '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1"/></svg>'
         return html
     }
+    var newNumberInvoice = ''
 
     function headerInvoice(id) {
         var data = data_invoices.dataInvoice.data.find((value, key) => {
@@ -575,9 +582,27 @@
         if (data.line) {
             line = data.line.name
         }
+        var html_footer = '';
+        var btnEditNumberInvoice = ''
+        html_footer += '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>'
+        if (!data.is_complete) {
+            if (data.is_ready_print) {
+                html_footer += '<button type="button" class="btn btn-outline-primary btn-sm" id="btnSimpan" onclick="simpanData(' + "'" + id + "'" + ',0)">Update Data</button>'
+                html_footer += '<button type="button" class="btn btn-primary btn-sm" id="btnSimpanPrint" onclick="simpanData(' + "'" + id + "'" + ',0,true)">Update Data & Print</button>'
+                btnEditNumberInvoice = '<span class="fa fa-pencil small ms-2 text-grey pointer" id="btnEditInvoiceNumber" onclick="editNumberInvoice(' + "'" + data.invoice + "'" + ')"></span>'
+            }
+        }
         html += '<div class="row p-2">'
         html += '<div class="col-10">'
-        html += '<p class="m-0 fw-bold text-grey-dark h3 d-flex align-items-center gap-2">Invoice <span class="text-primary-payment" id="invoiceAutoNumber">#' + data.invoice + '</span></p>'
+
+        html += '<p class="m-0 fw-bold text-grey-dark h3 d-flex align-items-center gap-2">'
+        html += 'Invoice'
+        // input
+        html += '<span id="fieldEditInvoiceNumber">'
+        html += '</span>'
+        // input
+        html += btnEditNumberInvoice
+        html += '</p>'
         html += '<p class="m-0 small text-dark-grey">Created At ' + formatDateIndonesia(data.datetime) + ' | <span class="fw-bolder text-primary-payment"">' + line + '</span></p>'
         html += '</div>'
         html += '<div class="col-2 text-end align-self-center">'
@@ -587,15 +612,9 @@
         html += '</div>'
         html += '</div>'
         $('#headerInvoice').html(html)
-        var html_footer = '';
-        html_footer += '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>'
-        if (!data.is_complete) {
-            if (data.is_ready_print) {
-                html_footer += '<button type="button" class="btn btn-outline-primary btn-sm" id="btnSimpan" onclick="simpanData(' + "'" + id + "'" + ',0)">Update Data</button>'
-                html_footer += '<button type="button" class="btn btn-primary btn-sm" id="btnSimpanPrint" onclick="simpanData(' + "'" + id + "'" + ',0,true)">Update Data & Print</button>'
-            }
-        }
+
         $('#modalFooter').html(html_footer);
+        disabledEditNumberInvoice(data.invoice)
         bodyInvoice(data)
     }
 
@@ -622,6 +641,17 @@
         html += '</div>'
         html += '</div>'
         // purchase detail
+        // notes
+        html += '<div class="card shadow-none border-0 mb-3">'
+        html += '<div class="card-body p-0">'
+        html += '<p class="m-0 super-small-text fw-bolder mb-2">Notes Purchase</p>'
+        if (!data.note_purchase) {
+            data.note_purchase = ''
+        }
+        html += '<textarea class="form-control form-control-sm" id="notes_purchase" rows="3" style="resize: none;">' + data.note_purchase + '</textarea>'
+        html += '</div>'
+        html += '</div>'
+        // notes
         //setting
         html += '<p class="m-0 super-small-text fw-bolder text-primary-payment">Settings</p>'
         html += '<div class="row mt-2">'
@@ -951,6 +981,7 @@
                 tax_out_come: tax_out_come,
                 total: totalAll,
                 updated_at: currentDateTime(),
+                note_purchase: $('#notes_purchase').val(),
             }],
             purchase_detail: purchase_detail,
         }
@@ -958,6 +989,9 @@
             data.purchase[0].is_complete = 1
             data.purchase[0].complete_at = currentDateTime()
             data.purchase[0].user_id_complete = user_id
+        }
+        if (newNumberInvoice) {
+            data.purchase[0].invoice = newNumberInvoice
         }
         kelolaData(data, type, url, button, is_print, id)
     }
@@ -1023,6 +1057,7 @@
                         icon: 'success',
                     }).then((responses) => {
                         $(button).prop("disabled", false);
+                        newNumberInvoice = ''
                         if (button == '#btnHapus') {
                             id_detail_clicked = ''
                             $('#modal').modal('hide')
@@ -1057,5 +1092,32 @@
         eval('var url = "<?= base_url() ?>page/cetakInvoices"')
         var params = "*$" + id + "*$" + name + "*$" + data_detail_invoices.invoice + '*$' + is_pajak + '*$' + is_harga_satuan + '*$' + image
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
+    }
+
+    function editNumberInvoice(invoiceNumber) {
+        var html = ''
+        if (newNumberInvoice) {
+            invoiceNumber = newNumberInvoice
+        }
+        html += '<input class="form-control form-control-lg p-0 border-0 shadow-none w-100 h3 fw-bold" type="text" autocomplete="off" id="nomorInvoiceManual" value="' + invoiceNumber + '" style="min-height:0px;border-radius:0px;min-width:210px;" oninput="inputNewInvoiceNumber()" onblur="disabledEditNumberInvoice(' + "'" + invoiceNumber + "'" + ')">'
+        html += '<hr class="m-0 mt-1">'
+        $('#fieldEditInvoiceNumber').html(html)
+        $('#nomorInvoiceManual').focus();
+        $('#btnEditInvoiceNumber').addClass('d-none');
+    }
+
+    function disabledEditNumberInvoice(invoiceNumber) {
+        var html = ''
+        if (newNumberInvoice) {
+            invoiceNumber = newNumberInvoice
+        }
+        html += '<span class="text-primary-payment" id="invoiceAutoNumber">#' + invoiceNumber + '</span>'
+        $('#fieldEditInvoiceNumber').html(html)
+        $('#btnEditInvoiceNumber').removeClass('d-none');
+    }
+
+    function inputNewInvoiceNumber() {
+        var invoiceNumber = $('#nomorInvoiceManual').val()
+        newNumberInvoice = invoiceNumber
     }
 </script>
