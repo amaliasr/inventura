@@ -710,7 +710,7 @@
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
-            ordering: false, // Menonaktifkan pengurutan
+            ordering: true, // Menonaktifkan pengurutan
             pageLength: 200,
             scrollY: "600px",
             scrollX: true,
@@ -720,7 +720,6 @@
             fixedColumns: {
                 left: 3
             },
-            paging: false,
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },

@@ -13,6 +13,24 @@
     .container__months {
         width: 280px !important;
     }
+
+    #custom-search-container div.dataTables_filter input {
+        border-radius: 20px;
+        width: 200px;
+    }
+
+    #custom-search-container div.dataTables_filter {
+        font-size: 0px;
+    }
+
+    .formFilter {
+        border-radius: 20px;
+        width: 200px;
+        padding-left: 30px;
+        padding: 9px !important;
+        padding-right: 50px !important;
+        font-size: 10px;
+    }
 </style>
 <main>
     <!-- Main page content-->
@@ -174,8 +192,8 @@
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
         const today = new Date();
-        // Mengurangi tiga bulan dari bulan saat ini
-        today.setMonth(today.getMonth() - 3);
+        // Mengurangi 1 bulan dari bulan saat ini
+        today.setMonth(today.getMonth() - 1);
         var month = today.getMonth() + 1;
         var year = today.getFullYear();
 
@@ -312,7 +330,7 @@
 
     function statusLine() {
         var html = ''
-        html += '<div class="row justify-content-between mt-4">'
+        html += '<div class="row justify-content-between mt-4 mb-2">'
         // tab
         html += '<div class="col h-100">'
         html += '<div class="row" style="height:30px">'
@@ -334,6 +352,8 @@
         // tab
         html += '<div class="col-auto ps-0">'
         html += '<input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off">'
+        html += '</div>'
+        html += '<div class="col-auto ps-0" id="custom-search-container">'
         html += '</div>'
 
         html += '</div>'
@@ -408,7 +428,7 @@
 
     function dataTable() {
         var html = ''
-        html += '<table class="table table-hover table-sm small w-100 mt-4" style="overflow-x: hidden;" id="tableDetail">'
+        html += '<table class="table table-hover table-sm small w-100 mt-5" style="overflow-x: hidden;" id="tableDetail">'
         html += '<thead id="headTable">'
         html += '</thead>'
         html += '<tbody id="bodyTable">'
@@ -539,8 +559,12 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            searching: false
+            searching: true,
+            "initComplete": function(settings, json) {
+                $('div.dataTables_filter input').attr('placeholder', 'Search...');
+            },
         })
+        $('#custom-search-container').html($('.dataTables_filter'));
         if (id_detail_clicked) {
             headerInvoice(id_detail_clicked)
         }
@@ -584,13 +608,17 @@
         }
         var html_footer = '';
         var btnEditNumberInvoice = ''
+        var btnHapusInvoice = ''
         html_footer += '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>'
         if (!data.is_complete) {
             if (data.is_ready_print) {
                 html_footer += '<button type="button" class="btn btn-outline-primary btn-sm" id="btnSimpan" onclick="simpanData(' + "'" + id + "'" + ',0)">Update Data</button>'
                 html_footer += '<button type="button" class="btn btn-primary btn-sm" id="btnSimpanPrint" onclick="simpanData(' + "'" + id + "'" + ',0,true)">Update Data & Print</button>'
                 btnEditNumberInvoice = '<span class="fa fa-pencil small ms-2 text-grey pointer" id="btnEditInvoiceNumber" onclick="editNumberInvoice(' + "'" + data.invoice + "'" + ')"></span>'
+                btnHapusInvoice = '<a class="dropdown-item text-danger" onclick="deleteInvoice(' + id + ')"><i class="fa fa-trash text-danger me-2"></i> Hapus Invoice</a>'
             }
+        } else {
+            btnHapusInvoice = '<a class="dropdown-item text-danger" onclick="deleteInvoice(' + id + ')"><i class="fa fa-trash text-danger me-2"></i> Hapus Invoice</a>'
         }
         html += '<div class="row p-2">'
         html += '<div class="col-10">'
@@ -607,9 +635,18 @@
         html += '</div>'
         html += '<div class="col-2 text-end align-self-center">'
         if (data.is_complete) {
-            html += '<button class="btn btn-sm btn-outline-dark-light shadow-none" style="border-color: #69707a;" onclick="printInvoice(' + "'" + id + "'" + ')">' + iconPrint() + '</button>'
+            html += '<button class="btn p-0 shadow-none" onclick="printInvoice(' + "'" + id + "'" + ')">' + iconPrint() + '</button>'
+            // html += '<button class="btn btn-sm btn-outline-dark-light shadow-none" style="border-color: #69707a;" onclick="printInvoice(' + "'" + id + "'" + ')">' + iconPrint() + '</button>'
         }
-        html += '</div>'
+        if (btnHapusInvoice) {
+            html += '<button class="btn pe-0 shadow-none" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>'
+            // menu
+            html += '<div class="dropdown-menu shadow-sm bg-light" aria-labelledby="dropdownMenuButton">'
+            html += btnHapusInvoice
+            html += '</div>'
+            // menu
+            html += '</div>'
+        }
         html += '</div>'
         $('#headerInvoice').html(html)
 
@@ -684,8 +721,8 @@
         //setting
         if (!data.is_complete) {
             if (data.is_ready_print) {
-                html += '<button class="btn btn-danger small-text w-100 mt-4 shadow-none" onclick="closeInvoice(' + data.id + ',1)">Close Invoice</button>'
-                html += '<button class="btn small-text w-100 my-1 text-danger shadow-none" id="btnHapus" onclick="deleteInvoice(' + data.id + ')"><i class="fa fa-trash me-2"></i>Hapus Invoice</button>'
+                html += '<button class="btn btn-danger small-text w-100 mt-5 shadow-none" onclick="closeInvoice(' + data.id + ',1)">Close Invoice</button>'
+                // html += '<button class="btn small-text w-100 my-1 text-danger shadow-none" id="btnHapus" onclick="deleteInvoice(' + data.id + ')"><i class="fa fa-trash me-2"></i>Hapus Invoice</button>'
                 html += '<hr class="m-0" style="height: 0.5px">'
                 html += '<button class="btn small-text w-100 my-1 text-dark-grey shadow-none" id="btnBatalMuat" onclick="batalMuat(' + data.id + ')"><i class="fa fa-times me-2"></i>Batal Selesai Timbang</button>'
             } else {
@@ -694,7 +731,7 @@
                 html += '</div>'
             }
         } else {
-            html += '<button class="btn small-text w-100 mt-1 text-danger shadow-none" id="btnHapus" onclick="deleteInvoice(' + data.id + ')"><i class="fa fa-trash me-2"></i>Hapus Invoice</button>'
+            // html += '<button class="btn small-text w-100 mt-1 text-danger shadow-none" id="btnHapus" onclick="deleteInvoice(' + data.id + ')"><i class="fa fa-trash me-2"></i>Hapus Invoice</button>'
         }
         html += '</div>'
         $('#bodyInvoice').html(html)

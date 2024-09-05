@@ -469,14 +469,13 @@
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
-            ordering: false, // Menonaktifkan pengurutan
+            ordering: true, // Menonaktifkan pengurutan
             pageLength: 200,
             scrollY: "600px",
             scrollX: true,
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            paging: false,
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },

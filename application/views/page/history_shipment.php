@@ -417,6 +417,7 @@
         // console.log(dataProfile)
         if (dataProfile == 'DETAIL') {
             html += '<th class="align-middle text-center small-text bg-white">Kode<br>Inventori</th>'
+            html += '<th class="align-middle text-center small-text bg-white">Bale<br>Number</th>'
         }
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
         if (dataProfile != 'SUMMARY ITEM') {
@@ -453,6 +454,7 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
             if (dataProfile == 'DETAIL') {
                 html += '<td class="bg-white align-middle small-text text-center">' + value.inventory.code + '</td>'
+                html += '<td class="bg-white align-middle small-text text-center">' + value.inventory.bale_number + '</td>'
             }
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             if (dataProfile != 'SUMMARY ITEM') {
@@ -492,6 +494,7 @@
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         if (dataProfile == 'DETAIL') {
             html += '<th class="bg-white align-middle small-text text-end"></th>'
+            html += '<th class="bg-white align-middle small-text text-end"></th>'
         }
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         if (dataProfile != 'SUMMARY ITEM') {
@@ -513,14 +516,13 @@
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
-            ordering: false, // Menonaktifkan pengurutan
+            ordering: true, // Menonaktifkan pengurutan
             pageLength: 200,
             scrollY: "600px",
             scrollX: true,
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            paging: false,
             fixedColumns: {
                 left: 5
             },

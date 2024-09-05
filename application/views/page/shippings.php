@@ -9,6 +9,24 @@
     .container__months {
         width: 280px !important;
     }
+
+    #custom-search-container div.dataTables_filter input {
+        border-radius: 20px;
+        width: 200px;
+    }
+
+    #custom-search-container div.dataTables_filter {
+        font-size: 0px;
+    }
+
+    .formFilter {
+        border-radius: 20px;
+        width: 200px;
+        padding-left: 30px;
+        padding: 9px !important;
+        padding-right: 50px !important;
+        font-size: 10px;
+    }
 </style>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -250,6 +268,7 @@
             getData: 'chooseDataTransit()'
         }
     ]
+    var data_packing_list = []
     $(document).ready(function() {
         dateRangeString()
         loadData()
@@ -407,10 +426,12 @@
         html += '<div class="col-auto ps-0">'
         html += '<input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off">'
         html += '</div>'
+        html += '<div class="col-auto ps-0" id="custom-search-container">'
+        html += '</div>'
 
         html += '</div>'
         html += '</div>'
-        html += '<div class="col-12 border-top pt-2">'
+        html += '<div class="col-12 pt-2">'
 
         html += '<div class="row justify-content-end">'
         html += '<div class="col-auto">'
@@ -443,6 +464,7 @@
         html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Model</th>'
         html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Number</th>'
         html += '<th class="align-middle text-center small-text bg-white">Driver<br>Name</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Driver<br>Phone</th>'
         html += '<th class="align-middle text-center small-text bg-white">Receive<br>At</th>'
         html += '<th class="align-middle text-center small-text bg-white">Receive<br>By</th>'
         html += '<th class="align-middle text-center small-text bg-white">Status</th>'
@@ -481,7 +503,7 @@
         $.each(dataFind, function(key, value) {
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + ' ' + formatTime(value.shipment_at) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_destination.name + '</td>'
@@ -493,6 +515,7 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_model.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.driver_phone + '</td>'
             if (value.is_receive) {
                 html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.receive_at) + '</td>'
                 html += '<td class="bg-white align-middle small-text text-center">' + value.user_receiver.name + '</td>'
@@ -518,6 +541,8 @@
             html += '<td class="bg-white align-middle small-text text-center">'
             html += '<button class="super-small-text btn btn-sm btn-outline-dark py-1 px-2 shadow-none" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>'
             html += '<div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuButton">'
+            html += '<a class="dropdown-item" onclick="getPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-list-ul me-2"></i> Packing List</a>'
+            html += '<a class="dropdown-item" onclick="cetakPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Packing List</a>'
             if (value.is_load_all) {
                 html += '<a class="dropdown-item" onclick="cetakSuratJalan(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
                 if (!value.is_receive) {
@@ -569,8 +594,9 @@
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
-            searching: false,
+            searching: true,
         })
+        $('#custom-search-container').html($('.dataTables_filter'));
     }
 
     function cetakSuratJalan(id, document_number) {
@@ -648,5 +674,148 @@
                 }
             }
         });
+    }
+
+    function getPackingList(id, doc_num) {
+        data_packing_list = []
+        $.ajax({
+            url: "<?= api_url('getHistoryShipmentItem'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                shipmentId: id,
+                dataProfile: 'DETAIL',
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                })
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_packing_list = response.data.history_shipment_item.data
+                detailPackingList(id, doc_num)
+            }
+        })
+    }
+
+    function detailPackingList(id, doc_num) {
+        $('#modal').modal('show')
+        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable');
+        var html_header = '';
+        html_header += '<h5 class="modal-title small">Packing List ' + doc_num + '</h5>';
+        html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
+        $('#modalHeader').html(html_header);
+        var html_body = '';
+        html_body += '<div class="row">'
+        html_body += '<div class="col-12 text-end">'
+        // tombol cetak packing list
+        html_body += '<button type="button" class="btn btn-outline-primary btn-sm small-text p-2" onclick="cetakPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-print me-2"></i>Cetak Packing List</button>'
+        html_body += '</div>'
+        html_body += '<div class="col-12 table-responsive" id="dataPackingList">'
+        html_body += '</div>'
+        html_body += '</div>'
+        $('#modalBody').html(html_body);
+        var html_footer = '';
+        html_footer += '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>'
+        $('#modalFooter').html(html_footer);
+        dataPackingList(id)
+    }
+
+    function dataPackingList(id) {
+        var html = '';
+        html += '<table class="table table-bordered table-hover table-sm small w-100 tablePackingList" id="tablePackingList">'
+        html += '<thead>'
+        html += '<tr>'
+        html += '<th class="align-middle small-text" width="10%">No</th>'
+        // html += '<th class="align-middle small-text" width="20%">Tgl</th>'
+        html += '<th class="align-middle small-text" width="40%">No. Bale</th>'
+        html += '<th class="align-middle small-text" width="10%">Berat</th>'
+        html += '<th class="align-middle small-text" width="30%">Item</th>'
+        html += '<th class="align-middle small-text" width="10%">Grade</th>'
+        html += '</tr>'
+        html += '</thead>'
+        html += '<tbody>'
+        html += '</tbody>'
+        html += '<tfoot>'
+        html += '</tfoot>'
+        html += '</table>'
+        $('#dataPackingList').html(html)
+        dataTablePackingList(id)
+    }
+
+    function formatDate2(inputDate) {
+        // Mengambil tanggal dari input
+        const date = new Date(inputDate);
+
+        // Mengambil hari, bulan, dan tahun dari objek Date
+        let day = date.getDate();
+        let month = date.getMonth() + 1; // Bulan dimulai dari 0, jadi ditambahkan 1
+        let year = date.getFullYear();
+
+        // Mengubah tahun ke dua digit terakhir
+        year = year.toString().slice(-2);
+
+        // Menambahkan 0 di depan hari dan bulan jika kurang dari 10
+        if (day < 10) day = '0' + day;
+        if (month < 10) month = '0' + month;
+
+        // Menggabungkan hari, bulan, dan tahun sesuai format DD/MM/YY
+        return `${day}/${month}/${year}`;
+    }
+
+    function dataTablePackingList(id) {
+        var html = '';
+        var a = 1
+        var total_weight = 0
+        data_packing_list.forEach(e => {
+            html += '<tr>'
+            html += '<td class="align-middle small-text text-center" width="10%">' + a++ + '</td>'
+            html += '<td class="align-middle small-text text-center" width="40%">' + formatDate2(e.inventory.date) + '-' + e.inventory.bale_number + '</td>'
+            // html += '<td class="align-middle small-text text-center" width="20%">' + e.inventory.bale_number + '</td>'
+            html += '<td class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(e.weight)) + '</td>'
+            html += '<td class="align-middle small-text" width="30%">' + e.item.name + '</td>'
+            html += '<td class="align-middle small-text text-center" width="10%">' + e.item_grade.name + '</td>'
+            html += '</tr>'
+            total_weight += e.weight
+        });
+        $('#tablePackingList tbody').html(html)
+        dataTablePackingListFooter(id, total_weight)
+    }
+
+    function dataTablePackingListFooter(id, total_weight) {
+        var html = '';
+        html += '<tr>'
+        html += '<th class="align-middle small-text text-center" width="10%"></th>'
+        html += '<th class="align-middle small-text text-end" width="40%">Total</th>'
+        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total_weight)) + '</th>'
+        html += '<th class="align-middle small-text" width="30%"></th>'
+        html += '<th class="align-middle small-text text-center" width="10%"></th>'
+        html += '</tr>'
+        $('#tablePackingList tfoot').html(html)
+        $('#tablePackingList').DataTable({
+            ordering: true, // Menonaktifkan pengurutan
+            // pageLength: 200,
+            paging: false,
+            fixedHeader: true,
+            searching: false,
+            // scrollY: "400px",
+            // scrollX: true,
+            // scrollCollapse: true,
+            "info": false, // Mematikan tampilan informasi
+            "lengthChange": false
+        })
+    }
+
+    function cetakPackingList(id, doc_num) {
+        var url = "<?= base_url() ?>page/cetakPackingList"
+        var params = "*$" + id + "*$" + doc_num
+        window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 </script>

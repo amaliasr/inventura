@@ -138,6 +138,23 @@ class Page extends CI_Controller
         $this->pdf->render();
         $this->pdf->stream("SURAT JALAN " . $data['document_number'] . ".pdf", array("Attachment" => 0));
     }
+    public function cetakPackingList()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $data['id'] = $explodedParams[1];
+        $data['doc_num'] = $explodedParams[2];
+        $data['datas'] = json_decode($this->curl->simple_get(api_url('getHistoryShipmentItem?shipmentId=' . $data['id'] . '&dataProfile=DETAIL')))->data->history_shipment_item->data;
+        // $this->load->view('print/cetakPackingList', $data);
+        // exit;
+        $html = $this->load->view('print/cetakPackingList', $data, true);
+        $this->pdf->setPaper('A4', 'potrait');
+        $this->pdf->filename = "PACKING LIST SJ " . $data['doc_num'] . ".pdf";
+        $this->pdf->loadHtml($html);
+        $this->pdf->render();
+        $this->pdf->stream("PACKING LIST SJ " . $data['doc_num'] . ".pdf", array("Attachment" => 0));
+    }
     public function history_production()
     {
         $data['title'] = 'Production History';
