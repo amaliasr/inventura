@@ -17,7 +17,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">HISTORY SHIPMENT</h1>
+                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">HISTORY MATERIAL</h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -32,10 +32,7 @@
                             </div>
                             <div class="col-auto ps-0">
                                 <p class="fw-bolder small-text m-0">Data Profile</p>
-                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectDataProfile" title="Pilih Tipe Data">
-                                    <option value="DETAIL" selected>Detail</option>
-                                    <option value="SUMMARY ITEM">Summary Item</option>
-                                    <option value="SUMMARY ITEM GRADE">Summary Item Grade</option>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" id="selectDataProfile" onchange="arrangeVariable()">
                                 </select>
                             </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
@@ -59,11 +56,17 @@
             <div class="col-12 mb-2">
                 <div class="card shadow-none border-radius-20">
                     <div class="card-body">
-                        <p class="fw-bolder m-0">Detail</p>
-                        <div class="table-responsible" id="dataTable">
+                        <div class="row">
+                            <div class="col-12 px-4" id="statusLine">
 
+                            </div>
                         </div>
-
+                        <div class="row me-0">
+                            <div class="col-12 pe-0">
+                                <div class="table-responsible" id="dataTable">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -287,9 +290,254 @@
     })
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
     var data_report = ""
+    var data_report_showed = []
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var itemId = []
+    var supplierId = []
     var dataProfile = ''
+    var data_user = {}
+    var statusLineVariable = [{
+            id: 0,
+            name: 'Complete',
+            selected: true,
+            functions: 'countDataComplete()',
+            getData: 'chooseDataComplete()'
+        },
+        {
+            id: 1,
+            name: 'On Process',
+            selected: false,
+            functions: 'countDataOnProcess()',
+            getData: 'chooseDataOnProcess()'
+        }
+    ]
+    var dataFillTable = {
+        'DETAIL': [{
+            name: 'Date',
+            variable: 'getDateTime(value.datetime)',
+            text: 'text-center'
+        }, {
+            name: 'Bale Number',
+            variable: 'value.inventory.bale_number',
+            text: 'text-center'
+        }, {
+            name: 'Item',
+            variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Grade',
+            variable: 'value.grade.name',
+            text: 'text-center'
+        }, {
+            name: 'Unit',
+            variable: 'value.unit.name',
+            text: 'text-center'
+        }, {
+            name: 'QTY',
+            variable: 'value.qty',
+            text: 'text-end'
+        }, {
+            name: 'Weight',
+            variable: 'value.weight',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Bale Number',
+            variable: 'value.production_inventory.bale_number',
+            text: 'text-center'
+        }, {
+            name: 'Production<br>Item',
+            variable: 'value.production_item.name',
+            text: ''
+        }, {
+            name: 'Production<br>Grade',
+            variable: 'value.production_grade.name',
+            text: 'text-center'
+        }, {
+            name: 'Production<br>Unit',
+            variable: 'value.production_unit.name',
+            text: 'text-center'
+        }, {
+            name: 'Production<br>QTY',
+            variable: 'value.production_qty',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Weight',
+            variable: 'value.production_weight',
+            text: 'text-end'
+        }],
+        'ITEM': [{
+            name: 'Date',
+            variable: 'formatDate(value.datetime)',
+            text: 'text-center'
+        }, {
+            name: 'Item',
+            variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Unit',
+            variable: 'value.unit.name',
+            text: 'text-center'
+        }, {
+            name: 'QTY',
+            variable: 'value.qty',
+            text: 'text-end'
+        }, {
+            name: 'Weight',
+            variable: 'value.weight',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>QTY',
+            variable: 'value.production_qty',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Weight',
+            variable: 'value.production_weight',
+            text: 'text-end'
+        }],
+        'ITEM GRADE': [{
+            name: 'Date',
+            variable: 'formatDate(value.datetime)',
+            text: 'text-center'
+        }, {
+            name: 'Item',
+            variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Grade',
+            variable: 'value.grade.name',
+            text: 'text-center'
+        }, {
+            name: 'Unit',
+            variable: 'value.unit.name',
+            text: 'text-center'
+        }, {
+            name: 'QTY',
+            variable: 'value.qty',
+            text: 'text-end'
+        }, {
+            name: 'Weight',
+            variable: 'value.weight',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>QTY',
+            variable: 'value.production_qty',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Weight',
+            variable: 'value.production_weight',
+            text: 'text-end'
+        }],
+    }
+    var dataFooterTable = {
+        'DETAIL': [{
+            variable: '"Total"',
+            text: 'text-end',
+            colspan: '6',
+        }, {
+            variable: 'number_format(roundToTwo(total_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: '""',
+            text: '',
+            colspan: '4',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_weight))',
+            text: 'text-end',
+            colspan: '',
+        }],
+        'ITEM': [{
+            variable: '"Total"',
+            text: 'text-end',
+            colspan: '4',
+        }, {
+            variable: 'number_format(roundToTwo(total_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_weight))',
+            text: 'text-end',
+            colspan: '',
+        }],
+        'ITEM GRADE': [{
+            variable: '"Total"',
+            text: 'text-end',
+            colspan: '5',
+        }, {
+            variable: 'number_format(roundToTwo(total_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_weight))',
+            text: 'text-end',
+            colspan: '',
+        }],
+    }
+
+    function chooseDataComplete() {
+        var data = data_report.history_material_complete.data
+        return data
+    }
+
+    function countDataComplete() {
+        return chooseDataComplete().length
+    }
+
+
+    function chooseDataOnProcess() {
+        var data = data_report.history_material_on_process.data
+        return data
+    }
+
+    function countDataOnProcess() {
+        return chooseDataOnProcess().length
+    }
+
+    function statusLineSwitch(id, getData) {
+        let updatedData = statusLineVariable.map(item => {
+            return {
+                ...item,
+                selected: false
+            };
+        });
+        let updatedData2 = updatedData.map(item => {
+            if (item.id == id) {
+                return {
+                    ...item,
+                    selected: true
+                };
+            }
+            return item;
+        });
+        statusLineVariable = updatedData2
+        data_report_showed = eval(getData)
+        statusLine()
+    }
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
@@ -311,9 +559,56 @@
     }
 
     function loadData() {
-        setDaterange()
-        dateRangeString()
+        $.ajax({
+            url: "<?= api_url('loadpageReportProduction'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                });
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_user = response['data']
+                setDaterange()
+                dateRangeString()
+                selectDataProfile()
+            }
+        })
+    }
 
+
+    function selectDataProfile() {
+        var html = ''
+        var a = 0
+        data_user.data_profile.forEach(e => {
+            var select = ''
+            html += '<option value="' + e + '" ' + select + '>' + e + '</option>'
+            a++
+        });
+        $('#selectDataProfile').html(html)
+        $('#selectDataProfile').selectpicker('refresh');
+        $('#selectDataProfile').selectpicker({
+
+        });
+        arrangeVariable()
+    }
+
+    function arrangeVariable() {
+        itemId = $('#selectItem').map(function() {
+            return $(this).val();
+        }).get()
+        dataProfile = $('#selectDataProfile').val()
     }
 
     function dateRangeString() {
@@ -339,11 +634,10 @@
     }
 
     function simpanData() {
-        dataProfile = $('#selectDataProfile').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getHistoryShipmentItem'); ?>'
+        var url = '<?php echo api_url('getHistoryMaterial'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -375,19 +669,36 @@
                 showOverlay('hide')
                 dateRangeString()
                 $(button).prop("disabled", false);
-                data_report = response.data.history_shipment_item.data
-                if (data_report) {
-                    if (data_report.length) {
-                        updatedStructure()
-                    } else {
-                        // tidak ada data
-                        $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
-                    }
-                } else {
-                    $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
-                }
+                data_report = response.data
+                data_report_showed = data_report.history_material_complete.data
+                statusLine()
             }
         });
+    }
+
+    function statusLine() {
+        var html = ''
+        html += '<div class="row justify-content-between">'
+        html += '<div class="col h-100">'
+        html += '<div class="row" style="height:30px">'
+        statusLineVariable.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
+
+        });
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        $('#statusLine').html(html)
+        dataTable()
     }
 
     function updatedStructure() {
@@ -412,117 +723,64 @@
         var html = ''
         html += '<tr>'
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Date Ship</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Doc Number</th>'
-        // console.log(dataProfile)
-        if (dataProfile == 'DETAIL') {
-            html += '<th class="align-middle text-center small-text bg-white">Kode<br>Inventori</th>'
-            html += '<th class="align-middle text-center small-text bg-white">Bale<br>Number</th>'
-        }
-        html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        if (dataProfile != 'SUMMARY ITEM') {
-            html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
-        }
-        html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">QTY<br>Receive</th>'
-        if (dataProfile != 'SUMMARY ITEM') {
-            html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
-        }
-        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Weight<br>Receive</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Origin</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Destination</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Sender</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Model</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Number</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Driver<br>Name</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Receive<br>At</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Receive<br>By</th>'
+        dataFillTable[dataProfile].forEach(e => {
+            html += '<th class="align-middle text-center small-text bg-white">' + e.name + '</th>'
+        });
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
     }
+
     var total_qty = 0
-    var total_qty_receive = 0
     var total_weight = 0
-    var total_weight_receive = 0
+    var total_production_qty = 0
+    var total_production_weight = 0
 
     function bodyTable() {
         var html = ''
         total_qty = 0
-        total_qty_receive = 0
         total_weight = 0
-        total_weight_receive = 0
-        $.each(data_report, function(key, value) {
+        total_production_qty = 0
+        total_production_weight = 0
+        var dataFind = deepCopy(data_report_showed)
+        $.each(dataFind, function(key, value) {
+            if (!value.qty) {
+                value.qty = 0
+            }
+            if (!value.weight) {
+                value.weight = 0
+            }
+            if (!value.production_qty) {
+                value.production_qty = 0
+            }
+            if (!value.production_weight) {
+                value.production_weight = 0
+            }
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + ' ' + formatTime(value.shipment_at) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
-            if (dataProfile == 'DETAIL') {
-                html += '<td class="bg-white align-middle small-text text-center">' + value.inventory.code + '</td>'
-                html += '<td class="bg-white align-middle small-text text-center">' + value.inventory.bale_number + '</td>'
-            }
-            html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            if (dataProfile != 'SUMMARY ITEM') {
-                html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
-            }
-            html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.qty_receive + '</td>'
-            if (dataProfile != 'SUMMARY ITEM') {
-                html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
-            }
-            html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.weight_receive + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_dest.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.sender.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_model.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
-            if (value.is_receive) {
-                html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.receive_at) + '</td>'
-                html += '<td class="bg-white align-middle small-text text-center">' + value.receiver + '</td>'
-            } else {
-                html += '<td class="bg-white align-middle small-text text-center"></td>'
-                html += '<td class="bg-white align-middle small-text text-center"></td>'
-            }
+            dataFillTable[dataProfile].forEach(e => {
+                html += '<td class="bg-white align-middle small-text ' + e.text + '">' + eval(e.variable) + '</td>'
+            })
             html += '</tr>'
-            total_qty += parseFloat(value.qty)
+            total_qty += parseInt(value.qty)
             total_weight += parseFloat(value.weight)
+            total_production_qty += parseInt(value.production_qty)
+            total_production_weight += parseFloat(value.production_weight)
         })
         $('#bodyTable').html(html)
         footTable()
     }
 
+    function deepCopy(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
     function footTable() {
         var html = ''
         html += '<tr>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        if (dataProfile == 'DETAIL') {
-            html += '<th class="bg-white align-middle small-text text-end"></th>'
-            html += '<th class="bg-white align-middle small-text text-end"></th>'
-        }
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        if (dataProfile != 'SUMMARY ITEM') {
-            html += '<th class="bg-white align-middle small-text text-end">Total</th>'
-        }
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty_receive) + '</th>'
-        if (dataProfile != 'SUMMARY ITEM') {
-            html += '<th class="bg-white align-middle small-text text-end"></th>'
-        }
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight_receive) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
+        dataFooterTable[dataProfile].forEach(e => {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="' + e.colspan + '">' + eval(e.variable) + '</th>'
+        })
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
@@ -533,9 +791,6 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
-            fixedColumns: {
-                left: 5
-            },
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
@@ -543,9 +798,8 @@
     }
 
     function exportExcel() {
-        dataProfile = $('#selectDataProfile').val()
-        var url = '<?= base_url('report/excelShipmentHistory') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile;
+        var url = '<?= base_url('report/excelMaterialHistory') ?>';
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 

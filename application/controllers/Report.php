@@ -319,14 +319,18 @@ class Report extends CI_Controller
         $jumlahColumnStart = 1;
         $jumlahColumn = $jumlahColumnStart;
         $total_qty = 0;
+        $total_qty_receive = 0;
         $total_weight = 0;
+        $total_weight_receive = 0;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Receive');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Receive');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Origin');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Destination');
         $jumlahRow = 2;
@@ -338,12 +342,16 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_dest->name);
             $total_qty += $value->qty;
+            $total_qty_receive += $value->qty_receive;
             $total_weight += $value->weight;
+            $total_weight_receive += $value->weight_receive;
             $jumlahRow++;
         }
         $jumlahColumnEnd = $jumlahColumn - 1;
@@ -355,8 +363,10 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_receive);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_receive);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $jumlahColumnEnd = $jumlahColumn - 1;
@@ -387,15 +397,19 @@ class Report extends CI_Controller
         $jumlahColumnStart = 1;
         $jumlahColumn = $jumlahColumnStart;
         $total_qty = 0;
+        $total_qty_receive = 0;
         $total_weight = 0;
+        $total_weight_receive = 0;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Date');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Receive');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Receive');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Origin');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Destination');
         $jumlahRow = 2;
@@ -408,13 +422,17 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_dest->name);
             $jumlahRow++;
             $total_qty += $value->qty;
+            $total_qty_receive += $value->qty_receive;
             $total_weight += $value->weight;
+            $total_weight_receive += $value->weight_receive;
         }
         $jumlahColumnEnd = $jumlahColumn - 1;
         $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
@@ -426,8 +444,10 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_receive);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_receive);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $jumlahColumnEnd = $jumlahColumn - 1;
@@ -459,7 +479,9 @@ class Report extends CI_Controller
         $jumlahColumnStart = 1;
         $jumlahColumn = $jumlahColumnStart;
         $total_qty = 0;
+        $total_qty_receive = 0;
         $total_weight = 0;
+        $total_weight_receive = 0;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Date Ship');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Doc Number');
@@ -467,8 +489,10 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Receive');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Receive');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Origin');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Destination');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Sender');
@@ -488,8 +512,10 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_dest->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->sender->name);
@@ -505,7 +531,9 @@ class Report extends CI_Controller
             }
             $jumlahRow++;
             $total_qty += $value->qty;
+            $total_weight_receive += $value->weight_receive;
             $total_weight += $value->weight;
+            $total_qty_receive += $value->qty_receive;
         }
         $jumlahColumnEnd = $jumlahColumn - 1;
         $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
@@ -518,8 +546,10 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_receive);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_receive);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
@@ -1089,6 +1119,456 @@ class Report extends CI_Controller
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
         $filename = 'PRODUCTION HISTORY ' . $dataProfile . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function excelPackingListTanpaTerima()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $id = $explodedParams[1];
+        $doc_num = $explodedParams[2];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryShipmentItem?shipmentId=' . $id . '&dataProfile=DETAIL')))->data->history_shipment_item->data;
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $jumlahColumnStart = 1;
+        $jumlahColumn = $jumlahColumnStart;
+        $total_qty = 0;
+        $total_weight = 0;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No Bale');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        $jumlahRow = 2;
+        $no = 1;
+        foreach ($body as $key => $value) {
+            $jumlahColumn = $jumlahColumnStart;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('d/m/y', strtotime($value->inventory->date)) . '-' . $value->inventory->bale_number);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
+            $jumlahRow++;
+            $total_qty += $value->qty;
+            $total_weight += $value->weight;
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'PACKING LIST ' . $doc_num . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function excelPackingList()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $id = $explodedParams[1];
+        $doc_num = $explodedParams[2];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryShipmentItem?shipmentId=' . $id . '&dataProfile=DETAIL')))->data->history_shipment_item->data;
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $jumlahColumnStart = 1;
+        $jumlahColumn = $jumlahColumnStart;
+        $total_qty = 0;
+        $total_qty_received = 0;
+        $total_weight = 0;
+        $total_weight_received = 0;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No Bale');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Terima');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Terima');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        $jumlahRow = 2;
+        $no = 1;
+        foreach ($body as $key => $value) {
+            $jumlahColumn = $jumlahColumnStart;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('d/m/y', strtotime($value->inventory->date)) . '-' . $value->inventory->bale_number);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
+            $jumlahRow++;
+            $total_qty += $value->qty;
+            $total_qty_received += $value->qty_receive;
+            $total_weight += $value->weight;
+            $total_weight_received += $value->weight_receive;
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_received);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_received);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'PACKING LIST ' . $doc_num . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function excelMaterialHistory()
+    {
+        $dataFillTable = [
+            'DETAIL' => [
+                [
+                    'name' => 'Date',
+                    'variable' => 'date("Y-m-d m:i:s", strtotime($value->datetime))',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Bale Number',
+                    'variable' => '$value->inventory->bale_number',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Item',
+                    'variable' => '$value->item->name',
+                    'text' => ''
+                ],
+                [
+                    'name' => 'Grade',
+                    'variable' => '$value->grade->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Unit',
+                    'variable' => '$value->unit->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'QTY',
+                    'variable' => '$value->qty',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Weight',
+                    'variable' => '$value->weight',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Production Bale Number',
+                    'variable' => '$value->production_inventory->bale_number',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Production Item',
+                    'variable' => '$value->production_item->name',
+                    'text' => ''
+                ],
+                [
+                    'name' => 'Production Grade',
+                    'variable' => '$value->production_grade->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Production Unit',
+                    'variable' => '$value->production_unit->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Production QTY',
+                    'variable' => '$value->production_qty',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Production Weight',
+                    'variable' => '$value->production_weight',
+                    'text' => 'text-end'
+                ]
+            ],
+            'ITEM' => [
+                [
+                    'name' => 'Date',
+                    'variable' => '$value->datetime',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Item',
+                    'variable' => '$value->item->name',
+                    'text' => ''
+                ],
+                [
+                    'name' => 'Unit',
+                    'variable' => '$value->unit->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'QTY',
+                    'variable' => '$value->qty',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Weight',
+                    'variable' => '$value->weight',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Production QTY',
+                    'variable' => '$value->production_qty',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Production Weight',
+                    'variable' => '$value->production_weight',
+                    'text' => 'text-end'
+                ]
+            ],
+            'ITEM GRADE' => [
+                [
+                    'name' => 'Date',
+                    'variable' => '$value->datetime',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Item',
+                    'variable' => '$value->item->name',
+                    'text' => ''
+                ],
+                [
+                    'name' => 'Grade',
+                    'variable' => '$value->grade->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'Unit',
+                    'variable' => '$value->unit->name',
+                    'text' => 'text-center'
+                ],
+                [
+                    'name' => 'QTY',
+                    'variable' => '$value->qty',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Weight',
+                    'variable' => '$value->weight',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Production QTY',
+                    'variable' => '$value->production_qty',
+                    'text' => 'text-end'
+                ],
+                [
+                    'name' => 'Production Weight',
+                    'variable' => '$value->production_weight',
+                    'text' => 'text-end'
+                ]
+            ]
+        ];
+
+        $dataFooterTable = [
+            'DETAIL' => [
+                [
+                    'variable' => '""',
+                    'text' => 'text-end',
+                    'colspan' => 6
+                ],
+                [
+                    'variable' => 'number_format(round($total_qty,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_weight,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => '""',
+                    'text' => '',
+                    'colspan' => 4
+                ],
+                [
+                    'variable' => 'number_format(round($total_production_qty,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_production_weight,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ]
+            ],
+            'ITEM' => [
+                [
+                    'variable' => '""',
+                    'text' => 'text-end',
+                    'colspan' => 4
+                ],
+                [
+                    'variable' => 'number_format(round($total_qty,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_weight,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_production_qty,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_production_weight,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ]
+            ],
+            'ITEM GRADE' => [
+                [
+                    'variable' => '""',
+                    'text' => 'text-end',
+                    'colspan' => 5
+                ],
+                [
+                    'variable' => 'number_format(round($total_qty,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_weight,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_production_qty,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ],
+                [
+                    'variable' => 'number_format(round($total_production_weight,2))',
+                    'text' => 'text-end',
+                    'colspan' => 1
+                ]
+            ]
+        ];
+
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $warehouse_id = $explodedParams[1];
+        $date_start = date('Y-m-d', strtotime($explodedParams[2]));
+        $date_end = date('Y-m-d', strtotime($explodedParams[3]));
+        $dataProfile = $explodedParams[4];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryMaterial?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dataProfile=' . urlencode($dataProfile))))->data;
+        $spreadsheet = new Spreadsheet();
+        $dataVariable = ['history_material_complete', 'history_material_on_process'];
+        $dataVariableTitle = ['Complete', 'On Process'];
+        for ($k = 0; $k < count($dataVariable); $k++) {
+            if ($k == 0) {
+                $worksheet[] = $spreadsheet->getActiveSheet()->setTitle($dataVariableTitle[$k]);
+            } else {
+                $worksheet[] = $spreadsheet->createSheet()->setTitle($dataVariableTitle[$k]);
+            }
+        }
+        // exit();
+        for ($k = 0; $k < count($dataVariable); $k++) {
+            $total_qty = 0;
+            $total_weight = 0;
+            $total_production_qty = 0;
+            $total_production_weight = 0;
+            $jumlahColumnStart = 1;
+            $jumlahColumn = $jumlahColumnStart;
+            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+            foreach ($dataFillTable[$dataProfile] as $key2 => $value2) {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', $value2['name']);
+            }
+            $jumlahRow = 2;
+            $no = 1;
+            foreach ($body->{$dataVariable[$k]}->data as $key => $value) {
+                $jumlahColumn = $jumlahColumnStart;
+                if (!$value->qty) {
+                    $value->qty = 0;
+                }
+                if (!$value->weight) {
+                    $value->weight = 0;
+                }
+                if (!$value->production_qty) {
+                    $value->production_qty = 0;
+                }
+                if (!$value->production_weight) {
+                    $value->production_weight = 0;
+                }
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+                foreach ($dataFillTable[$dataProfile] as $key2 => $value2) {
+                    $expression = $value2['variable'];
+                    $result = eval('return ' . $expression . ';');
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $result);
+                }
+                $jumlahRow++;
+                $total_qty += $value->qty;
+                $total_weight += $value->weight;
+                $total_production_qty += $value->production_qty;
+                $total_production_weight += $value->production_weight;
+            }
+            $jumlahColumnEnd = $jumlahColumn - 1;
+            $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+            // tampil totalan
+            $jumlahColumn = $jumlahColumnStart;
+
+            foreach ($dataFooterTable[$dataProfile] as $key2 => $value2) {
+                $expression = $value2['variable'];
+                $result = eval('return ' . $expression . ';');
+                for ($z = 0; $z < $value2['colspan']; $z++) {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $result);
+                }
+            }
+
+            $jumlahColumnEnd = $jumlahColumn - 1;
+            $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+            // tampil totalan
+        }
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'MATERIAL HISTORY ' . $dataProfile . ' ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

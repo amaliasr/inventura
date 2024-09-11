@@ -405,8 +405,10 @@
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
         html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
+        html += '<th class="align-middle text-center small-text bg-white">QTY<br>Receive</th>'
         html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
         html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Weight<br>Receive</th>'
         html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Origin</th>'
         html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Destination</th>'
         html += '</tr>'
@@ -414,12 +416,16 @@
         bodyTable()
     }
     var total_qty = 0
+    var total_qty_receive = 0
     var total_weight = 0
+    var total_weight_receive = 0
 
     function bodyTable() {
         var html = ''
         total_qty = 0
+        total_qty_receive = 0
         total_weight = 0
+        total_weight_receive = 0
         $.each(data_report, function(key, value) {
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
@@ -427,13 +433,17 @@
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.qty_receive + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.weight_receive + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_dest.name + '</td>'
             html += '</tr>'
             total_qty += parseFloat(value.qty)
+            total_qty_receive += parseFloat(value.qty_receive)
             total_weight += parseFloat(value.weight)
+            total_weight_receive += parseFloat(value.weight_receive)
         })
         $('#bodyTable').html(html)
         footTable()
@@ -444,8 +454,10 @@
         html += '<tr>'
         html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty_receive) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight_receive) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '</tr>'

@@ -94,8 +94,8 @@
             <div class="col-8">
                 <div class="row">
                     <div class="col-10 align-self-center">
-                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Shippings</h1>
-                        <p class="m-0 super-small-text">Panel Kegiatan Entri untuk Management Shipping <br>dan Cetak Surat Jalan Pengiriman</p>
+                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Receptions</h1>
+                        <p class="m-0 super-small-text">Panel Kegiatan Entri untuk Management Receptions <br>dan Cetak Surat Jalan Pengiriman</p>
                     </div>
                 </div>
             </div>
@@ -184,7 +184,6 @@
 <!-- QR CODE -->
 <script type="text/javascript" src="<?= base_url() ?>assets/js/vendor/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-
 <script>
     var imgBase64Data
 
@@ -336,7 +335,7 @@
 
     function loadData() {
         $.ajax({
-            url: "<?= api_url('getShipmentList'); ?>",
+            url: "<?= api_url('getReceiveList'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
@@ -359,7 +358,7 @@
                 showOverlay('hide')
                 data_shipment = response.data
                 linkPhoto = data_shipment.folder.driver
-                data_shipment_showed = data_shipment.shipment_list
+                data_shipment_showed = data_shipment.receive_list
                 statusLine()
             }
         })
@@ -406,7 +405,7 @@
     }
 
     function chooseDataAllData() {
-        var data = data_shipment.shipment_list
+        var data = data_shipment.receive_list
         return data
     }
 
@@ -416,7 +415,7 @@
 
 
     function chooseDataTransit() {
-        var data = data_shipment.shipment_list_transit
+        var data = data_shipment.receive_list_transit
         return data
     }
 
@@ -516,6 +515,8 @@
         html += '<th class="align-middle text-center small-text bg-white">Driver<br>Name</th>'
         html += '<th class="align-middle text-center small-text bg-white">Driver<br>Phone</th>'
         html += '<th class="align-middle text-center small-text bg-white">Receive<br>At</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Receive All<br>At</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Receive Close<br>At</th>'
         html += '<th class="align-middle text-center small-text bg-white">Receive<br>By</th>'
         html += '<th class="align-middle text-center small-text bg-white">Status</th>'
         html += '<th class="align-middle text-center small-text bg-white"></th>'
@@ -591,40 +592,53 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_phone + '</td>'
             if (value.is_receive) {
-                html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.receive_at) + '</td>'
+                if (value.receive_at) {
+                    value.receive_at = formatDate(value.receive_at)
+                } else {
+                    value.receive_at = ''
+                }
+                if (value.receive_close_at) {
+                    value.receive_close_at = formatDate(value.receive_close_at)
+                } else {
+                    value.receive_close_at = ''
+                }
+                if (!value.user_receiver.name) {
+                    value.user_receiver.name = ''
+                }
+                html += '<td class="bg-white align-middle small-text text-center">' + value.receive_at + '</td>'
+                html += '<td class="bg-white align-middle small-text text-center">' + value.receive_close_at + '</td>'
                 html += '<td class="bg-white align-middle small-text text-center">' + value.user_receiver.name + '</td>'
             } else {
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
+                html += '<td class="bg-white align-middle small-text text-center"></td>'
             }
             var badge = ''
-            if (value.is_load_all == 1) {
-                if (value.is_receive_all == 1) {
-                    badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">DITERIMA LENGKAP</span>'
-                } else if (value.is_receive_all == 0) {
-                    badge = '<span class="badge rounded-pill bg-danger super-small-text p-2 w-100">DITERIMA SEBAGIAN</span>'
+            if (value.is_receive_all == 1) {
+                if (value.is_receive_close == 1) {
+                    badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">SELESAI DITERIMA</span>'
                 } else {
-                    badge = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">IN TRANSIT</span>'
+                    badge = '<span class="badge rounded-pill bg-info super-small-text p-2 w-100">DITERIMA SEMUA</span>'
                 }
             } else {
-                badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">PROSES MUAT</span>'
+                // jika belum diterima
+                if (totalQtyReceive) {
+                    badge = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">PROSES TERIMA</span>'
+                } else {
+                    badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">IN TRANSIT</span>'
+                }
             }
-
             html += '<td class="bg-white align-middle small-text text-center">' + badge + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">'
             html += '<button class="super-small-text btn btn-sm btn-outline-dark py-1 px-2 shadow-none" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>'
             html += '<div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuButton">'
             html += '<a class="dropdown-item" onclick="getPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-list-ul me-2"></i> Packing List</a>'
-            html += '<a class="dropdown-item" onclick="cetakPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Packing List</a>'
-            if (value.is_load_all) {
-                html += '<a class="dropdown-item" onclick="cetakSuratJalan(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
-                if (!value.is_receive) {
-                    html += '<div class="text-center pe-2 ps-2 mt-2">'
-                    html += '<button class="btn btn-sm btn-danger w-100" onclick="batalMuat(' + "'" + value.id + "'" + ')">Batal Selesai Muat</button>'
-                    html += '</div>'
-                }
-            } else {
-                html += '<a class="dropdown-item disabled" aria-disabled="true"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
+            if (value.is_receive_all == 1 && value.is_receive_close == null) {
+                html += '<div class="text-center pe-2 ps-2 mt-2">'
+                html += '<hr class="m-0">'
+                html += '<button class="btn btn-sm btn-success w-100 mt-2 py-2" onclick="selesaiTerima(' + "'" + value.id + "'" + ')">Selesai Terima</button>'
+                html += '<button class="btn btn-sm text-danger w-100 py-2 mt-2 border-0 super-small-text" onclick="batalTerima(' + "'" + value.id + "'" + ')">Batal Terima</button>'
+                html += '</div>'
             }
             html += '</div>'
             html += '</td>'
@@ -654,6 +668,9 @@
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty_receive) + '</th>'
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight) + '</th>'
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight_receive) + '</th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
@@ -696,9 +713,9 @@
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
-    function batalMuat(id) {
+    function selesaiTerima(id) {
         Swal.fire({
-            text: 'Apakah Anda yakin ingin Membatalkan Selesai Muat untuk Surat Jalan ini ?',
+            text: 'Apakah Anda yakin ingin menyelesaikan penerimaan Surat Jalan ini ?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -707,19 +724,48 @@
             cancelButtonText: 'Tidak',
         }).then((result) => {
             if (result.isConfirmed) {
-                simpanData(id)
+                simpanDataTerimaSJ(id)
             }
         })
     }
 
-    function simpanData(id) {
+    function batalTerima(id) {
+        Swal.fire({
+            text: 'Apakah Anda yakin ingin membatalkan penerimaan Surat Jalan ini ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                simpanDataBatalSJ(id)
+            }
+        })
+    }
+
+    function simpanDataTerimaSJ(id) {
         var type = 'POST'
         var button = '.btnSimpan'
         var url = '<?php echo api_produksi('setShipment'); ?>'
         var data = {
             shipment: [{
                 "id": id,
-                "is_load_all": null
+                "is_receive_close": 1
+            }]
+        }
+        kelolaData(data, type, url, button)
+    }
+
+    function simpanDataBatalSJ(id) {
+        var type = 'POST'
+        var button = '.btnSimpan'
+        var url = '<?php echo api_produksi('setShipment'); ?>'
+        var data = {
+            shipment: [{
+                "id": id,
+                "is_receive_all": null
             }]
         }
         kelolaData(data, type, url, button)
@@ -788,7 +834,7 @@
 
     function detailPackingList(id, doc_num) {
         $('#modal').modal('show')
-        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable');
+        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable modal-lg');
         var html_header = '';
         html_header += '<h5 class="modal-title small">Packing List ' + doc_num + '</h5>';
         html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
@@ -818,7 +864,10 @@
         html += '<th class="align-middle small-text" width="10%">No</th>'
         // html += '<th class="align-middle small-text" width="20%">Tgl</th>'
         html += '<th class="align-middle small-text" width="40%">No. Bale</th>'
+        html += '<th class="align-middle small-text" width="10%">QTY</th>'
+        html += '<th class="align-middle small-text" width="10%">QTY Terima</th>'
         html += '<th class="align-middle small-text" width="10%">Berat</th>'
+        html += '<th class="align-middle small-text" width="10%">Berat Terima</th>'
         html += '<th class="align-middle small-text" width="30%">Item</th>'
         html += '<th class="align-middle small-text" width="10%">Grade</th>'
         html += '</tr>'
@@ -855,28 +904,43 @@
     function dataTablePackingList(id) {
         var html = '';
         var a = 1
-        var total_weight = 0
+        var total = {
+            qty: 0,
+            qty_receive: 0,
+            weight: 0,
+            weight_receive: 0
+        }
         data_packing_list.forEach(e => {
             html += '<tr>'
             html += '<td class="align-middle small-text text-center" width="10%">' + a++ + '</td>'
-            html += '<td class="align-middle small-text text-center" width="40%">' + formatDate2(e.inventory.date) + '-' + e.inventory.bale_number + '</td>'
+            html += '<td class="align-middle small-text" width="40%">' + formatDate2(e.inventory.date) + '-' + e.inventory.bale_number + '</td>'
             // html += '<td class="align-middle small-text text-center" width="20%">' + e.inventory.bale_number + '</td>'
+            html += '<td class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(e.qty)) + '</td>'
+            html += '<td class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(e.qty_receive)) + '</td>'
             html += '<td class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(e.weight)) + '</td>'
+            html += '<td class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(e.weight_receive)) + '</td>'
             html += '<td class="align-middle small-text" width="30%">' + e.item.name + '</td>'
             html += '<td class="align-middle small-text text-center" width="10%">' + e.item_grade.name + '</td>'
             html += '</tr>'
-            total_weight += e.weight
+
+            total.qty += e.qty
+            total.qty_receive += e.qty_receive
+            total.weight += e.weight
+            total.weight_receive += e.weight_receive
         });
         $('#tablePackingList tbody').html(html)
-        dataTablePackingListFooter(id, total_weight)
+        dataTablePackingListFooter(id, total)
     }
 
-    function dataTablePackingListFooter(id, total_weight) {
+    function dataTablePackingListFooter(id, total) {
         var html = '';
         html += '<tr>'
         html += '<th class="align-middle small-text text-center" width="10%"></th>'
         html += '<th class="align-middle small-text text-end" width="40%">Total</th>'
-        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total_weight)) + '</th>'
+        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total.qty)) + '</th>'
+        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total.qty_receive)) + '</th>'
+        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total.weight)) + '</th>'
+        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total.weight_receive)) + '</th>'
         html += '<th class="align-middle small-text" width="30%"></th>'
         html += '<th class="align-middle small-text text-center" width="10%"></th>'
         html += '</tr>'
@@ -902,7 +966,7 @@
     }
 
     function excelPackingList(id, doc_num) {
-        var url = '<?= base_url('report/excelPackingListTanpaTerima') ?>';
+        var url = '<?= base_url('report/excelPackingList') ?>';
         var params = "*$" + id + "*$" + doc_num
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }

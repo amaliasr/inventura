@@ -162,4 +162,18 @@ class Page extends CI_Controller
         $data['warehouse_id'] = $this->warehouse_id;
         $this->template->views('page/history_production', $data);
     }
+    public function receptions()
+    {
+        $data['title'] = 'Receptions';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $this->template->views('page/receptions', $data);
+    }
+    public function history_material()
+    {
+        $data['title'] = 'History Material';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $this->template->views('page/history_material', $data);
+    }
 }
