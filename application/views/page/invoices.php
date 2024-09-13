@@ -808,7 +808,7 @@
             html += '<div class="col-3 text-end align-self-center">'
             html += '<div class="d-flex align-items-center justify-content-between small-text fw-bolder">'
             html += '<span>Rp.</span>'
-            html += '<p class="m-0" id="price' + a + '">' + number_format(price) + '</p>'
+            html += '<p class="m-0" id="price' + a + '">' + number_format(roundToTwo(price)) + '</p>'
             html += '</div>'
             html += '</div>'
             html += '</div>'
@@ -893,7 +893,7 @@
 
     function showNumTotalPajak() {
         totalPajak = subTotal * nilaiPajak
-        $('#numTotalPajak').html(number_format(totalPajak))
+        $('#numTotalPajak').html(number_format(roundToTwo(totalPajak)))
     }
 
     function applyHargaSatuan() {
@@ -912,14 +912,14 @@
         } else {
             totalAll = subTotal
         }
-        $('#totalHarga').html(number_format(totalAll))
+        $('#totalHarga').html(number_format(roundToTwo(totalAll)))
     }
 
     function updatePrice(id) {
         var value = $('#inputHargaSatuan' + id).val()
         var weight = $('#inputHargaSatuan' + id).data('weight')
         var price = value * weight
-        $('#price' + id).html(number_format(price))
+        $('#price' + id).html(number_format(roundToTwo(price)))
         subTotalPrice()
     }
 
@@ -932,7 +932,7 @@
             total += parseFloat(price)
         });
         subTotal = total
-        $('.subTotalPrice').html(number_format(subTotal))
+        $('.subTotalPrice').html(number_format(roundToTwo(subTotal)))
         applyPajakDaerah()
     }
 

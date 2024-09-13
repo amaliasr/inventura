@@ -102,6 +102,7 @@ $routeTemplate = [
     'history-production',
     'receptions',
     'history-material',
+    'master-supplier',
 ]
 ?>
 <div id="layoutSidenav_nav">

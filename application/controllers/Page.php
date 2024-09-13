@@ -176,4 +176,11 @@ class Page extends CI_Controller
         $data['warehouse_id'] = $this->warehouse_id;
         $this->template->views('page/history_material', $data);
     }
+    public function master_supplier()
+    {
+        $data['title'] = 'Master Supplier';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $this->template->views('page/master_supplier', $data);
+    }
 }

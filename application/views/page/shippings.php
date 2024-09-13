@@ -45,7 +45,7 @@
     }
 
     /* Flashing */
-    .circular-landscape:hover img {
+    .avatar:hover img {
         opacity: 1;
         -webkit-animation: flash 1.5s;
         animation: flash 1.5s;
@@ -69,6 +69,77 @@
         100% {
             opacity: 1;
         }
+    }
+
+    .avatars {
+        display: inline-flex;
+        flex-direction: row;
+    }
+
+    .avatar {
+        position: relative;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        overflow: hidden;
+        width: 30px;
+        height: 30px;
+        /* Sesuaikan dengan ukuran yang diinginkan */
+    }
+
+    .avatar:not(:last-child) {
+        margin-right: -20px;
+        /* Mengatur jarak antara gambar */
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Memastikan gambar tetap terlihat utuh dalam lingkaran */
+        display: block;
+    }
+
+    .avatar canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Memastikan gambar tetap terlihat utuh dalam lingkaran */
+        display: block;
+    }
+
+    .plus-avatar {
+        background-color: #27374D;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        color: white;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .plus-avatar-grey {
+        background-color: #EFF5F5;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        color: grey;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .plus-avatar-grey-empty {
+        background-color: transparent;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        color: white;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .plus-icon {
+        font-size: 10px;
+        font-weight: bold;
     }
 </style>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -554,6 +625,7 @@
         all_total_weight = 0
         all_total_weight_receive = 0
         var dataFind = deepCopy(data_shipment_showed)
+        var b = 0
         $.each(dataFind, function(key, value) {
             var totalQty = calculateTotals(value.details, 'qty');
             var totalQtyReceive = calculateTotals(value.details, 'qty_receive');
@@ -583,9 +655,27 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">'
             //picture
-            html += '<div class="circular-landscape" href="' + linkPhoto + value.driver_photo + '" data-fancybox data-caption="Single image">'
-            html += '<img src="' + linkPhoto + value.driver_photo + '" class="w-100 h-100 pointer" alt="Driver Photo">'
+            html += '<div class="avatars text-center">'
+            if (value.driver_photos) {
+                for (let j = 0; j < value.driver_photos.length; j++) {
+                    var hide = ''
+                    if (j >= 3) {
+                        hide = 'hidden'
+                    }
+                    html += '<span class="avatar pointer" href="' + linkPhoto + value.driver_photos[j] + '" data-fancybox="gallery' + key + '" data-caption="Gallery ' + key + '" ' + hide + '>'
+                    html += '<img src="' + linkPhoto + value.driver_photos[j] + '">'
+                    html += '</span>'
+                }
+            } else {
+                html += '<span class="avatar">'
+                var pict = '<?= base_url('assets/image/jpg/no_pict.jpg') ?>'
+                html += '<img src="' + pict + '">'
+                html += '</span>'
+            }
             html += '</div>'
+            // html += '<div class="circular-landscape" href="' + linkPhoto + value.driver_photo + '" data-fancybox data-caption="Single image">'
+            // html += '<img src="' + linkPhoto + value.driver_photo + '" class="w-100 h-100 pointer" alt="Driver Photo">'
+            // html += '</div>'
             //picture
             html += '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
@@ -633,11 +723,14 @@
             all_total_qty_receive += parseInt(totalQtyReceive)
             all_total_weight += parseInt(totalWeight)
             all_total_weight_receive += parseInt(totalWeightReceive)
+            b++
         })
         $('#bodyTable').html(html)
-        Fancybox.bind("[data-fancybox]", {
-            // Your custom options
-        });
+        for (let i = 0; i < b; i++) {
+            Fancybox.bind('[data-fancybox="gallery' + i + '"]', {
+                // Custom options for the first gallery
+            });
+        }
         footTable()
     }
 
