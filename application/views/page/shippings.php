@@ -673,9 +673,6 @@
                 html += '</span>'
             }
             html += '</div>'
-            // html += '<div class="circular-landscape" href="' + linkPhoto + value.driver_photo + '" data-fancybox data-caption="Single image">'
-            // html += '<img src="' + linkPhoto + value.driver_photo + '" class="w-100 h-100 pointer" alt="Driver Photo">'
-            // html += '</div>'
             //picture
             html += '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'

@@ -563,7 +563,7 @@
         }
         html += '<th class="align-middle text-center small-text bg-white">Kode Item</th>'
         html += '<th class="align-middle text-center small-text bg-white">Nama Item</th>'
-        if (dataProfile == 'ITEM GRADE') {
+        if (dataProfile == 'ITEM GRADE' || dataProfile == 'DETAIL') {
             html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
         }
         html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
@@ -609,7 +609,7 @@
             }
             html += '<td class="bg-white align-middle small-text">' + value.item.code + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.name + '</td>'
-            if (dataProfile == 'ITEM GRADE') {
+            if (dataProfile == 'ITEM GRADE' || dataProfile == 'DETAIL') {
                 html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
             }
             html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
@@ -636,8 +636,10 @@
         html += '<tr>'
         if (dataProfile == 'ITEM') {
             html += '<th class="bg-white align-middle small-text text-end" colspan="5">Total</th>'
-        } else {
+        } else if (dataProfile == 'ITEM GRADE') {
             html += '<th class="bg-white align-middle small-text text-end" colspan="6">Total</th>'
+        } else {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="7">Total</th>'
         }
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_qty)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_weight)) + '</th>'
