@@ -135,7 +135,7 @@ $routeTemplate = [
                     </div>
                     <div class="col-9 align-self-center">
                         <div class="sidenav-footer-subtitle">Logged in as:</div>
-                        <div class="sidenav-footer-title lh-1"><?= $this->session->userdata('full_name') ?></div>
+                        <div class="sidenav-footer-title lh-1"><?= $roles['login_data']['name'] ?></div>
                     </div>
                 </div>
             </div>

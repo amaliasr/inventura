@@ -384,6 +384,7 @@
             getData: 'chooseDataTransit()'
         }
     ]
+    var indexVariable = 0
     var data_packing_list = []
     var linkPhoto = ''
     $(document).ready(function() {
@@ -430,7 +431,7 @@
                 showOverlay('hide')
                 data_shipment = response.data
                 linkPhoto = data_shipment.folder.driver
-                data_shipment_showed = data_shipment.shipment_list
+                data_shipment_showed = eval(statusLineVariable[indexVariable].getData)
                 statusLine()
             }
         })
@@ -498,6 +499,7 @@
 
 
     function statusLineSwitch(id, getData) {
+        indexVariable = id
         let updatedData = statusLineVariable.map(item => {
             return {
                 ...item,

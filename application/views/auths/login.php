@@ -210,7 +210,8 @@
             id: dataLogin['id'],
             username: dataLogin['username'],
             name: dataLogin['name'],
-            roles: dataRole
+            roles: dataRole,
+            allRoles: dataLogin.roles,
         }
         $.ajax({
             type: "POST",

@@ -94,15 +94,17 @@ if (isset($_COOKIE['visiting'])) {
                         <img class="dropdown-user-img" src="<?= base_url('assets/img/illustrations/profiles/profile-2.png') ?>" />
                     <?php } ?>
                     <div class="dropdown-user-details">
-                        <div class="dropdown-user-details-name" id="name"><?= $this->session->userdata('full_name') ?></div>
+                        <div class="dropdown-user-details-name" id="name"><?= $roles['login_data']['name'] ?></div>
                         <div class="dropdown-user-details-email"><?= $this->session->userdata('username') ?></div>
                     </div>
                 </h6>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="<?= base_url() ?>dashboard/account">
-                    <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
-                    Account
+                <!-- disabled href -->
+                <a class="dropdown-item" href="javascript: void(0)" onclick="switchAccount()">
+                    <div class="dropdown-item-icon"><i data-feather="refresh-cw"></i></div>
+                    Switch Account
                 </a>
+                <!-- buatkan anak dropdown, dropdown nested -->
                 <a class="dropdown-item" href="#!" id="logout">
                     <div class="dropdown-item-icon"><i data-feather="log-out"></i></div>
                     Logout
@@ -111,7 +113,21 @@ if (isset($_COOKIE['visiting'])) {
         </li>
     </ul>
 </nav>
+<div class="modal fade" id="modalLogin" role="dialog" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog" role="document" id="modalDialogLogin">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeaderLogin">
 
+            </div>
+            <div class="modal-body" id="modalBodyLogin">
+
+            </div>
+            <div class="modal-footer" id="modalFooterLogin">
+
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     var akun = '<?= $this->session->userdata('username') ?>'
     $(document).ready(function() {
@@ -185,5 +201,73 @@ if (isset($_COOKIE['visiting'])) {
             }
         }
         return null;
+    }
+
+    var dataRoles = <?= json_encode($allRoles) ?>
+
+    function switchAccount() {
+        $('#modalLogin').modal('show')
+        $('#modalDialogLogin').addClass('modal-dialog modal-dialog-scrollable modal-dialog-centered')
+        var html_header = '';
+        html_header += '<p class="m-0 fw-bold">Switch Account</p>';
+        html_header += '<button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>';
+        $('#modalHeaderLogin').html(html_header);
+        var html_body = '';
+        html_body += '<div class="row">'
+        html_body += '<div class="col-12">'
+        var a = 0
+        dataRoles.forEach(e => {
+            html_body += '<div class="card shadow-none mb-2 card-hoper pointer" onclick="sessionLogin(' + a++ + ')">'
+            html_body += '<div class="card-body">'
+
+            html_body += '<div class="row justify-content-between">'
+            html_body += '<div class="col-auto align-self-center">'
+            html_body += '<p class="m-0 small-text">' + e.name + '</p>'
+            html_body += '<p class="m-0 fw-bolder">' + e.login_data.name + '</p>'
+            html_body += '</div>'
+            html_body += '<div class="col-1 align-self-center">'
+            html_body += '<i class="fa fa-chevron-right"></i>'
+            html_body += '</div>'
+            html_body += '</div>'
+
+            html_body += '</div>'
+            html_body += '</div>'
+        });
+        html_body += '</div>'
+        html_body += '</div>'
+        $('#modalBodyLogin').html(html_body);
+        var html_footer = '';
+        html_footer += '<button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal">Batal</button>'
+        $('#modalFooterLogin').html(html_footer);
+    }
+
+    function sessionLogin(index) {
+        var dataRole = dataRoles[index]
+        var sessions = [];
+        sessions = {
+            id: '<?= $this->session->userdata('id') ?>',
+            username: '<?= $this->session->userdata('username') ?>',
+            name: '<?= $this->session->userdata('name') ?>',
+            roles: dataRole,
+            allRoles: dataRoles,
+        }
+        $.ajax({
+            type: "POST",
+            data: sessions,
+            url: base_url + "Auth/setSessions",
+            dataType: 'JSON',
+            error: function(e) {
+                console.log(e)
+            },
+            success: function(response) {
+                if (response['success'] == true) {
+                    if ('<?= $this->input->cookie('link') ?>' == "") {
+                        window.location = base_url + "dashboard";
+                    } else {
+                        window.location = '<?= $this->input->cookie('link') ?>'
+                    }
+                }
+            }
+        })
     }
 </script>

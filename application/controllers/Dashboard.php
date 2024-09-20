@@ -14,7 +14,9 @@ class Dashboard extends CI_Controller
 		$this->position_name = $this->session->userdata('position_name');
 		$this->position_detail_name = $this->session->userdata('position_detail_name');
 		$this->permission = $this->session->userdata('permission');
+		$this->allRoles = $this->session->userdata('allRoles');
 		$this->warehouse_id = $this->session->userdata('warehouse_id');
+		$this->roles = $this->session->userdata('roles');
 	}
 	public function index()
 	{
@@ -22,6 +24,8 @@ class Dashboard extends CI_Controller
 		$data['position_detail_name'] = $this->position_detail_name;
 		$data['permission'] = $this->permission;
 		$data['username'] = $this->username;
+		$data['allRoles'] = $this->allRoles;
+		$data['roles'] = $this->roles;
 		$this->template->views('index', $data);
 	}
 }

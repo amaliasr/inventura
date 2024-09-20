@@ -171,7 +171,7 @@
                     </div>
                     <div class="col-6 ps-0">
                         <h1 class="text-white m-0" style="font-size: 30px;">Good <span id="salam"></span> !</h1>
-                        <p class="m-0 lh-1" style="font-size: 50px;"><b><span id="full_name" class="text-white"><?= $username ?></span></b></p>
+                        <p class="m-0 lh-1" style="font-size: 50px;"><b><span id="full_name" class="text-white"><?= $roles['login_data']['name'] ?></span></b></p>
                     </div>
                 </div>
             </div>
@@ -264,6 +264,8 @@
 <script>
     var akun = '<?= $this->session->userdata('username') ?>'
     var user_id = '<?= $this->session->userdata('employee_id') ?>'
+    var roles = <?= json_encode($roles) ?>
+
     var machineId = []
     var modetarget = 'table'
     var indexMachine = 0
@@ -377,6 +379,7 @@
     var access = '<?= if_dashboard_report() ?>'
     $(document).ready(function() {
         // $('#layoutSidenav_content').addClass('bg-rainbow')
+        console.log(roles)
         setInterval(updateTime, 1000);
         initialPageVisited()
         loadData()

@@ -30,12 +30,16 @@ class Page extends CI_Controller
         $this->position_detail_name = $this->session->userdata('position_detail_name');
         $this->permission = $this->session->userdata('permission');
         $this->warehouse_id = $this->session->userdata('warehouse_id');
+        $this->allRoles = $this->session->userdata('allRoles');
+        $this->roles = $this->session->userdata('roles');
     }
     public function invoices()
     {
         $data['title'] = 'Invoices Lists';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/invoices', $data);
     }
     public function cetakInvoices()
@@ -63,6 +67,8 @@ class Page extends CI_Controller
         $data['title'] = 'Purchase Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/purchase_recap', $data);
     }
     public function recap_shipment()
@@ -70,6 +76,8 @@ class Page extends CI_Controller
         $data['title'] = 'Shipment Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/recap_shipment', $data);
     }
     public function recap_puchase_supplier()
@@ -77,6 +85,8 @@ class Page extends CI_Controller
         $data['title'] = 'Purchase Supplier Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/recap_puchase_supplier', $data);
     }
     public function recap_warehouse_stock()
@@ -84,6 +94,8 @@ class Page extends CI_Controller
         $data['title'] = 'Warehouse Stock Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/recap_warehouse_stock', $data);
     }
     public function report_shipment()
@@ -91,6 +103,8 @@ class Page extends CI_Controller
         $data['title'] = 'Shipment Report';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/report_shipment', $data);
     }
     public function history_purchase()
@@ -98,6 +112,8 @@ class Page extends CI_Controller
         $data['title'] = 'Purchase History';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/history_purchase', $data);
     }
     public function history_shipment()
@@ -105,6 +121,8 @@ class Page extends CI_Controller
         $data['title'] = 'Shipment History';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/history_shipment', $data);
     }
     public function shippings()
@@ -112,6 +130,8 @@ class Page extends CI_Controller
         $data['title'] = 'Shipping';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/shippings', $data);
     }
     public function recap_production()
@@ -119,6 +139,8 @@ class Page extends CI_Controller
         $data['title'] = 'Production Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/recap_production', $data);
     }
     public function cetakSuratJalan()
@@ -160,6 +182,8 @@ class Page extends CI_Controller
         $data['title'] = 'Production History';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/history_production', $data);
     }
     public function receptions()
@@ -167,6 +191,8 @@ class Page extends CI_Controller
         $data['title'] = 'Receptions';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/receptions', $data);
     }
     public function history_material()
@@ -174,6 +200,8 @@ class Page extends CI_Controller
         $data['title'] = 'History Material';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/history_material', $data);
     }
     public function master_supplier()
@@ -181,6 +209,8 @@ class Page extends CI_Controller
         $data['title'] = 'Master Supplier';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
         $this->template->views('page/master_supplier', $data);
     }
 }

@@ -18,6 +18,7 @@ class Auth extends CI_Controller
 		$username = $this->input->post('username');
 		$name = $this->input->post('name');
 		$roles = $this->input->post('roles');
+		$allRoles = $this->input->post('allRoles');
 		$permission = $roles['permissions'];
 		$this->session->set_userdata('logged_in_tobacco', true);
 		$this->session->set_userdata('name', $name);
@@ -27,6 +28,8 @@ class Auth extends CI_Controller
 		$this->session->set_userdata('position_detail_name', $roles['login_data']['name']);
 		$this->session->set_userdata('warehouse_id', $roles['login_data']['warehouse_id']);
 		$this->session->set_userdata('permission', $permission);
+		$this->session->set_userdata('allRoles', $allRoles);
+		$this->session->set_userdata('roles', $roles);
 		$response['success'] = true;
 		echo json_encode($response);
 	}
