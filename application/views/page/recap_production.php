@@ -290,6 +290,7 @@
     var data_report_showed = []
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var indexVariable = 0
     var statusLineVariable = [{
             id: 0,
             name: 'Complete',
@@ -331,6 +332,7 @@
     }
 
     function statusLineSwitch(id, getData) {
+        indexVariable = id
         let updatedData = statusLineVariable.map(item => {
             return {
                 ...item,
@@ -454,10 +456,8 @@
                 dateRangeString()
                 $(button).prop("disabled", false);
                 data_report = response.data
-                var checkData = data_report.recap_production_complete.total
-                var checkData2 = data_report.recap_production_on_process.total
                 // if (checkData && checkData2) {
-                data_report_showed = data_report.recap_production_complete.data
+                data_report_showed = eval(statusLineVariable[indexVariable].getData)
                 statusLine()
                 // } else {
                 //     $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))

@@ -383,6 +383,91 @@ class Report extends CI_Controller
 
         $writer->save('php://output');
     }
+    public function excelReceiveRecap()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $warehouse_id = $explodedParams[1];
+        $date_start = date('Y-m-d', strtotime($explodedParams[2]));
+        $date_end = date('Y-m-d', strtotime($explodedParams[3]));
+        $dataProfile = $explodedParams[4];
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapReceiveItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($dataProfile))))->data->recap_receive_item->data;
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $jumlahColumnStart = 1;
+        $jumlahColumn = $jumlahColumnStart;
+        $total_qty = 0;
+        $total_qty_receive = 0;
+        $total_weight = 0;
+        $total_weight_receive = 0;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
+        if ($dataProfile == 'SUMMARY ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Receive');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Receive');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Origin');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Destination');
+        $jumlahRow = 2;
+        $no = 1;
+        foreach ($body as $key => $value) {
+            $jumlahColumn = $jumlahColumnStart;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+            if ($dataProfile == 'SUMMARY ITEM GRADE') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_dest->name);
+            $total_qty += $value->qty;
+            $total_qty_receive += $value->qty_receive;
+            $total_weight += $value->weight;
+            $total_weight_receive += $value->weight_receive;
+            $jumlahRow++;
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        if ($dataProfile == 'SUMMARY ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_receive);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_receive);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'RECEIVE RECAP ' . $dataProfile . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
     public function excelShipmentReport()
     {
         $params = $this->input->get('params');
@@ -464,6 +549,94 @@ class Report extends CI_Controller
 
         $writer->save('php://output');
     }
+    public function excelReceiveReport()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $warehouse_id = $explodedParams[1];
+        $date_start = date('Y-m-d', strtotime($explodedParams[2]));
+        $date_end = date('Y-m-d', strtotime($explodedParams[3]));
+        $dataProfile = $explodedParams[4];
+        $body = json_decode($this->curl->simple_get(api_produksi('getReportReceiveItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($dataProfile))))->data->report_receive_item->data;
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $jumlahColumnStart = 1;
+        $jumlahColumn = $jumlahColumnStart;
+        $total_qty = 0;
+        $total_qty_receive = 0;
+        $total_weight = 0;
+        $total_weight_receive = 0;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Date');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
+        if ($dataProfile == 'SUMMARY ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Receive');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Receive');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Origin');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Destination');
+        $jumlahRow = 2;
+        $no = 1;
+        foreach ($body as $key => $value) {
+            $jumlahColumn = $jumlahColumnStart;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d', strtotime($value->receive_at)));
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+            if ($dataProfile == 'SUMMARY ITEM GRADE') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_dest->name);
+            $jumlahRow++;
+            $total_qty += $value->qty;
+            $total_qty_receive += $value->qty_receive;
+            $total_weight += $value->weight;
+            $total_weight_receive += $value->weight_receive;
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        if ($dataProfile == 'SUMMARY ITEM GRADE') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_receive);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_receive);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'RECEIVE REPORT ' . $dataProfile . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
     public function excelShipmentHistory()
     {
         $params = $this->input->get('params');
@@ -524,7 +697,11 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->driver_name);
             if ($value->is_receive) {
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d', strtotime($value->receive_at)));
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->receiver);
+                $nameReceiver = '';
+                if ($value->receiver) {
+                    $nameReceiver = $value->receiver->name;
+                }
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $nameReceiver);
             } else {
                 $jumlahColumn++;
                 $jumlahColumn++;
@@ -813,6 +990,7 @@ class Report extends CI_Controller
         $total_total = 0;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Create Date');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No Invoice');
         if ($dataProfile == 'DETAIL') {
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Bale Number');
         }
@@ -847,6 +1025,7 @@ class Report extends CI_Controller
 
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d', strtotime($value->datetime)));
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->invoice);
             if ($dataProfile == 'DETAIL') {
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->bale_number);
             }
@@ -886,6 +1065,7 @@ class Report extends CI_Controller
         $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
         // tampil totalan
         $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
@@ -1569,6 +1749,144 @@ class Report extends CI_Controller
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
         $filename = 'MATERIAL HISTORY ' . $dataProfile . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function excelReceiveHistory()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $warehouse_id = $explodedParams[1];
+        $date_start = date('Y-m-d', strtotime($explodedParams[2]));
+        $date_end = date('Y-m-d', strtotime($explodedParams[3]));
+        $data_profile = $explodedParams[4];
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryReceiveItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($data_profile))))->data->history_receive_item->data;
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $jumlahColumnStart = 1;
+        $jumlahColumn = $jumlahColumnStart;
+        $total_qty = 0;
+        $total_qty_receive = 0;
+        $total_weight = 0;
+        $total_weight_receive = 0;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Date Receive');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Receive By');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Doc Number');
+        if ($data_profile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Kode Inventory');
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Bale Number');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
+        if ($data_profile != 'SUMMARY ITEM') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Receive');
+        if ($data_profile != 'SUMMARY ITEM') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight Receive');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Origin');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Warehouse Destination');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Sender');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Vehicle Model');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Vehicle Number');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Driver Name');
+        if ($data_profile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Ship At');
+        }
+        $jumlahRow = 2;
+        $no = 1;
+        foreach ($body as $key => $value) {
+            $jumlahColumn = $jumlahColumnStart;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d', strtotime($value->receive_at)));
+            if ($value->receiver) {
+                $nameReceiver = $value->receiver->name;
+            } else {
+                $nameReceiver = '';
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $nameReceiver);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->document_number);
+            if ($data_profile == 'DETAIL') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->code);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->bale_number);
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+            if ($data_profile != 'SUMMARY ITEM') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
+            if ($data_profile != 'SUMMARY ITEM') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight_receive);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_dest->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->sender->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->vehicle_model->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->vehicle_number);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->driver_name);
+            if ($data_profile == 'DETAIL') {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('Y-m-d', strtotime($value->shipment_at)));
+            }
+            $jumlahRow++;
+            $total_qty += $value->qty;
+            $total_weight_receive += $value->weight_receive;
+            $total_weight += $value->weight;
+            $total_qty_receive += $value->qty_receive;
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        if ($data_profile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
+        if ($data_profile != 'SUMMARY ITEM') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty_receive);
+        if ($data_profile != 'SUMMARY ITEM') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight_receive);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        if ($data_profile == 'DETAIL') {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'RECEIVE HISTORY ' . $data_profile . ' ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

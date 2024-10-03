@@ -103,6 +103,10 @@ $routeTemplate = [
     'receptions',
     'history-material',
     'master-supplier',
+    'history-receive',
+    'report-receive',
+    'recap-receive',
+    'warehouse-stock-list',
 ]
 ?>
 <div id="layoutSidenav_nav">

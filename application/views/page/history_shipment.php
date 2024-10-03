@@ -480,15 +480,21 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
             if (value.is_receive) {
+                var nameReceiver = ''
+                if (value.receiver) {
+                    nameReceiver = value.receiver.name
+                }
                 html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.receive_at) + '</td>'
-                html += '<td class="bg-white align-middle small-text text-center">' + value.receiver + '</td>'
+                html += '<td class="bg-white align-middle small-text text-center">' + nameReceiver + '</td>'
             } else {
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
             }
             html += '</tr>'
             total_qty += parseFloat(value.qty)
+            total_qty_receive += parseFloat(value.qty_receive)
             total_weight += parseFloat(value.weight)
+            total_weight_receive += parseFloat(value.weight_receive)
         })
         $('#bodyTable').html(html)
         footTable()

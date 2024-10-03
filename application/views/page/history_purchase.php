@@ -503,6 +503,7 @@
         html += '<tr>'
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
         html += '<th class="align-middle text-center small-text bg-white">Date</th>'
+        html += '<th class="align-middle text-center small-text bg-white">No. Invoice</th>'
         if (dataProfile == 'DETAIL') {
             html += '<th class="align-middle text-center small-text bg-white">Bale Number</th>'
         }
@@ -552,6 +553,7 @@
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.datetime) + ' ' + formatTime(value.datetime) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.invoice + '</td>'
             if (dataProfile == 'DETAIL') {
                 html += '<td class="bg-white align-middle small-text text-center">' + value.bale_number + '</td>'
             }
@@ -593,9 +595,9 @@
         var html = ''
         html += '<tr>'
         if (dataProfile == 'ITEM') {
-            html += '<th class="bg-white align-middle small-text text-end" colspan="5">Total</th>'
-        } else {
             html += '<th class="bg-white align-middle small-text text-end" colspan="6">Total</th>'
+        } else {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="7">Total</th>'
         }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'

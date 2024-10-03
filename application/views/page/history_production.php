@@ -302,6 +302,7 @@
     var supplierId = []
     var dataProfile = ''
     var data_user = {}
+    var indexVariable = 0
     var statusLineVariable = [{
             id: 0,
             name: 'Complete',
@@ -338,6 +339,7 @@
     }
 
     function statusLineSwitch(id, getData) {
+        indexVariable = id
         let updatedData = statusLineVariable.map(item => {
             return {
                 ...item,
@@ -504,7 +506,7 @@
                 dateRangeString()
                 $(button).prop("disabled", false);
                 data_report = response.data
-                data_report_showed = data_report.history_production_complete.data
+                data_report_showed = eval(statusLineVariable[indexVariable].getData)
                 statusLine()
             }
         });

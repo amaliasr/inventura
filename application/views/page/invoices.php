@@ -217,6 +217,12 @@
         newNumberInvoice = ''
         clearModal();
     })
+    $(document).on('show.bs.modal', '.modal', function() {
+        const zIndex = 1040 + 10 * $('.modal:visible').length;
+        $(this).css('z-index', zIndex);
+        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    });
+
     var user_id = '<?= $this->session->userdata('id') ?>'
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
     var admin_name = '<?= $this->session->userdata('name') ?>'

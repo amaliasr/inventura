@@ -299,6 +299,7 @@
     var date_start = getFirstDate()
     var date_end = currentDate()
     var selectedChild = []
+    var indexVariable = 0
     var parent = [{
             name: 'QTY',
             variable: 'qty',
@@ -351,7 +352,7 @@
         },
         {
             name: 'OUT',
-            variable: 'IN',
+            variable: 'OUT',
         }, {
             name: 'End',
             variable: 'end'
