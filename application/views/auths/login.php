@@ -158,9 +158,13 @@
                 $('#alertSalah').addClass('d-none')
                 if (response['success'] == true) {
                     let data = response['data'];
-                    dataLogin = data
-                    // console.log(dataLogin)
-                    chooseRole(data)
+                    if (data.is_active) {
+                        dataLogin = data
+                        // console.log(dataLogin)
+                        chooseRole(data)
+                    } else {
+                        $('#alertSalah').removeClass('d-none')
+                    }
                 }
             }
         });

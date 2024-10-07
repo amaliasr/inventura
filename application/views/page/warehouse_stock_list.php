@@ -146,6 +146,10 @@
         color: #268281;
     }
 
+    .text-light-teal {
+        color: #7cb4b3;
+    }
+
     .chart-container {
         display: flex;
         align-items: center;
@@ -163,26 +167,32 @@
         line-height: 30px;
         font-size: 14px;
         margin-right: 10px;
+        transition: width 0.5s ease-in-out, transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+
+    .bar:hover {
+        transform: scale(1.02);
+        /* Slight zoom in effect on hover */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        /* Shadow effect on hover */
+        /* Zoom in effect on hover */
     }
 
     .bar-1 {
         background-color: #87CEEB;
-        width: 40%;
     }
 
     .bar-2 {
         background-color: #90EE90;
-        width: 30%;
     }
 
     .bar-3 {
         background-color: #F4A460;
-        width: 10%;
     }
 
     .bar-4 {
         background-color: #FFB6C1;
-        width: 20%;
     }
 
     .legend {
@@ -225,6 +235,17 @@
     #chartStocks {
         min-height: 0px !important;
     }
+
+    /* Custom styles for popover text */
+    .popover-body {
+        font-size: 12px;
+        /* Set font size for popover text */
+    }
+
+    .popover-header {
+        font-size: 12px;
+        /* Set font size for popover text */
+    }
 </style>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -246,22 +267,24 @@
     <!-- Main page content-->
     <div class="container-xl mt-n10">
         <div class="row mb-4">
-            <div class="col-8">
+            <div class="col-4">
                 <div class="row">
-                    <div class="col-10 align-self-center">
+                    <div class="col-12 align-self-center">
                         <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Stock List</h1>
-                        <p class="m-0 super-small-text">Sabtu, 01 September 2024 - Senin, 30 September 2024</p>
+                        <p class="m-0 super-small-text" id="dateRangeString"></p>
                     </div>
                 </div>
             </div>
-            <div class="col-4 text-end align-self-center">
+            <div class="col-8 text-end align-self-center">
                 <div class="row justify-content-end">
                     <div class="col-auto pe-0">
                         <p class="m-0 small-text"><i>Last Updated</i></p>
                         <p class="m-0 small-text"><i>Today at <b id="timeRefresh">-</b></i></p>
                     </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-sm shadow-none btn-outline-primary" onclick="loadData()"><i class="fa fa-refresh"></i></button>
+                    <div class="col-auto d-flex align-items-center">
+                        <button type="button" class="btn btn-sm shadow-none btn-outline-primary me-2" onclick="datatableStock()"><i class="fa fa-refresh"></i></button>
+                        <input class="form-control form-control-sm datepicker shadow-none me-2" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off" style="width: 200px;">
+                        <button type="button" class="btn btn-sm shadow-none btn-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Filter</button>
                     </div>
                 </div>
             </div>
@@ -270,28 +293,24 @@
             <div class="mb-2 col-3 pe-0">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <p class="m-0 small-text fw-bolder d-flex align-items-center"><span class="me-2 small-text" id="iconTotalStock"></span>Total All Stocks</p>
-                        <p class="m-0 super-small-text mb-2">Data Tersebut termasuk produk FC, Cengkeh (Daun), Rajangan Bale, Rajangan Press</p>
-                        <p class="m-0 fw-bolder" style="font-size:40px !important"><span class="text-dark-teal">1.500</span> Bale</p>
+                        <p class="m-0 small-text fw-bolder d-flex align-items-center">Total All Stocks</p>
+                        <p class="m-0 super-small-text mb-3">Data Tersebut termasuk produk FC, Cengkeh (Daun), Rajangan Bale, Rajangan Press</p>
+                        <p class="m-0 fw-bolder lh-1" style="font-size:40px !important"><span class="text-dark-teal total-all-bale">--</span> Bale</p>
+                        <p class="m-0 lh-1"><span class="text-light-teal total-all-weight">--</span> Kg</p>
                     </div>
                 </div>
             </div>
             <div class="mb-2 col-9">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <p class="m-0 small-text fw-bolder d-flex align-items-center"><span class="me-2 small-text" id="iconTotalStock"></span>Stocks Age</p>
-                        <div class="container" id="stockAgeChart">
+                        <p class="m-0 small-text fw-bolder d-flex align-items-center">Stocks Age</p>
+                        <div class="" id="stockAgeChart">
                             <div class="chart-container">
-                                <div class="bar bar-1"></div>
-                                <div class="bar bar-2"></div>
-                                <div class="bar bar-3"></div>
-                                <div class="bar bar-4"></div>
+                                <div class="bar bar-1" data-bs-toggle="popover" data-bs-trigger="hover"></div>
+                                <div class="bar bar-2" data-bs-toggle="popover" data-bs-trigger="hover"></div>
+                                <div class="bar bar-3" data-bs-toggle="popover" data-bs-trigger="hover"></div>
                             </div>
                             <div class="legend">
-                                <div class="legend-item"><span class="blue"></span>Under 3 Month<br>40% (40,000 Bale)</div>
-                                <div class="legend-item"><span class="green"></span>3 - 5 Month<br>30% (30,000 Bale)</div>
-                                <div class="legend-item"><span class="orange"></span>5 - 12 Month<br>10% (300 Bale)</div>
-                                <div class="legend-item"><span class="red"></span>Up to a Year<br>20% (3,000 Bale)</div>
                             </div>
                         </div>
                     </div>
@@ -300,7 +319,7 @@
             <div class="mb-2 col-12">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <p class="m-0 small-text fw-bolder d-flex align-items-center"><span class="me-2 small-text" id="iconTotalStock"></span>Current Stocks</p>
+                        <p class="m-0 small-text fw-bolder d-flex align-items-center">Current Stocks</p>
                         <div id="chartStocks"></div>
                     </div>
                 </div>
@@ -308,7 +327,14 @@
             <div class="mb-2 col-12">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <p class="m-0 small-text fw-bolder d-flex align-items-center"><span class="me-2 small-text" id="iconTotalStock"></span>Detail Stocks</p>
+                        <div class="row justify-content-between">
+                            <div class="col-auto">
+                                <p class="m-0 small-text fw-bolder d-flex align-items-center">Detail Stocks</p>
+                            </div>
+                            <div class="col-auto">
+                                <div id="custom-search-container"></div>
+                            </div>
+                        </div>
                         <div class="mt-3">
                             <table class="table table-hover table-sm" style="overflow-x: hidden;" id="tableStocks">
                                 <thead>
@@ -367,6 +393,15 @@
 
             </div>
         </div>
+    </div>
+</div>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel" style="z-index: 9999;width: 400px;">
+    <div class="offcanvas-header border-bottom">
+        <p class="m-0 small" id="offcanvasRightLabel">Filter Special</p>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body px-4">
+
     </div>
 </div>
 <?php $this->load->view('components/modal_static') ?>
@@ -507,55 +542,28 @@
         setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
     });
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
-    var data_shipment = {}
-    var data_shipment_showed = []
+    var data_warehouse = {}
+    var data_master = {}
+    var data_warehouse_showed = []
     var date_start = getFirstDate()
     var date_end = currentDate()
-    var statusLineVariable = [{
-            id: 0,
-            name: 'All Data',
-            selected: true,
-            functions: 'countAllData()',
-            getData: 'chooseDataAllData()'
-        },
-        {
-            id: 1,
-            name: 'In Transit',
-            selected: false,
-            functions: 'countTransit()',
-            getData: 'chooseDataTransit()'
-        }
-    ]
-    var statusLineVariablePacking = [{
-            id: 0,
-            name: 'Data Packing',
-            selected: true,
-            functions: 'countDataPacking()',
-            getData: 'chooseDataPacking()'
-        },
-        {
-            id: 1,
-            name: 'Data Receive',
-            selected: false,
-            functions: 'countDataReceive()',
-            getData: 'chooseDataReceive()'
-        }
-    ]
     var indexVariable = 0
     var indexVariablePacking = 0
     var data_packing_list = []
     var data_packing_list_showed = []
     var linkPhoto = ''
     var printers = []
+    var itemId = []
     $(document).ready(function() {
-        $('#iconTotalStock').html(iconStocks())
-        chartStocks()
-        datatableStock()
-        dateRangeString()
         loadData()
+        dateRangeString()
+        setDaterange()
     })
 
     function datatableStock() {
+        data_warehouse = {}
+        $('#custom-search-container').html('');
+        $('#tableStocks').DataTable().destroy()
         $('#tableStocks').DataTable({
             pageLength: 200,
             scrollY: "600px",
@@ -572,16 +580,31 @@
                     data: {
                         warehouseId: 1,
                         page: page,
-                        pageSize: pageSize
+                        pageSize: pageSize,
+                        itemId: itemId,
+                    },
+                    error: function(xhr) {
+                        showOverlay('hide')
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Error Data'
+                        })
+                    },
+                    beforeSend: function() {
+                        showOverlay('show')
                     },
                     success: function(response) {
+                        showOverlay('hide')
                         // Format data sesuai kebutuhan DataTables
+                        data_warehouse = response.data
                         callback({
                             draw: data.draw,
                             recordsTotal: response.data.inventoryStockList.total, // Total data di server
                             recordsFiltered: response.data.inventoryStockList.total, // Data setelah filtering
                             data: response.data.inventoryStockList.data // Data untuk ditampilkan di tabel
                         });
+                        arrangeVariableStocks()
                     }
                 });
             },
@@ -645,7 +668,7 @@
                 [10, 25, 50, 100],
                 [10, 25, 50, 100]
             ], // Opsi jumlah record per halaman
-            pageLength: 10, // Default jumlah record per halaman
+            pageLength: 100, // Default jumlah record per halaman
             pagingType: 'simple_numbers', // Pagination style
             lengthChange: false,
             dom: '<"top"fl>rt<"bottom"ip><"clear">', // Pastikan filter di atas
@@ -653,30 +676,57 @@
                 paginate: {
                     previous: 'Prev',
                     next: 'Next'
-                }
+                },
+                info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ Data' // Menyesuaikan format info
             },
             // Styling tambahan agar lebih responsif
             responsive: true,
             autoWidth: false,
+            lengthChange: false,
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
         });
+        $('#custom-search-container').html($('.dataTables_filter'));
     }
 
+    function arrangeVariableStocks() {
+        var data = {
+            series: [],
+            categories: [],
+        }
+        var a = 0
+        var b = 0
+        data_warehouse.inventoryAgeHeader.forEach(e => {
+            data.series[a] = {
+                name: e,
+                data: []
+            }
+            b = 0
+            data_warehouse.inventoryStockListItemSummary.data.forEach(el => {
+                if (a == 0) {
+                    data.categories.push(el.item.code)
+                }
+                var available = false
+                el.datas.forEach(ele => {
+                    if (ele.label == e) {
+                        available = true
+                        data.series[a].data.push(ele.weight)
+                    }
+                });
+                if (available == false) {
+                    data.series[a].data.push(0)
+                }
+                b++
+            });
+            a++
+        });
+        chartStocks(data)
+    }
 
-    function chartStocks() {
+    function chartStocks(data) {
         var options = {
-            series: [{
-                name: 'Net Profit',
-                data: [44, 55, 57, 56, 61, 58, 63, 60, 66]
-            }, {
-                name: 'Revenue',
-                data: [76, 85, 101, 98, 87, 105, 91, 114, 94]
-            }, {
-                name: 'Free Cash Flow',
-                data: [35, 41, 36, 26, 45, 48, 52, 53, 41]
-            }],
+            series: data.series,
             chart: {
                 type: 'bar',
                 height: 200,
@@ -703,7 +753,7 @@
                 colors: ['transparent']
             },
             xaxis: {
-                categories: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                categories: data.categories,
             },
             yaxis: {
                 title: {
@@ -711,12 +761,13 @@
                 }
             },
             fill: {
+                colors: ['#87CEEB', '#90EE90', '#F4A460', '#FFB6C1'],
                 opacity: 1
             },
             tooltip: {
                 y: {
                     formatter: function(val) {
-                        return "$ " + val + " thousands"
+                        return number_format(val) + " Bale"
                     }
                 }
             }
@@ -724,45 +775,85 @@
 
         var chart = new ApexCharts(document.querySelector("#chartStocks"), options);
         chart.render();
+        stockAgeChart()
     }
 
-    function jspManager() {
-        JSPM.JSPrintManager.auto_reconnect = true;
-        JSPM.JSPrintManager.start();
-        JSPM.JSPrintManager.WS.onStatusChanged = function() {
-            if (JSPM.JSPrintManager.websocket_status == JSPM.WSStatus.Open) {
-                // alert(JSPM.JSPrintManager.getBluetoothDevices())
-                JSPM.JSPrintManager.getPrinters().then(function(e) {
-                    printers = e
+    function stockAgeChart() {
+        var stockData = data_warehouse.inventoryStockListSummary.data
+
+        // Calculate the total stock to determine percentages
+        var totalStock = stockData.reduce(function(sum, data) {
+            return sum + data.qty;
+        }, 0);
+
+        // Clear existing legends
+        $('.legend').empty();
+
+        // Update bars and legends dynamically
+        stockData.forEach(function(data, index) {
+            var percentage = (data.qty / totalStock) * 100;
+
+            // Get the bar element
+            var $bar = $('.bar-' + (index + 1));
+
+            // Set the initial width of the bar to 0, then animate it to the calculated percentage
+            $bar.css('width', '0%'); // Start with 0% width
+
+            // Delay each bar animation by 500ms * index for staggered effect
+            setTimeout(function() {
+                $bar.animate({
+                    width: percentage + '%'
+                }, 1000); // Animate the width to the calculated percentage
+                $bar.html('<span class="super-small-text">' + percentage.toFixed(1) + '%</span>'); // Add percentage text
+                // Initialize the popover with total data
+                $bar.attr('title', data.label);
+                $bar.attr('data-bs-content',
+                    // '<strong>' + data.label + '</strong><br>' +
+                    'Total : <b>' + number_format(data.qty) + '</b> Bale<br>' +
+                    'Weight : <b>' + number_format(roundToTwo(data.weight)) + '</b> kg'
+                ); // Set popover content
+                // Initialize popover
+                var popover = new bootstrap.Popover($bar[0], {
+                    placement: 'top', // Position popover above the bar
+                    html: true // Allow HTML content in popover
                 });
-            } else {
-                // tidak bisa karena lewat android
+            }, index * 500);
+
+            // Remove margin-right for the last bar
+            if ((index + 1) == stockData.length) {
+                $bar.css('margin-right', '0px');
             }
-        };
+
+            // Add corresponding legend item dynamically
+            var colorClass = ['blue', 'green', 'orange'][index];
+            $('.legend').append(
+                '<div class="legend-item"><span class="' + colorClass + '"></span>' +
+                data.label + '<br>' + percentage.toFixed(1) + '% (' + data.qty + ' Bale)</div>'
+            );
+        });
+
+        // Update total stock information (if this function is still required)
+        totalAllBale(stockData);
     }
 
-    function alertPOWithoutInvoice(number) {
-        var html = ''
-        html += '<div class="alert alert-primary small-text py-3 d-flex align-items-center bd-highlight pointer" role="alert" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" onclick="getDataWithoutInvoice()">'
-        html += '<div class="bd-highlight">'
-        html += '<svg class="bi flex-shrink-0 me-2" width="15" height="15" role="img" aria-label="Warning:">'
-        html += '<use xlink:href="#exclamation-triangle-fill" />'
-        html += '</svg>'
-        html += '</div>'
-        html += '<div class="bd-highlight"><b class="me-1">' + number + '</b>Purchase Order belum memiliki Invoice</div>'
-        html += '<div class="ms-auto bd-highlight"><i class="fa fa-chevron-right"></i></div>'
-        html += '</div>'
-        $('#alertPOWithoutInvoice').html(html)
+
+    function totalAllBale(stockData) {
+        var totalQTY = stockData.reduce(function(sum, data) {
+            return sum + data.qty;
+        }, 0);
+        var totalWeight = stockData.reduce(function(sum, data) {
+            return sum + data.weight;
+        }, 0);
+        $('.total-all-bale').html(number_format(totalQTY))
+        $('.total-all-weight').html(number_format(roundToTwo(totalWeight)))
     }
 
     function loadData() {
         $.ajax({
-            url: "<?= api_url('getReceiveList'); ?>",
+            url: "<?= api_url('loadPageRecapReportWarehouse'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
-                dateStart: date_start,
-                dateEnd: date_end,
                 warehouseId: warehouse_id,
             },
             error: function(xhr) {
@@ -778,10 +869,13 @@
             },
             success: function(response) {
                 showOverlay('hide')
-                data_shipment = response.data
-                linkPhoto = data_shipment.folder.driver
-                data_shipment_showed = eval(statusLineVariable[indexVariable].getData)
-                statusLine()
+                data_master = response.data
+                var dataItem = data_master.item
+                itemId = []
+                dataItem.forEach(e => {
+                    itemId.push(e.id)
+                });
+                datatableStock()
             }
         })
     }
@@ -816,7 +910,7 @@
                     date_start = formatDate(date1['dateInstance'])
                     date_end = formatDate(date2['dateInstance'])
                     dateRangeString()
-                    loadData()
+                    datatableStock()
                 });
             },
         })
@@ -824,171 +918,6 @@
 
     function dateRangeString() {
         $('#dateRangeString').html(formatDateIndonesiaShort(date_start) + ' - ' + formatDateIndonesiaShort(date_end))
-    }
-
-    function chooseDataAllData() {
-        var data = data_shipment.receive_list
-        return data
-    }
-
-    function countAllData() {
-        return chooseDataAllData().length
-    }
-
-
-    function chooseDataTransit() {
-        var data = data_shipment.receive_list_transit
-        return data
-    }
-
-    function countTransit() {
-        return chooseDataTransit().length
-    }
-
-    function chooseDataPacking() {
-        var data = data_packing_list
-        return data
-    }
-
-    function countDataPacking() {
-        return chooseDataPacking().length
-    }
-
-
-    function chooseDataReceive() {
-        var data = sortShipments(deepCopy(data_packing_list))
-        return data
-    }
-
-    function countDataReceive() {
-        return chooseDataReceive().length
-    }
-
-    function sortShipments(data) {
-        // Sort function
-        return data.sort((a, b) => {
-            // Check is_receive first
-            if (a.is_receive == 1 && b.is_receive != 1) {
-                return -1; // a comes first
-            }
-            if (a.is_receive != 1 && b.is_receive == 1) {
-                return 1; // b comes first
-            }
-
-            // If both are received, sort by receive_at
-            if (a.is_receive == 1 && b.is_receive == 1) {
-                return new Date(b.receive_at) - new Date(a.receive_at); // Sort by receive_at, newest first
-            }
-
-            // If both are not received, keep original order
-            return 0;
-        });
-    }
-
-    function statusLineSwitch(id, getData) {
-        indexVariable = id
-        let updatedData = statusLineVariable.map(item => {
-            return {
-                ...item,
-                selected: false
-            };
-        });
-        let updatedData2 = updatedData.map(item => {
-            if (item.id == id) {
-                return {
-                    ...item,
-                    selected: true
-                };
-            }
-            return item;
-        });
-        statusLineVariable = updatedData2
-        data_shipment_showed = eval(getData)
-        statusLine()
-    }
-
-    function statusLine() {
-        var html = ''
-        html += '<div class="row justify-content-between">'
-        html += '<div class="col h-100">'
-        html += '<div class="row" style="height:30px">'
-        statusLineVariable.forEach(e => {
-            var text = 'text-grey'
-            var icon = 'text-grey bg-light'
-            if (e.selected) {
-                text = 'fw-bold filter-border'
-                icon = 'bg-light-blue text-white'
-            }
-            var num = eval(e.functions)
-            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
-            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
-            html += ' </div>'
-
-        });
-        html += '</div>'
-        html += '</div>'
-        html += '<div class="col-auto">'
-        html += '<div class="row h-100">'
-
-        html += '<div class="col-auto ps-0">'
-        html += '<input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off">'
-        html += '</div>'
-        html += '<div class="col-auto ps-0" id="custom-search-container">'
-        html += '</div>'
-
-        html += '</div>'
-        html += '</div>'
-        html += '<div class="col-12 pt-2">'
-
-        html += '<div class="row justify-content-end">'
-        html += '<div class="col-auto">'
-        // html += '<p class="m-0 small-text">Filter :</p>'
-        html += '</div>'
-        html += '<div class="col-auto">'
-        html += '</div>'
-        html += '</div>'
-
-        html += '</div>'
-        html += '</div>'
-        $('#statusLine').html(html)
-        setDaterange()
-        kerangkaHistory()
-    }
-
-    function kerangkaHistory() {
-        var html = ''
-        html += '<table class="table table-hover table-sm small w-100" style="overflow-x: hidden;" id="tableDetail">'
-        html += '<thead id="headTable">'
-        html += '<tr class="py-2">'
-        html += '<th class="align-middle text-center small-text bg-white">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Date Ship</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Doc Number</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Origin</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Destination</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Sender</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Total QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Total QTY<br>Receive</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Total Weight</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Total Weight<br>Receive</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Model</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Number</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Driver<br>Photo</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Driver<br>Name</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Driver<br>Phone</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Receive<br>At</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Receive Close<br>At</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Receive<br>By</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Status</th>'
-        html += '<th class="align-middle text-center small-text bg-white"></th>'
-        html += '</tr>'
-        html += '</thead>'
-        html += '<tbody id="bodyTable">'
-        html += '</tbody>'
-        html += '<tfoot id="footTable">'
-        html += '</tfoot>'
-        html += '</table>'
-        $('#dataTable').html(html)
-        bodyHistory()
     }
 
     function deepCopy(obj) {
@@ -1014,7 +943,7 @@
         all_total_qty_receive = 0
         all_total_weight = 0
         all_total_weight_receive = 0
-        var dataFind = deepCopy(data_shipment_showed)
+        var dataFind = deepCopy(data_warehouse_showed)
         var b = 0
         $.each(dataFind, function(key, value) {
             var totalQty = calculateTotals(value.details, 'qty');
