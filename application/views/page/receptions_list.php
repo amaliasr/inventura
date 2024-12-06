@@ -141,6 +141,11 @@
         font-size: 10px;
         font-weight: bold;
     }
+
+    table td {
+        white-space: nowrap;
+        /* Mencegah teks wrap */
+    }
 </style>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -165,8 +170,8 @@
             <div class="col-8">
                 <div class="row">
                     <div class="col-10 align-self-center">
-                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Shippings</h1>
-                        <p class="m-0 super-small-text">Panel Kegiatan Entri untuk Management Shipping <br>dan Cetak Surat Jalan Pengiriman</p>
+                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Receptions</h1>
+                        <p class="m-0 super-small-text">Panel Kegiatan Entri untuk Management Receptions <br>dan Cetak Surat Jalan Pengiriman</p>
                     </div>
                 </div>
             </div>
@@ -239,7 +244,6 @@
         </div>
     </div>
 </div>
-<div id="qrcode" style="width:100px; height:100px; margin-top:15px;text-align:center;margin:0 auto;display:none;"></div>
 <?php $this->load->view('components/modal_static') ?>
 <!-- Chart js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -255,7 +259,8 @@
 <!-- QR CODE -->
 <script type="text/javascript" src="<?= base_url() ?>assets/js/vendor/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-
+<script src="<?= base_url(); ?>assets/JSPrintManager.js"></script>
+<!-- <script src="<?= base_url(); ?>assets/ebapi-modules.js"></script> -->
 <script>
     var imgBase64Data
 
@@ -364,7 +369,13 @@
     $('#modal').on('hidden.bs.modal', function(e) {
         clearModal();
     })
+    $(document).on('show.bs.modal', '.modal', function() {
+        const zIndex = 1040 + 10 * $('.modal:visible').length;
+        $(this).css('z-index', zIndex);
+        setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
+    });
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
+    var status_view = '<?= $status_view ?>'
     var data_shipment = {}
     var data_shipment_showed = []
     var date_start = getFirstDate()
@@ -384,13 +395,47 @@
             getData: 'chooseDataTransit()'
         }
     ]
+    var statusLineVariablePacking = [{
+            id: 0,
+            name: 'Data Packing',
+            selected: true,
+            functions: 'countDataPacking()',
+            getData: 'chooseDataPacking()'
+        },
+        {
+            id: 1,
+            name: 'Data Receive',
+            selected: false,
+            functions: 'countDataReceive()',
+            getData: 'chooseDataReceive()'
+        }
+    ]
     var indexVariable = 0
+    var indexVariablePacking = 0
     var data_packing_list = []
+    var data_packing_list_showed = []
     var linkPhoto = ''
+    var printers = []
     $(document).ready(function() {
+        jspManager()
         dateRangeString()
         loadData()
     })
+
+    function jspManager() {
+        JSPM.JSPrintManager.auto_reconnect = true;
+        JSPM.JSPrintManager.start();
+        JSPM.JSPrintManager.WS.onStatusChanged = function() {
+            if (JSPM.JSPrintManager.websocket_status == JSPM.WSStatus.Open) {
+                // alert(JSPM.JSPrintManager.getBluetoothDevices())
+                JSPM.JSPrintManager.getPrinters().then(function(e) {
+                    printers = e
+                });
+            } else {
+                // tidak bisa karena lewat android
+            }
+        };
+    }
 
     function alertPOWithoutInvoice(number) {
         var html = ''
@@ -408,7 +453,7 @@
 
     function loadData() {
         $.ajax({
-            url: "<?= api_url('getShipmentList'); ?>",
+            url: "<?= api_url('getReceiveList'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
@@ -478,7 +523,7 @@
     }
 
     function chooseDataAllData() {
-        var data = data_shipment.shipment_list
+        var data = data_shipment.receive_list
         return data
     }
 
@@ -488,7 +533,7 @@
 
 
     function chooseDataTransit() {
-        var data = data_shipment.shipment_list_transit
+        var data = data_shipment.receive_list_transit
         return data
     }
 
@@ -496,7 +541,45 @@
         return chooseDataTransit().length
     }
 
+    function chooseDataPacking() {
+        var data = data_packing_list
+        return data
+    }
 
+    function countDataPacking() {
+        return chooseDataPacking().length
+    }
+
+
+    function chooseDataReceive() {
+        var data = sortShipments(deepCopy(data_packing_list))
+        return data
+    }
+
+    function countDataReceive() {
+        return chooseDataReceive().length
+    }
+
+    function sortShipments(data) {
+        // Sort function
+        return data.sort((a, b) => {
+            // Check is_receive first
+            if (a.is_receive == 1 && b.is_receive != 1) {
+                return -1; // a comes first
+            }
+            if (a.is_receive != 1 && b.is_receive == 1) {
+                return 1; // b comes first
+            }
+
+            // If both are received, sort by receive_at
+            if (a.is_receive == 1 && b.is_receive == 1) {
+                return new Date(b.receive_at) - new Date(a.receive_at); // Sort by receive_at, newest first
+            }
+
+            // If both are not received, keep original order
+            return 0;
+        });
+    }
 
     function statusLineSwitch(id, getData) {
         indexVariable = id
@@ -589,7 +672,9 @@
         html += '<th class="align-middle text-center small-text bg-white">Driver<br>Name</th>'
         html += '<th class="align-middle text-center small-text bg-white">Driver<br>Phone</th>'
         html += '<th class="align-middle text-center small-text bg-white">Receive<br>At</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Receive Close<br>At</th>'
         html += '<th class="align-middle text-center small-text bg-white">Receive<br>By</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Status<br>Kelengkapan</th>'
         html += '<th class="align-middle text-center small-text bg-white">Status</th>'
         html += '<th class="align-middle text-center small-text bg-white"></th>'
         html += '</tr>'
@@ -634,11 +719,18 @@
             var totalWeight = calculateTotals(value.details, 'weight');
             var totalWeightReceive = calculateTotals(value.details, 'weight_receive');
             // selisih qty, dibuat absolut
-            var selisih_qty = Math.abs(totalQty - totalQtyReceive)
-            var iconSelisih = ''
+            var selisih_qty = (totalQty - totalQtyReceive)
+            var selisih_weight = (totalWeight - totalWeightReceive)
+            var iconSelisihQty = ''
+            var iconSelisihWeight = ''
             if (totalQtyReceive) {
                 if (selisih_qty > 0) {
-                    iconSelisih = '<i class="fa fa-warning text-warning small-text ms-1" title="Selisih ' + selisih_qty + '"></i>'
+                    iconSelisihQty = '<i class="fa fa-warning text-warning small-text ms-1" title="Selisih ' + selisih_qty + '"></i>'
+                }
+            }
+            if (totalWeightReceive) {
+                if (selisih_weight > 0) {
+                    iconSelisihWeight = '<i class="fa fa-warning text-warning small-text ms-1" title="Selisih ' + selisih_weight + '"></i>'
                 }
             }
             html += '<tr>'
@@ -647,12 +739,15 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_destination.name + '</td>'
+            if (!value.user_sender.name) {
+                value.user_sender.name = ''
+            }
             html += '<td class="bg-white align-middle small-text text-center">' + shortenName(value.user_sender.name, 1) + '</td>'
 
             html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalQty)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalQtyReceive)) + '' + iconSelisih + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalQtyReceive)) + '' + iconSelisihQty + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalWeight)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalWeightReceive)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalWeightReceive)) + '' + iconSelisihWeight + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_model.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">'
@@ -662,11 +757,17 @@
                 for (let j = 0; j < value.driver_photos.length; j++) {
                     var hide = ''
                     if (j >= 3) {
-                        hide = 'hidden'
+                        hide = 'd-none'
                     }
-                    html += '<span class="avatar pointer" href="' + linkPhoto + value.driver_photos[j] + '" data-fancybox="gallery' + key + '" data-caption="Gallery ' + key + '" ' + hide + '>'
-                    html += '<img src="' + linkPhoto + value.driver_photos[j] + '">'
-                    html += '</span>'
+                    if (!hide) {
+                        html += '<span class="avatar pointer" href="' + linkPhoto + value.driver_photos[j] + '" data-fancybox="gallery' + key + '" data-caption="Gallery ' + key + '">'
+                        html += '<img src="' + linkPhoto + value.driver_photos[j] + '">'
+                        html += '</span>'
+                    } else {
+                        html += '<a class="" href="' + linkPhoto + value.driver_photos[j] + '" data-fancybox="gallery' + key + '" data-caption="Gallery ' + key + '" hidden>'
+                        html += '</a>'
+                    }
+
                 }
             } else {
                 html += '<span class="avatar">'
@@ -680,40 +781,75 @@
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.driver_phone + '</td>'
             if (value.is_receive) {
-                html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.receive_at) + '</td>'
+                if (value.receive_at) {
+                    value.receive_at = formatDate(value.receive_at) + '<br>' + formatTime(value.receive_at)
+                } else {
+                    value.receive_at = ''
+                }
+                if (value.receive_close_at) {
+                    value.receive_close_at = formatDate(value.receive_close_at) + '<br>' + formatTime(value.receive_close_at)
+                } else {
+                    value.receive_close_at = ''
+                }
+                if (!value.user_receiver.name) {
+                    value.user_receiver.name = ''
+                }
+                html += '<td class="bg-white align-middle small-text text-center">' + value.receive_at + '</td>'
+                html += '<td class="bg-white align-middle small-text text-center">' + value.receive_close_at + '</td>'
                 html += '<td class="bg-white align-middle small-text text-center">' + value.user_receiver.name + '</td>'
             } else {
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
                 html += '<td class="bg-white align-middle small-text text-center"></td>'
+                html += '<td class="bg-white align-middle small-text text-center"></td>'
             }
             var badge = ''
-            if (value.is_load_all == 1) {
-                if (value.is_receive_all == 1) {
-                    badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">DITERIMA LENGKAP</span>'
-                } else if (value.is_receive_all == 0) {
-                    badge = '<span class="badge rounded-pill bg-danger super-small-text p-2 w-100">DITERIMA SEBAGIAN</span>'
+            var badgeKelengkapan = ''
+            var isKelengkapan = true
+            if (value.is_receive_all == 1) {
+                if (value.is_receive_close == 1) {
+                    badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">SELESAI DITERIMA</span>'
                 } else {
-                    badge = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">IN TRANSIT</span>'
+                    badge = '<span class="badge rounded-pill bg-info super-small-text p-2 w-100">DITERIMA SEMUA</span>'
+                    // tombol closing (is_receive_close = 1), batal selesai terima (is_receive_all = null)
                 }
             } else {
-                badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">PROSES MUAT</span>'
+                // jika belum diterima
+                if (totalQtyReceive) {
+                    isKelengkapan = false
+                    badge = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">PROSES TERIMA</span>'
+                } else {
+                    badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">IN TRANSIT</span>'
+                }
             }
-
+            if (isKelengkapan) {
+                if (totalQtyReceive) {
+                    if (totalQtyReceive > totalQty) {
+                        // terima lebih
+                        badgeKelengkapan = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">TERIMA LEBIH</span>'
+                    } else if (totalQtyReceive < totalQty) {
+                        // terima kurang
+                        badgeKelengkapan = '<span class="badge rounded-pill bg-orange super-small-text p-2 w-100">TERIMA KURANG</span>'
+                    } else {
+                        // terima lengkap
+                        badgeKelengkapan = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">TERIMA LENGKAP</span>'
+                    }
+                }
+            }
+            html += '<td class="bg-white align-middle small-text text-center">' + badgeKelengkapan + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + badge + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">'
             html += '<button class="super-small-text btn btn-sm btn-outline-dark py-1 px-2 shadow-none" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>'
             html += '<div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuButton">'
             html += '<a class="dropdown-item" onclick="getPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-list-ul me-2"></i> Packing List</a>'
-            html += '<a class="dropdown-item" onclick="cetakPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Packing List</a>'
-            if (value.is_load_all) {
-                html += '<a class="dropdown-item" onclick="cetakSuratJalan(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
-                if (!value.is_receive) {
-                    html += '<div class="text-center pe-2 ps-2 mt-2">'
-                    html += '<button class="btn btn-sm btn-danger w-100" onclick="batalMuat(' + "'" + value.id + "'" + ')">Batal Selesai Muat</button>'
-                    html += '</div>'
+            // html += '<a class="dropdown-item" onclick="getReceiveList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-arrow-down me-2"></i> Receive List</a>'
+            if (value.is_receive_all == 1 && value.is_receive_close == null) {
+                html += '<div class="text-center pe-2 ps-2 mt-2">'
+                if (!status_view) {
+                    html += '<hr class="m-0">'
+                    html += '<button class="btn btn-sm btn-success w-100 mt-2 py-2" onclick="selesaiTerima(' + "'" + value.id + "'" + ')">Selesai Terima</button>'
+                    html += '<button class="btn btn-sm text-danger w-100 py-2 mt-2 border-0 super-small-text" onclick="batalTerima(' + "'" + value.id + "'" + ')">Batal Terima</button>'
                 }
-            } else {
-                html += '<a class="dropdown-item disabled" aria-disabled="true"><i class="fa fa-print me-2"></i> Print Surat Jalan</a>'
+                html += '</div>'
             }
             html += '</div>'
             html += '</td>'
@@ -746,6 +882,7 @@
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty_receive) + '</th>'
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight) + '</th>'
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight_receive) + '</th>'
+        html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
@@ -790,9 +927,9 @@
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
-    function batalMuat(id) {
+    function selesaiTerima(id) {
         Swal.fire({
-            text: 'Apakah Anda yakin ingin Membatalkan Selesai Muat untuk Surat Jalan ini ?',
+            text: 'Apakah Anda yakin ingin menyelesaikan penerimaan Surat Jalan ini ?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -801,19 +938,48 @@
             cancelButtonText: 'Tidak',
         }).then((result) => {
             if (result.isConfirmed) {
-                simpanData(id)
+                simpanDataTerimaSJ(id)
             }
         })
     }
 
-    function simpanData(id) {
+    function batalTerima(id) {
+        Swal.fire({
+            text: 'Apakah Anda yakin ingin membatalkan penerimaan Surat Jalan ini ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                simpanDataBatalSJ(id)
+            }
+        })
+    }
+
+    function simpanDataTerimaSJ(id) {
         var type = 'POST'
         var button = '.btnSimpan'
         var url = '<?php echo api_produksi('setShipment'); ?>'
         var data = {
             shipment: [{
                 "id": id,
-                "is_load_all": null
+                "is_receive_close": 1
+            }]
+        }
+        kelolaData(data, type, url, button)
+    }
+
+    function simpanDataBatalSJ(id) {
+        var type = 'POST'
+        var button = '.btnSimpan'
+        var url = '<?php echo api_produksi('setShipment'); ?>'
+        var data = {
+            shipment: [{
+                "id": id,
+                "is_receive_all": null
             }]
         }
         kelolaData(data, type, url, button)
@@ -875,24 +1041,75 @@
             success: function(response) {
                 showOverlay('hide')
                 data_packing_list = response.data.history_shipment_item.data
+                data_packing_list_showed = eval(statusLineVariablePacking[indexVariablePacking].getData)
+                // statusLinePacking(id, doc_num)
                 detailPackingList(id, doc_num)
             }
         })
     }
 
+    function statusLineSwitchPacking(id, getData, id_shipment, doc_num) {
+        indexVariablePacking = id
+        let updatedData = statusLineVariablePacking.map(item => {
+            return {
+                ...item,
+                selected: false
+            };
+        });
+        let updatedData2 = updatedData.map(item => {
+            if (item.id == id) {
+                return {
+                    ...item,
+                    selected: true
+                };
+            }
+            return item;
+        });
+        statusLineVariablePacking = updatedData2
+        data_packing_list_showed = eval(getData)
+        statusLinePacking(id_shipment, doc_num)
+    }
+
+    function statusLinePacking(id, doc_num) {
+        var html = ''
+        html += '<div class="row ps-3" style="height:30px">'
+        statusLineVariablePacking.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitchPacking(' + e.id + ',' + "'" + e.getData + "'" + ',' + "'" + id + "'" + ',' + "'" + doc_num + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
+
+        });
+        html += '</div>'
+        $('#statusLinePacking').html(html)
+        // console.log('test')
+        dataPackingList(id)
+    }
+
+
     function detailPackingList(id, doc_num) {
         $('#modal').modal('show')
-        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable');
+        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable modal-lg');
         var html_header = '';
         html_header += '<h5 class="modal-title small">Packing List ' + doc_num + '</h5>';
         html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
         $('#modalHeader').html(html_header);
         var html_body = '';
         html_body += '<div class="row">'
-        html_body += '<div class="col-12 text-end">'
+        html_body += '<div class="col mb-2 text-end" id="statusLinePacking">'
+        html_body += '</div>'
+        html_body += '<div class="col mb-2 text-end">'
         // tombol cetak packing list
-        html_body += '<button type="button" class="btn btn-outline-primary btn-sm small-text p-2 me-2" onclick="cetakPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-print me-2"></i>Cetak Packing List</button>'
-        html_body += '<button type="button" class="btn btn-outline-success btn-sm small-text p-2" onclick="excelPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-file-excel-o me-2"></i>Excel Packing List</button>'
+        if (!status_view) {
+            html_body += '<button type="button" class="btn btn-outline-primary btn-sm small-text p-2 me-2" onclick="cetakPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-print me-2"></i>Cetak Packing List</button>'
+            html_body += '<button type="button" class="btn btn-outline-success btn-sm small-text p-2" onclick="excelPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-file-excel-o me-2"></i>Excel Packing List</button>'
+        }
         html_body += '</div>'
         html_body += '<div class="col-12 table-responsive" id="dataPackingList">'
         html_body += '</div>'
@@ -901,7 +1118,7 @@
         var html_footer = '';
         html_footer += '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>'
         $('#modalFooter').html(html_footer);
-        dataPackingList(id)
+        statusLinePacking(id, doc_num)
     }
 
     function dataPackingList(id) {
@@ -909,12 +1126,21 @@
         html += '<table class="table table-bordered table-hover table-sm small w-100 tablePackingList" id="tablePackingList">'
         html += '<thead>'
         html += '<tr>'
-        html += '<th class="align-middle small-text" width="10%">No</th>'
-        // html += '<th class="align-middle small-text" width="20%">Tgl</th>'
-        html += '<th class="align-middle small-text" width="40%">No. Bale</th>'
-        html += '<th class="align-middle small-text" width="10%">Berat</th>'
-        html += '<th class="align-middle small-text" width="30%">Item</th>'
-        html += '<th class="align-middle small-text" width="10%">Grade</th>'
+        html += '<th class="align-middle small-text" style="width:5%">No</th>'
+        // html += '<th class="align-middle small-text">Tgl</th>'
+        html += '<th class="align-middle small-text" style="width:10%">Global Code</th>'
+        html += '<th class="align-middle small-text" style="width:10%">Inv Code</th>'
+        html += '<th class="align-middle small-text" style="width:20%">No. Bale</th>'
+        html += '<th class="align-middle small-text" style="width:5%">QTY</th>'
+        html += '<th class="align-middle small-text" style="width:5%">QTY Terima</th>'
+        html += '<th class="align-middle small-text" style="width:5%">Berat</th>'
+        html += '<th class="align-middle small-text" style="width:5%">Berat Terima</th>'
+        html += '<th class="align-middle small-text" style="width:10%">Item</th>'
+        html += '<th class="align-middle small-text" style="width:10%">Grade</th>'
+        if (indexVariablePacking == 1) {
+            html += '<th class="align-middle small-text" style="width:15%">Receive At</th>'
+            html += '<th class="align-middle small-text" style="width:10%">Barcode</th>'
+        }
         html += '</tr>'
         html += '</thead>'
         html += '<tbody>'
@@ -946,33 +1172,100 @@
         return `${day}/${month}/${year}`;
     }
 
+    function sortShipmentData(data) {
+        return data.sort((a, b) => {
+            // Sort by qty_receive, moving items with null or 0 to the bottom
+            if ((a.qty_receive === null || a.qty_receive === 0) && (b.qty_receive !== null && b.qty_receive !== 0)) {
+                return 1; // Move 'a' below 'b'
+            } else if ((b.qty_receive === null || b.qty_receive === 0) && (a.qty_receive !== null && a.qty_receive !== 0)) {
+                return -1; // Move 'b' below 'a'
+            } else {
+                return 0; // Maintain the original order for other cases
+            }
+        });
+    }
+
     function dataTablePackingList(id) {
         var html = '';
         var a = 1
-        var total_weight = 0
-        data_packing_list.forEach(e => {
+        var total = {
+            qty: 0,
+            qty_receive: 0,
+            weight: 0,
+            weight_receive: 0
+        }
+        var dataFind = sortShipmentData(deepCopy(data_packing_list_showed))
+        // console.log(dataFind)
+        dataFind.forEach(e => {
+            if (!e.inventory.global_code) {
+                e.inventory.global_code = ''
+            }
+            if (!e.qty) {
+                e.qty = 0
+            }
+            var qty_receive = ''
+            if (e.qty_receive == null) {
+                e.qty_receive = 0
+            } else {
+                qty_receive = number_format(roundToTwo(e.qty_receive))
+            }
+            if (!e.weight) {
+                e.weight = 0
+            }
+            var weight_receive = ''
+            if (e.weight_receive == null) {
+                e.weight_receive = 0
+            } else {
+                weight_receive = number_format(roundToTwo(e.weight_receive))
+            }
             html += '<tr>'
-            html += '<td class="align-middle small-text text-center" width="10%">' + a++ + '</td>'
-            html += '<td class="align-middle small-text text-center" width="40%">' + formatDate2(e.inventory.date) + '-' + e.inventory.bale_number + '</td>'
-            // html += '<td class="align-middle small-text text-center" width="20%">' + e.inventory.bale_number + '</td>'
-            html += '<td class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(e.weight)) + '</td>'
-            html += '<td class="align-middle small-text" width="30%">' + e.item.name + '</td>'
-            html += '<td class="align-middle small-text text-center" width="10%">' + e.item_grade.name + '</td>'
+            html += '<td class="align-middle small-text text-center">' + a++ + '</td>'
+            html += '<td class="align-middle small-text text-center">' + e.inventory.global_code + '</td>'
+            html += '<td class="align-middle small-text text-center">' + e.inventory.code + '</td>'
+            html += '<td class="align-middle small-text text-center">' + formatDate2(e.inventory.date) + '-' + e.inventory.bale_number + '</td>'
+            html += '<td class="align-middle small-text text-end">' + number_format(roundToTwo(e.qty)) + '</td>'
+            html += '<td class="align-middle small-text text-end">' + qty_receive + '</td>'
+            html += '<td class="align-middle small-text text-end">' + number_format(roundToTwo(e.weight)) + '</td>'
+            html += '<td class="align-middle small-text text-end">' + weight_receive + '</td>'
+            html += '<td class="align-middle small-text text-center">' + e.item.name + '</td>'
+            html += '<td class="align-middle small-text text-center">' + e.item_grade.name + '</td>'
+            if (indexVariablePacking == 1) {
+                if (e.receive_at) {
+                    e.receive_at = formatDate(e.receive_at) + ' ' + formatTime(e.receive_at)
+                } else {
+                    e.receive_at = '-'
+                }
+                html += '<td class="align-middle small-text text-center">' + e.receive_at + '</td>'
+                html += '<td class="align-middle small-text text-center"><button class="btn btn-sm btn-outline-dark small-text p-1" onclick="showBarcode(\'' + e.shipment_detail_id + '\', \'' + e.inventory.code + '\')">Lihat</button></td>'
+            }
             html += '</tr>'
-            total_weight += e.weight
+
+            total.qty += e.qty
+            total.qty_receive += e.qty_receive
+            total.weight += e.weight
+            total.weight_receive += e.weight_receive
         });
         $('#tablePackingList tbody').html(html)
-        dataTablePackingListFooter(id, total_weight)
+        dataTablePackingListFooter(id, total)
     }
 
-    function dataTablePackingListFooter(id, total_weight) {
+    function dataTablePackingListFooter(id, total) {
         var html = '';
         html += '<tr>'
-        html += '<th class="align-middle small-text text-center" width="10%"></th>'
-        html += '<th class="align-middle small-text text-end" width="40%">Total</th>'
-        html += '<th class="align-middle small-text text-end" width="10%">' + number_format(roundToTwo(total_weight)) + '</th>'
-        html += '<th class="align-middle small-text" width="30%"></th>'
-        html += '<th class="align-middle small-text text-center" width="10%"></th>'
+        html += '<th class="align-middle small-text text-center"></th>'
+        html += '<th class="align-middle small-text text-center"></th>'
+        html += '<th class="align-middle small-text text-center"></th>'
+        html += '<th class="align-middle small-text text-end">Total</th>'
+        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.qty)) + '</th>'
+        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.qty_receive)) + '</th>'
+        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.weight)) + '</th>'
+        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.weight_receive)) + '</th>'
+        html += '<th class="align-middle small-text"></th>'
+        html += '<th class="align-middle small-text text-center"></th>'
+        if (indexVariablePacking == 1) {
+            html += '<th class="align-middle small-text text-center"></th>'
+            html += '<th class="align-middle small-text text-center"></th>'
+        }
         html += '</tr>'
         $('#tablePackingList tfoot').html(html)
         $('#tablePackingList').DataTable({
@@ -996,8 +1289,203 @@
     }
 
     function excelPackingList(id, doc_num) {
-        var url = '<?= base_url('report/excelPackingListTanpaTerima') ?>';
+        var url = '<?= base_url('report/excelPackingList') ?>';
         var params = "*$" + id + "*$" + doc_num
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
+    }
+    var printerKey = ''
+
+    function showBarcode(id, code) {
+        defaultLabelPrinter = localStorage.getItem("defaultLabelPrinter") || '';
+        printerKey = ''
+        $('#modal2').modal('show')
+        $('#modalDialog2').addClass('modal-dialog modal-dialog-scrollable');
+        var html_header = '';
+        html_header += '<h5 class="modal-title">Barcode</h5>';
+        html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
+        $('#modalHeader2').html(html_header);
+        var html_body = '';
+        $('#modalBody2').html(html_body);
+        var html_footer = '';
+        $('#modalFooter2').html(html_footer).addClass('d-none')
+        $('#qrcodePacking').empty()
+        // if (defaultLabelPrinter) {
+        //     choosePrinter(printerKey, defaultLabelPrinter)
+        // }
+        layoutPrinted(id, code)
+    }
+
+    function layoutPrinted(id, code) {
+        // console.log(data_packing_list_showed)
+        var data = data_packing_list_showed.find(item => item.shipment_detail_id == id)
+        // console.log(id)
+        var weight = data.inventory.weight
+        if (!weight) {
+            weight = data.inventory.weight_est
+        }
+        var html = '';
+        html += '<div class="row">'
+        html += '<div class="col-3">'
+        html += '<div id="qrcodePacking" style="margin-top:15px;margin:auto;"></div>'
+        html += '</div>'
+        html += '<div class="col-9">'
+
+        html += '<div class="row">'
+        html += '<div class="col-12">'
+        html += '<p class="m-0 small-text fw-bolder">' + formatDateBarcode(data.inventory.purchase_at) + '</p>'
+        html += '</div>'
+        html += '<div class="col-6">'
+        html += '<p class="m-0 small-text">GRADE</p>'
+        html += '<h1 class="m-0 fw-bolder" style="font-size:50px !important">' + data.item_grade.name + '</h1>'
+        html += '</div>'
+        html += '<div class="col-6">'
+        html += '<p class="m-0 small-text">BERAT (Kg)</p>'
+        html += '<h1 class="m-0 fw-bolder" style="font-size:50px !important">' + weight + '</h1>'
+        html += '</div>'
+        html += '</div>'
+
+        html += '</div>'
+
+        html += '<div class="col-12 mt-2">'
+        html += '<p class="m-0 small-text fw-bold">' + data.inventory.code + '</p>'
+        html += '<p class="m-0 small fw-bolder">' + data.item.name + '</p>'
+        html += '</div>'
+
+        html += '<div class="col-6 mt-3">'
+        html += '<p class="m-0 small fw-bolder">' + data.supplier.name + '</p>'
+        html += '<p class="m-0 small fw-bolder">' + data.inventory.bale_number + '</p>'
+        html += '</div>'
+
+        html += '<div class="col-6 mt-3 text-end">'
+        if (!data.inventory.global_code) {
+            data.inventory.global_code = ''
+        }
+        html += '<p class="m-0 small fw-bolder">' + data.inventory.global_code + '</p>'
+        html += '</div>'
+
+        html += '</div>'
+        $('#modalBody2').html(html);
+        $('#qrcodePacking').empty()
+        var qrcode = new QRCode("qrcodePacking", {
+            text: code,
+            width: 100,
+            height: 100,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
+    function layoutPrintCard(id, code) {
+        var html
+        html += '<div class="row">'
+        //filter
+        html += '<div class="col-6 text-center mb-2">'
+        html += '<div id="qrcodePacking" style="margin-top:15px;margin:auto;"></div>'
+        html += '</div>'
+        // print barcode
+        html += '<div class="col-6 ps-0">'
+        // list printer
+        html += '<div class="row mb-2">'
+        html += '<div class="col-12" style="max-height: 200px;overflow-x: hidden;overflow-y: auto;">'
+        if (printers.length) {
+            $.each(printers, (key, value) => {
+                if (defaultLabelPrinter == value) {
+                    printerKey = key
+                }
+                html += '<div class="card shadow-none pointer card-hoper mb-2 cardChoosePrinter" onclick="choosePrinter(' + key + ',' + "'" + value + "'" + ')" id="cardChoosePrinter' + key + '">'
+                html += '<div class="card-body p-1 px-2">'
+                // text
+                html += '<div class="row">'
+                html += '<div class="col-10 align-self-center">'
+                html += '<p class="m-0 super-small-text fw-bolder">' + value + '</p>'
+                html += '</div>'
+                html += '<div class="col-2 text-end">'
+                html += '<i class="fa fa-check-circle text-grey iconChoosePrinter" id="iconChoosePrinter' + key + '"></i>'
+                html += '</div>'
+                html += '</div>'
+                // text
+                html += '</div>'
+                html += '</div>'
+            })
+        } else {
+            html += '<div class="card shadow-none">'
+            html += '<div class="card-body">'
+            html += '<p class="text-center small-text fw-bolder"><i>Printer Tidak Ditemukan</i></p>'
+            html += '<p class="m-0 text-center small-text">Silahkan untuk instalasi JSPM Terlebih Dahulu</p>'
+            html += '<p class="m-0 text-center small-text">Jika printer sudah terinstall, silahkan refresh halaman ini</p>'
+            html += '</div>'
+            html += '</div>'
+        }
+        html += '</div>'
+        html += '</div>'
+        // list printer
+        html += '<button type="button" class="btn btn-primary btn-sm small-text" onclick="printQrCode(\'' + id + '\')" id="btnCetakQRCode" disabled>Cetak QR Code</button>'
+        html += '</div>'
+        // print barcode
+        //filter
+        html += '</div>'
+        return html
+    }
+
+    function choosePrinter(key, value) {
+        localStorage.setItem('defaultLabelPrinter', value)
+        $('.cardChoosePrinter').removeClass('border-success bg-light')
+        $('.iconChoosePrinter').removeClass('text-success')
+        $('#cardChoosePrinter' + key).addClass('border-success bg-light')
+        $('#iconChoosePrinter' + key).addClass('text-success')
+        $('#btnCetakQRCode').prop('disabled', false)
+    }
+
+    function formatDateBarcode(dateString) {
+        // Create a new Date object from the input date string
+        const date = new Date(dateString);
+
+        // Array of month names for converting month number to name
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        // Extract day, month, year, hours, and minutes
+        const day = date.getDate(); // Day of the month
+        const month = months[date.getMonth()]; // Month name
+        const year = String(date.getFullYear()).slice(-2); // Last 2 digits of the year
+        const hours = String(date.getHours()).padStart(2, '0'); // Hour in 2 digits
+        const minutes = String(date.getMinutes()).padStart(2, '0'); // Minutes in 2 digits
+
+        // Format the date as '18 Sep 24, 16:06'
+        return `${day} ${month} ${year}, ${hours}:${minutes}`;
+    }
+
+    function printQrCode(id) {
+        var data = data_packing_list_showed.find(item => item.id == id)
+        var weight = data.inventory.weight
+        if (!weight) {
+            weight = data.inventory.weight_est
+        }
+        let cmds = '';
+        cmds += '^XA' +
+            '^FO30,30^BQR,2,10,H,10^FDQA,' + data.inventory.code + '^FS' + // QR code with inventory code
+            '^FO30,300^CF0,30^FD' + data.inventory.code + '^FS' + // Display inventory code
+            '^FO30,340^CF0,40^FD' + data.item.name + '^FS' + // Item description
+            '^FO300,30^CF0,30^FD' + formatDateBarcode(data.inventory.purchase_at) + '^FS' + // Date and time
+            '^CFA,30^FO300,70^FDGRADE^FS' + // Grade label
+            '^CF0,160^FO300,110^FD' + data.item_grade.name + '^FS' + // Grade value
+            '^CFA,30^FO710,70^FDBERAT(Kg)^FS' + // Weight label
+            '^CF0,160^FO710,110^FD' + weight + '^FS' + // Weight value
+            '^CF0,40^FO750,440^FD' + data.inventory.global_code + '^FS' + // Lot number
+            '^CF0,40^FO30,470^FD' + data.supplier.name + '^FS' + // Press label
+            '^CF0,40^FO30,520^FD' + data.inventory.bale_number + '^FS' + // Batch info
+            // '^FO850,480^BY1,2,80^BCN,80,N,N,N^FD' + data.inventory.code + '^FS' + // Barcode with inventory code
+            '^XZ'; // End of label
+        defaultLabelPrinter = localStorage.getItem("defaultLabelPrinter") || '';
+        if (JSPM.JSPrintManager.websocket_status == JSPM.WSStatus.Open) {
+            var cpj = new JSPM.ClientPrintJob();
+            cpj.clientPrinter = new JSPM.InstalledPrinter(defaultLabelPrinter);
+            // cpj.clientPrinter = new JSPM.BluetoothPrinter("60:95:32:23:E4:45", 1);
+            cpj.printerCommands = cmds;
+            cpj.sendToClient();
+
+        }
     }
 </script>

@@ -31,6 +31,11 @@
         padding-right: 50px !important;
         font-size: 10px;
     }
+
+    table td {
+        white-space: nowrap;
+        /* Mencegah teks wrap */
+    }
 </style>
 <main>
     <!-- Main page content-->

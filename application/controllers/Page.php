@@ -33,8 +33,29 @@ class Page extends CI_Controller
         $this->allRoles = $this->session->userdata('allRoles');
         $this->roles = $this->session->userdata('roles');
     }
+    private function check_permission($method)
+    {
+        $method = str_replace('_', '-', $method);
+        // Ambil semua route dari data permission
+        $routes = array_column($this->permission, 'route');
+
+        // Jika method tidak ada di permission, redirect ke halaman not found
+        if (!in_array($method, $routes)) {
+            redirect('page/not_found');
+        }
+    }
+    public function not_found()
+    {
+        $data['title'] = 'Page Not Found';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/not_found', $data);
+    }
     public function invoices()
     {
+        $this->check_permission('invoices');
         $data['title'] = 'Invoices Lists';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -44,6 +65,7 @@ class Page extends CI_Controller
     }
     public function cetakInvoices()
     {
+
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
@@ -64,6 +86,7 @@ class Page extends CI_Controller
     }
     public function purchase_recap()
     {
+        $this->check_permission('purchase_recap');
         $data['title'] = 'Purchase Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -73,6 +96,7 @@ class Page extends CI_Controller
     }
     public function recap_shipment()
     {
+        $this->check_permission('recap_shipment');
         $data['title'] = 'Shipment Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -82,6 +106,7 @@ class Page extends CI_Controller
     }
     public function recap_puchase_supplier()
     {
+        $this->check_permission('recap_puchase_supplier');
         $data['title'] = 'Purchase Supplier Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -91,6 +116,7 @@ class Page extends CI_Controller
     }
     public function recap_warehouse_stock()
     {
+        $this->check_permission('recap_warehouse_stock');
         $data['title'] = 'Warehouse Stock Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -100,6 +126,7 @@ class Page extends CI_Controller
     }
     public function report_shipment()
     {
+        $this->check_permission('report_shipment');
         $data['title'] = 'Shipment Report';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -109,6 +136,7 @@ class Page extends CI_Controller
     }
     public function history_purchase()
     {
+        $this->check_permission('history_purchase');
         $data['title'] = 'Purchase History';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -118,6 +146,7 @@ class Page extends CI_Controller
     }
     public function history_shipment()
     {
+        $this->check_permission('history_shipment');
         $data['title'] = 'Shipment History';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -125,17 +154,31 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/history_shipment', $data);
     }
-    public function shippings()
+    public function shippings_list()
     {
+        $this->check_permission('shippings_list');
         $data['title'] = 'Shipping';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
-        $this->template->views('page/shippings', $data);
+        $data['status_view'] = '';
+        $this->template->views('page/shippings_list', $data);
+    }
+    public function shippings_list_view()
+    {
+        $this->check_permission('shippings_list_view');
+        $data['title'] = 'Shipping';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $data['status_view'] = 'view';
+        $this->template->views('page/shippings_list', $data);
     }
     public function recap_production()
     {
+        $this->check_permission('recap_production');
         $data['title'] = 'Production Recap';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -179,6 +222,7 @@ class Page extends CI_Controller
     }
     public function history_production()
     {
+        $this->check_permission('history_production');
         $data['title'] = 'Production History';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -186,17 +230,31 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/history_production', $data);
     }
-    public function receptions()
+    public function receptions_list()
     {
+        $this->check_permission('receptions_list');
         $data['title'] = 'Receptions';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
-        $this->template->views('page/receptions', $data);
+        $data['status_view'] = '';
+        $this->template->views('page/receptions_list', $data);
+    }
+    public function receptions_list_view()
+    {
+        $this->check_permission('receptions_list_view');
+        $data['title'] = 'Receptions';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $data['status_view'] = 'view';
+        $this->template->views('page/receptions_list', $data);
     }
     public function history_material()
     {
+        $this->check_permission('history_material');
         $data['title'] = 'History Material';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -206,6 +264,7 @@ class Page extends CI_Controller
     }
     public function master_supplier()
     {
+        $this->check_permission('master_supplier');
         $data['title'] = 'Master Supplier';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -215,6 +274,7 @@ class Page extends CI_Controller
     }
     public function history_receive()
     {
+        $this->check_permission('history_receive');
         $data['title'] = 'History Receive';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -224,6 +284,7 @@ class Page extends CI_Controller
     }
     public function report_receive()
     {
+        $this->check_permission('report_receive');
         $data['title'] = 'Report Receive';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -233,6 +294,7 @@ class Page extends CI_Controller
     }
     public function recap_receive()
     {
+        $this->check_permission('recap_receive');
         $data['title'] = 'Recap Receive';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;
@@ -242,6 +304,7 @@ class Page extends CI_Controller
     }
     public function warehouse_stock_list()
     {
+        $this->check_permission('warehouse_stock_list');
         $data['title'] = 'Warehouse Stock List';
         $data['permission'] = $this->permission;
         $data['warehouse_id'] = $this->warehouse_id;

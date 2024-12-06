@@ -1,5 +1,7 @@
 <link href="<?= base_url(); ?>assets/smm/purchase_order.css" rel="stylesheet" type="text/css">
 <link href="<?= base_url(); ?>assets/smm/shipping.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/report.css" rel="stylesheet" type="text/css">
+<link href="<?= base_url(); ?>assets/smm/tracking.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 <style>
     .litepicker .container__months .month-item {
@@ -246,6 +248,58 @@
         font-size: 12px;
         /* Set font size for popover text */
     }
+
+    #custom-length-menu-container label {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        font-size: 11px;
+    }
+
+    #custom-length-menu-container label select {
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    #custom-length-menu-container {
+        margin-bottom: 10px;
+        /* Optional, untuk memberikan jarak bawah */
+    }
+
+    .btn-outline-grey {
+        color: #69707a;
+        border-color: #69707a;
+    }
+
+    .btn-outline-grey.active {
+        color: #fff;
+        background-color: #69707a;
+        border-color: #69707a;
+    }
+
+    #bs-select-1 {
+        overflow: visible !important;
+    }
+
+    .is-select-picker {
+        border-radius: 4px !important;
+        width: 100% !important;
+    }
+
+    .circle-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 30px;
+    }
+
+    .bg-light-warning {
+        background-color: #fdf5e5 !important;
+    }
 </style>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -295,7 +349,7 @@
                     <div class="card-body">
                         <p class="m-0 small-text fw-bolder d-flex align-items-center">Total All Stocks</p>
                         <p class="m-0 super-small-text mb-3">Data Tersebut termasuk produk FC, Cengkeh (Daun), Rajangan Bale, Rajangan Press</p>
-                        <p class="m-0 fw-bolder lh-1" style="font-size:40px !important"><span class="text-dark-teal total-all-bale">--</span> Bale</p>
+                        <p class="m-0 fw-bolder lh-1" style="font-size:40px !important"><span class="text-dark-teal total-all-bale">--</span> <span id="unitName"></span></p>
                         <p class="m-0 lh-1"><span class="text-light-teal total-all-weight">--</span> Kg</p>
                     </div>
                 </div>
@@ -306,9 +360,9 @@
                         <p class="m-0 small-text fw-bolder d-flex align-items-center">Stocks Age</p>
                         <div class="" id="stockAgeChart">
                             <div class="chart-container">
-                                <div class="bar bar-1" data-bs-toggle="popover" data-bs-trigger="hover"></div>
+                                <!-- <div class="bar bar-1" data-bs-toggle="popover" data-bs-trigger="hover"></div>
                                 <div class="bar bar-2" data-bs-toggle="popover" data-bs-trigger="hover"></div>
-                                <div class="bar bar-3" data-bs-toggle="popover" data-bs-trigger="hover"></div>
+                                <div class="bar bar-3" data-bs-toggle="popover" data-bs-trigger="hover"></div> -->
                             </div>
                             <div class="legend">
                             </div>
@@ -319,7 +373,15 @@
             <div class="mb-2 col-12">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <p class="m-0 small-text fw-bolder d-flex align-items-center">Current Stocks</p>
+                        <div class="row justify-content-between">
+                            <div class="col-auto">
+                                <p class="m-0 small-text fw-bolder d-flex align-items-center">Current Stocks</p>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-sm btn-outline-grey active py-1 px-2 shadow-none small-text btnChart" id="btnqty" onclick="changeChartStocks('qty')">QTY</button>
+                                <button class="btn btn-sm btn-outline-grey py-1 px-2 shadow-none small-text btnChart" id="btnweight" onclick="changeChartStocks('weight')">Weight</button>
+                            </div>
+                        </div>
                         <div id="chartStocks"></div>
                     </div>
                 </div>
@@ -332,6 +394,9 @@
                                 <p class="m-0 small-text fw-bolder d-flex align-items-center">Detail Stocks</p>
                             </div>
                             <div class="col-auto">
+                                <div id="custom-length-menu-container" class="d-flex align-items-center"></div>
+                            </div>
+                            <div class="col-auto">
                                 <div id="custom-search-container"></div>
                             </div>
                         </div>
@@ -342,6 +407,7 @@
                                         <th class="align-middle text-center small-text bg-white">#</th>
                                         <th class="align-middle text-center small-text bg-white">Age<br>(Days)</th>
                                         <th class="align-middle text-center small-text bg-white">Item</th>
+                                        <th class="align-middle text-center small-text bg-white">Item Origin</th>
                                         <th class="align-middle text-center small-text bg-white">Grade</th>
                                         <th class="align-middle text-center small-text bg-white">QTY</th>
                                         <th class="align-middle text-center small-text bg-white">Unit</th>
@@ -351,6 +417,7 @@
                                         <th class="align-middle text-center small-text bg-white">Code</th>
                                         <th class="align-middle text-center small-text bg-white">Global Code</th>
                                         <th class="align-middle text-center small-text bg-white">Purchase At</th>
+                                        <th class="align-middle text-center small-text bg-white"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="bodyTable">
@@ -395,24 +462,87 @@
         </div>
     </div>
 </div>
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel" style="z-index: 9999;width: 400px;">
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel" style="z-index: 9999;width: 650px;">
     <div class="offcanvas-header border-bottom">
         <p class="m-0 small" id="offcanvasRightLabel">Filter Special</p>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body px-4">
+    <div class="offcanvas-body px-4" id="offcanvasRightBody">
+        <div class="row">
+            <!-- // start date -->
+            <div class="col-6 mb-2">
+                <p class="m-0 small-text fw-bolder">Start Date</p>
+                <input class="form-control form-control-sm datepicker shadow-none me-2" type="text" id="dateStart" placeholder="Tanggal Mulai" autocomplete="off" style="width: 100%;height:30px;padding:10px;">
+                <div class="form-check form-check-sm d-flex align-items-center">
+                    <input class="form-check-input me-2" type="checkbox" id="checkStart" onclick="checkStart()" checked>
+                    <label class="form-check-label small-text" for="checkStart">Disable Start Date</label>
+                </div>
+            </div>
+            <!-- // start date -->
+            <!-- //  click check to disabled start date -->
+            <!-- <div class="col-12 mb-2 text-end">
+            </div> -->
+            <!-- //  click check to disabled start date -->
+            <!-- // end date -->
+            <div class="col-6 mb-2">
+                <p class="m-0 small-text fw-bolder">End Date</p>
+                <input class="form-control form-control-sm datepicker shadow-none me-2" type="text" id="dateEnd" placeholder="Tanggal Mulai" autocomplete="off" style="width: 100%;height:30px;padding:10px;">
+            </div>
+            <!-- // end date -->
+            <div class=" col-6 mb-2">
+                <p class="m-0 small-text fw-bolder">Item</p>
+                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectItem" title="Pilih Item" onchange="getDataGrade()">
+                </select>
+            </div>
+            <!-- // item checkbox small -->
+            <div class="col-6 mb-2">
+                <p class="m-0 small-text fw-bolder">Unit</p>
+                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectUnit" title="Pilih Unit">
+                </select>
+            </div>
+            <!-- // item checkbox small -->
+            <div class=" col-12 mb-2">
+                <p class="m-0 small-text fw-bolder">Item Origin</p>
+                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse">
+                </select>
+            </div>
+            <!-- // grade checkbox small -->
+            <div class=" col-12 mb-2">
+                <p class="m-0 small-text fw-bolder">Grade</p>
+                <div class="row pt-2">
+                    <div class="col-12">
+                        <div class="form-check form-check-sm d-flex align-items-center">
+                            <input class="form-check-input me-2" type="checkbox" id="btnCheckAllGrade" onclick="checkAllGrade()" checked>
+                            <label class="form-check-label small-text" for="btnCheckAllGrade">Semua Grade</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row pt-2" id="listCheckBoxGrade">
 
+                </div>
+                <!-- <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectGrade" title="Pilih Grade">
+                </select> -->
+            </div>
+
+            <!-- // grade checkbox small -->
+            <!-- // btn save -->
+            <div class=" col-12 mb-2 text-end">
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="downloadExcel()"><i class="fa fa-file-excel-o me-2"></i>Download Excel</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="saveFilter()">Apply Filter</button>
+            </div>
+            <!-- // btn save -->
+        </div>
     </div>
 </div>
 <?php $this->load->view('components/modal_static') ?>
 <!-- Chart js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> -->
 <script src="<?= base_url(); ?>assets/smm/format.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
 <!-- autocomplete -->
-<script type="text/javascript" src="<?= base_url() ?>assets/bootstrap-multiselect/js/bootstrap-multiselect.js"></script>
-<script type="text/javascript" src="<?= base_url() ?>assets/bootstrap-multiselect/js/bootstrap-multiselect.min.js"></script>
+<!-- <script type="text/javascript" src="<?= base_url() ?>assets/bootstrap-multiselect/js/bootstrap-multiselect.js"></script>
+<script type="text/javascript" src="<?= base_url() ?>assets/bootstrap-multiselect/js/bootstrap-multiselect.min.js"></script> -->
 <script src="https://cdn.jsdelivr.net/gh/xcash/bootstrap-autocomplete@v2.3.7/dist/latest/bootstrap-autocomplete.min.js"></script>
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
@@ -545,7 +675,7 @@
     var data_warehouse = {}
     var data_master = {}
     var data_warehouse_showed = []
-    var date_start = getFirstDate()
+    var date_start = ''
     var date_end = currentDate()
     var indexVariable = 0
     var indexVariablePacking = 0
@@ -554,35 +684,205 @@
     var linkPhoto = ''
     var printers = []
     var itemId = []
+    var gradeId = []
+    var warehouse_id_origin = []
+    var item_unit_id = []
     $(document).ready(function() {
         loadData()
         dateRangeString()
         setDaterange()
     })
 
+    function selectItem() {
+        var html = ''
+        data_master.item.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectItem').html(html)
+        $('#selectItem').selectpicker('refresh');
+        // $('#selectItem').selectpicker({
+
+        // });
+        selectWarehouse()
+        getDataGrade()
+    }
+
+    function selectWarehouse() {
+        var html = ''
+        data_master.warehouse.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectWarehouse').html(html)
+        $('#selectWarehouse').selectpicker('refresh');
+        selectUnit()
+    }
+
+    function selectUnit() {
+        var html = ''
+        data_master.unit.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectUnit').html(html)
+        $('#selectUnit').selectpicker('refresh');
+    }
+
+    function getDataGrade() {
+        var itemId = $('#selectItem').val()
+        // console.log(itemId)
+        if (itemId.length) {
+            $.ajax({
+                url: "<?= api_url('getItemGrade'); ?>",
+                method: "GET",
+                dataType: 'JSON',
+                data: {
+                    itemId: itemId,
+                },
+                error: function(xhr) {
+                    showOverlay('hide')
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Error Data'
+                    })
+                },
+                beforeSend: function() {
+                    showOverlay('show')
+                },
+                success: function(response) {
+                    showOverlay('hide')
+                    var data = response.data.itemGrade
+                    selectGrade(data)
+                }
+            })
+        } else {
+            var data = []
+            selectGrade(data)
+        }
+    }
+
+    function checkAllGrade() {
+        if ($('#btnCheckAllGrade').is(':checked')) {
+            $('.selectGradeItem').prop('checked', true)
+        } else {
+            $('.selectGradeItem').prop('checked', false)
+        }
+    }
+
+    function selectGrade(data) {
+        // console.log(data)
+        var html = ''
+        if (data) {
+            data.forEach(e => {
+                // checkbox
+                html += '<div class="col-2 pe-0">'
+                var select = ''
+                select = 'checked'
+                html += '<div class="form-check form-check-inline">' +
+                    '<input class="form-check-input selectGradeItem" type="checkbox" id="selectGradeItem' + e.id + '" value="' + e.id + '" ' + select + '>' +
+                    '<label class="form-check-label small-text d-flex align-self-center" for="selectGradeItem' + e.id + '">' + e.name + '</label>' +
+                    '</div>'
+                html += '</div>'
+            })
+        }
+        $('#listCheckBoxGrade').html(html);
+
+        // $('#selectGrade').selectpicker('deselectAll');
+        // $('#selectGrade').val('').selectpicker('refresh')
+        // if (data) {
+        //     data.forEach(e => {
+        //         var select = ''
+        //         select = 'selected'
+        //         html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        //     });
+        // }
+        // $('#selectGrade').html(html)
+        // $('#selectGrade').selectpicker('refresh');
+        // $('#selectGrade').selectpicker({
+
+        // });
+        // $('#bs-select-2 li').not('[class*="selected"]').remove();
+        checkStart()
+    }
+
+    // function resetFilter() {
+    //     $('#selectGrade').selectpicker('deselectAll');
+    // }
+
+    function checkStart() {
+        if ($('#checkStart').is(':checked')) {
+            date_start = ''
+            $('#dateStart').val('')
+            $('#dateStart').prop('disabled', true)
+        } else {
+            $('#dateStart').prop('disabled', false)
+            date_start = currentDate()
+            $('#dateStart').val(formatInternationalDate(currentDate()))
+        }
+    }
+
+    function checkItem(id) {
+        if (itemId.includes(id)) {
+            itemId.splice(itemId.indexOf(id), 1)
+        } else {
+            itemId.push(id)
+        }
+    }
+
+    function saveFilter() {
+        itemId = []
+        gradeId = []
+        warehouse_id_origin = []
+        item_unit_id = []
+        itemId = $('#selectItem').val()
+        gradeId = $('.selectGradeItem:checked').map(function() {
+            return $(this).val();
+        }).get()
+        warehouse_id_origin = $('#selectWarehouse').val()
+        item_unit_id = $('#selectUnit').val()
+        $('#dateRange').val(formatInternationalDate(date_end))
+        dateRangeString()
+        datatableStock()
+    }
+
     function datatableStock() {
         data_warehouse = {}
         $('#custom-search-container').html('');
+        $('#custom-length-menu-container').html('');
         $('#tableStocks').DataTable().destroy()
         $('#tableStocks').DataTable({
-            pageLength: 200,
+            pageLength: 100,
             scrollY: "600px",
             fixedHeader: true,
             processing: true,
             serverSide: true,
             paging: true,
+            searchDelay: 2000,
             ajax: function(data, callback, settings) {
                 var page = Math.floor(settings._iDisplayStart / settings._iDisplayLength) + 1; // Hitung halaman berdasarkan start & length
-                var pageSize = 100;
-
+                // var pageSize = 100;
+                var pageSize = settings._iDisplayLength;
+                var data = {
+                    warehouseId: warehouse_id,
+                    page: page,
+                    pageSize: pageSize,
+                    itemId: itemId,
+                    dateEnd: date_end,
+                    itemGradeId: gradeId,
+                    warehouseIdOrigin: warehouse_id_origin,
+                    itemUnitId: item_unit_id
+                }
+                if (date_start) {
+                    data.dateStart = date_start
+                }
                 $.ajax({
                     url: 'https://rest.pt-bks.com/tobacco/getInventoryStockList',
-                    data: {
-                        warehouseId: 1,
-                        page: page,
-                        pageSize: pageSize,
-                        itemId: itemId,
-                    },
+                    data: data,
                     error: function(xhr) {
                         showOverlay('hide')
                         Swal.fire({
@@ -621,6 +921,10 @@
                 },
                 { // Kolom Item
                     data: 'item.name',
+                    className: 'align-middle text-center super-small-text'
+                },
+                { // Kolom Item
+                    data: 'warehouse_origin.name',
                     className: 'align-middle text-center super-small-text'
                 },
                 { // Kolom Grade
@@ -662,15 +966,34 @@
                         return getDateTime(data); // Format tanggal menjadi lebih mudah dibaca
                     },
                     className: 'align-middle text-center super-small-text'
+                },
+                { // Kolom Tombol
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return `
+                    <div class="dropdown">
+                        <button class="super-small-text btn btn-sm btn-outline-dark py-1 px-2 shadow-none" id="dropdownMenuButton${meta.row}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuButton${meta.row}">
+                           <a class="dropdown-item" onclick="getInventoryScan('${data.inventory.id}')">
+                            <i class="fa fa-th-list me-2"></i> Data Inventory
+                            </a>
+                           <a class="dropdown-item" onclick="showBarcode('${data.inventory.id}')">
+                            <i class="fa fa-qrcode me-2"></i> Lihat Barcode
+                            </a>
+                        </div>
+                    </div>`;
+                    },
+                    className: 'align-middle text-center'
                 }
             ],
             lengthMenu: [
-                [10, 25, 50, 100],
-                [10, 25, 50, 100]
+                [100, 200, 500],
+                [100, 200, 500]
             ], // Opsi jumlah record per halaman
             pageLength: 100, // Default jumlah record per halaman
             pagingType: 'simple_numbers', // Pagination style
-            lengthChange: false,
             dom: '<"top"fl>rt<"bottom"ip><"clear">', // Pastikan filter di atas
             language: {
                 paginate: {
@@ -682,18 +1005,121 @@
             // Styling tambahan agar lebih responsif
             responsive: true,
             autoWidth: false,
-            lengthChange: false,
+            lengthChange: true,
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
         });
         $('#custom-search-container').html($('.dataTables_filter'));
+        $('#custom-length-menu-container').html($('#tableStocks_length').detach());
+    }
+
+    function showBarcode(id) {
+        $('#modal2').modal('show')
+        $('#modalDialog2').addClass('modal-dialog modal-dialog-scrollable');
+        var html_header = '';
+        html_header += '<h5 class="modal-title">Barcode</h5>';
+        html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
+        $('#modalHeader2').html(html_header);
+        var html_body = '';
+        $('#modalBody2').html(html_body);
+        var html_footer = '';
+        $('#modalFooter2').html(html_footer).addClass('d-none')
+        $('#qrcodePacking').empty()
+        layoutPrinted(id)
+    }
+
+    function formatDateBarcode(dateString) {
+        // Create a new Date object from the input date string
+        const date = new Date(dateString);
+
+        // Array of month names for converting month number to name
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        // Extract day, month, year, hours, and minutes
+        const day = date.getDate(); // Day of the month
+        const month = months[date.getMonth()]; // Month name
+        const year = String(date.getFullYear()).slice(-2); // Last 2 digits of the year
+        const hours = String(date.getHours()).padStart(2, '0'); // Hour in 2 digits
+        const minutes = String(date.getMinutes()).padStart(2, '0'); // Minutes in 2 digits
+
+        // Format the date as '18 Sep 24, 16:06'
+        return `${day} ${month} ${year}, ${hours}:${minutes}`;
+    }
+
+    function layoutPrinted(id) {
+        var data = data_warehouse.inventoryStockList.data.find(item => item.inventory.id == id)
+        // console.log(id)
+        var weight = data.weight
+        var html = '';
+        html += '<div class="row">'
+        html += '<div class="col-3">'
+        html += '<div id="qrcodePacking" style="margin-top:15px;margin:auto;"></div>'
+        html += '</div>'
+        html += '<div class="col-9">'
+
+        html += '<div class="row">'
+        html += '<div class="col-12">'
+        html += '<p class="m-0 small-text fw-bolder">' + formatDateBarcode(data.purchase_at) + '</p>'
+        html += '</div>'
+        html += '<div class="col-6">'
+        html += '<p class="m-0 small-text">GRADE</p>'
+        html += '<h1 class="m-0 fw-bolder" style="font-size:50px !important">' + data.item_grade.name + '</h1>'
+        html += '</div>'
+        html += '<div class="col-6">'
+        html += '<p class="m-0 small-text">BERAT (Kg)</p>'
+        html += '<h1 class="m-0 fw-bolder" style="font-size:50px !important">' + weight + '</h1>'
+        html += '</div>'
+        html += '</div>'
+
+        html += '</div>'
+
+        html += '<div class="col-12 mt-2">'
+        html += '<p class="m-0 small-text fw-bold">' + data.inventory.code + '</p>'
+        html += '<p class="m-0 small fw-bolder">' + data.item.name + '</p>'
+        html += '</div>'
+
+        html += '<div class="col-6 mt-3">'
+        html += '<p class="m-0 small fw-bolder">' + data.supplier.name + '</p>'
+        html += '<p class="m-0 small fw-bolder">' + data.inventory.bale_number + '</p>'
+        html += '</div>'
+
+        html += '<div class="col-6 mt-3 text-end">'
+        if (!data.inventory.global_code) {
+            data.inventory.global_code = ''
+        }
+        html += '<p class="m-0 small fw-bolder">' + data.inventory.global_code + '</p>'
+        html += '</div>'
+
+        html += '</div>'
+        $('#modalBody2').html(html);
+        $('#qrcodePacking').empty()
+        var qrcode = new QRCode("qrcodePacking", {
+            text: data.inventory.code,
+            width: 100,
+            height: 100,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+    var variableWeightSeries = 'qty';
+
+    function changeChartStocks(status) {
+        $('.btnChart').removeClass('active')
+        variableWeightSeries = status
+        arrangeVariableStocks()
     }
 
     function arrangeVariableStocks() {
+        $('#chartStocks').html('')
+        $('#btn' + variableWeightSeries).addClass('active')
         var data = {
             series: [],
             categories: [],
+            units: [], // Tambahkan array untuk menyimpan unit_name
         }
         var a = 0
         var b = 0
@@ -704,18 +1130,31 @@
             }
             b = 0
             data_warehouse.inventoryStockListItemSummary.data.forEach(el => {
+                var unit = el.unit.name
+                if (variableWeightSeries == 'weight') {
+                    unit = 'Kg'
+                }
                 if (a == 0) {
-                    data.categories.push(el.item.code)
+                    data.categories.push(el.item.code + ' ( ' + el.unit.name + ' )')
+                    data.units.push(unit); // Simpan unit_name di array units
                 }
                 var available = false
                 el.datas.forEach(ele => {
                     if (ele.label == e) {
                         available = true
-                        data.series[a].data.push(ele.weight)
+                        // data.series[a].data.push(ele.weight)
+                        data.series[a].data.push({
+                            weight: ele[variableWeightSeries],
+                            unit: unit
+                        }); // Simpan unit_name dengan weight
                     }
                 });
                 if (available == false) {
-                    data.series[a].data.push(0)
+                    // data.series[a].data.push(0)
+                    data.series[a].data.push({
+                        weight: 0,
+                        unit: unit
+                    }); // Simpan unit_name meskipun datanya 0
                 }
                 b++
             });
@@ -726,7 +1165,11 @@
 
     function chartStocks(data) {
         var options = {
-            series: data.series,
+            // series: data.series,
+            series: data.series.map(serie => ({
+                name: serie.name,
+                data: serie.data.map(d => d.weight) // Hanya ambil weight untuk ditampilkan di chart
+            })),
             chart: {
                 type: 'bar',
                 height: 200,
@@ -766,8 +1209,16 @@
             },
             tooltip: {
                 y: {
-                    formatter: function(val) {
-                        return number_format(val) + " Bale"
+                    // formatter: function(val) {
+                    //     return number_format(val) + " Bale"
+                    // }
+                    formatter: function(val, {
+                        seriesIndex,
+                        dataPointIndex
+                    }) {
+                        // Ambil unit dari data series
+                        var unit = data.series[seriesIndex].data[dataPointIndex].unit;
+                        return number_format(val) + " " + unit;
                     }
                 }
             }
@@ -779,60 +1230,63 @@
     }
 
     function stockAgeChart() {
-        var stockData = data_warehouse.inventoryStockListSummary.data
+        var stockData = data_warehouse.inventoryStockListSummary.data;
 
-        // Calculate the total stock to determine percentages
+        // Hitung total stok untuk menentukan persentase
         var totalStock = stockData.reduce(function(sum, data) {
             return sum + data.qty;
         }, 0);
 
-        // Clear existing legends
+        // Kosongkan bar dan legenda sebelumnya
+        $('.chart-container').empty();
         $('.legend').empty();
 
-        // Update bars and legends dynamically
+        // Buat bar dan legenda secara dinamis berdasarkan data
         stockData.forEach(function(data, index) {
             var percentage = (data.qty / totalStock) * 100;
 
-            // Get the bar element
-            var $bar = $('.bar-' + (index + 1));
+            // Buat elemen bar baru
+            var $bar = $('<div class="bar"></div>');
+            $bar.css({
+                'width': '0%', // Mulai dengan lebar 0 untuk animasi
+                'background-color': ['#87CEEB', '#90EE90', '#F4A460'][index], // Warna berbeda per bar
+                'margin-right': index === stockData.length - 1 ? '0px' : '10px' // Hilangkan margin untuk bar terakhir
+            });
 
-            // Set the initial width of the bar to 0, then animate it to the calculated percentage
-            $bar.css('width', '0%'); // Start with 0% width
+            // Tambahkan elemen bar ke container
+            $('.chart-container').append($bar);
 
-            // Delay each bar animation by 500ms * index for staggered effect
+            // Animasi lebar bar dan tambahkan popover serta teks persentase
             setTimeout(function() {
                 $bar.animate({
                     width: percentage + '%'
-                }, 1000); // Animate the width to the calculated percentage
-                $bar.html('<span class="super-small-text">' + percentage.toFixed(1) + '%</span>'); // Add percentage text
-                // Initialize the popover with total data
+                }, 1000); // Animasi ke lebar persentase
+                $bar.html('<span class="super-small-text">' + percentage.toFixed(1) + '%</span>'); // Tampilkan persentase
+
+                // Tambahkan popover untuk menampilkan informasi qty dan weight
                 $bar.attr('title', data.label);
+                $bar.attr('data-bs-trigger', 'hover');
                 $bar.attr('data-bs-content',
-                    // '<strong>' + data.label + '</strong><br>' +
                     'Total : <b>' + number_format(data.qty) + '</b> Bale<br>' +
                     'Weight : <b>' + number_format(roundToTwo(data.weight)) + '</b> kg'
-                ); // Set popover content
-                // Initialize popover
-                var popover = new bootstrap.Popover($bar[0], {
-                    placement: 'top', // Position popover above the bar
-                    html: true // Allow HTML content in popover
+                );
+
+                // Inisialisasi Bootstrap Popover
+                new bootstrap.Popover($bar[0], {
+                    placement: 'top',
+                    html: true
                 });
-            }, index * 500);
+            }, index * 500); // Penundaan untuk efek animasi bertahap
 
-            // Remove margin-right for the last bar
-            if ((index + 1) == stockData.length) {
-                $bar.css('margin-right', '0px');
-            }
-
-            // Add corresponding legend item dynamically
+            // Tambahkan item legenda secara dinamis
             var colorClass = ['blue', 'green', 'orange'][index];
             $('.legend').append(
                 '<div class="legend-item"><span class="' + colorClass + '"></span>' +
-                data.label + '<br>' + percentage.toFixed(1) + '% (' + data.qty + ' Bale)</div>'
+                data.label + '<br>' + percentage.toFixed(1) + '% (' + number_format(data.qty) + ' Bale)</div>'
             );
         });
 
-        // Update total stock information (if this function is still required)
+        // Update total jika diperlukan
         totalAllBale(stockData);
     }
 
@@ -846,6 +1300,21 @@
         }, 0);
         $('.total-all-bale').html(number_format(totalQTY))
         $('.total-all-weight').html(number_format(roundToTwo(totalWeight)))
+        // yang nanti dihapus
+        unitName()
+    }
+
+    function unitName() {
+        var name = 'Bale'
+        if (item_unit_id.length == 1) {
+            var data = data_master.unit.find(e => e.id == item_unit_id)
+            if (data) {
+                if (data.name == 'Press') {
+                    name = 'Press'
+                }
+            }
+        }
+        $('#unitName').html(name)
     }
 
     function loadData() {
@@ -872,9 +1341,14 @@
                 data_master = response.data
                 var dataItem = data_master.item
                 itemId = []
+                warehouse_id_origin = []
                 dataItem.forEach(e => {
                     itemId.push(e.id)
                 });
+                data_master.warehouse.forEach(e => {
+                    warehouse_id_origin.push(e.id)
+                });
+                selectItem()
                 datatableStock()
             }
         })
@@ -897,338 +1371,77 @@
     function setDaterange() {
         new Litepicker({
             element: document.getElementById('dateRange'),
-            singleMode: false,
+            singleMode: true,
             firstDay: 0,
-            startDate: date_start,
-            endDate: date_end,
+            // startDate: date_start,
+            startDate: date_end,
             format: "DD MMMM YYYY",
             autoRefresh: true,
             lockDays: [],
             numberOfColumns: 1,
             setup: (picker) => {
-                picker.on('selected', (date1, date2) => {
-                    date_start = formatDate(date1['dateInstance'])
-                    date_end = formatDate(date2['dateInstance'])
+                picker.on('selected', (date1) => {
+                    // date_start = formatDate(date1['dateInstance'])
+                    date_end = formatDate(date1['dateInstance'])
                     dateRangeString()
                     datatableStock()
+                });
+            },
+        })
+        new Litepicker({
+            element: document.getElementById('dateStart'),
+            singleMode: true,
+            firstDay: 0,
+            startDate: date_start,
+            format: "DD MMMM YYYY",
+            autoRefresh: true,
+            lockDays: [],
+            numberOfColumns: 1,
+            setup: (picker) => {
+                picker.on('selected', (date1) => {
+                    date_start = formatDate(date1['dateInstance'])
+                });
+            },
+        })
+        new Litepicker({
+            element: document.getElementById('dateEnd'),
+            singleMode: true,
+            firstDay: 0,
+            startDate: date_end,
+            format: "DD MMMM YYYY",
+            autoRefresh: true,
+            lockDays: [],
+            numberOfColumns: 1,
+            setup: (picker) => {
+                picker.on('selected', (date1) => {
+                    date_end = formatDate(date1['dateInstance'])
                 });
             },
         })
     }
 
     function dateRangeString() {
-        $('#dateRangeString').html(formatDateIndonesiaShort(date_start) + ' - ' + formatDateIndonesiaShort(date_end))
+        if (date_start) {
+            $('#dateRangeString').html(formatDateIndonesiaShort(date_start) + ' - ' + formatDateIndonesiaShort(date_end))
+        } else {
+            $('#dateRangeString').html(formatDateIndonesiaShort(date_end))
+        }
     }
 
     function deepCopy(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
+    var indexInventory = 0
+    var data_inventory = []
 
-    function calculateTotals(details, attribute) {
-        let total = 0;
-        $.each(details, function(index, detail) {
-            total += detail[attribute];
-        });
-        return total;
-    }
-    var all_total_qty = 0
-    var all_total_qty_receive = 0
-    var all_total_weight = 0
-    var all_total_weight_receive = 0
-
-    function bodyHistory() {
-        var html = ''
-        var a = 1
-        all_total_qty = 0
-        all_total_qty_receive = 0
-        all_total_weight = 0
-        all_total_weight_receive = 0
-        var dataFind = deepCopy(data_warehouse_showed)
-        var b = 0
-        $.each(dataFind, function(key, value) {
-            var totalQty = calculateTotals(value.details, 'qty');
-            var totalQtyReceive = calculateTotals(value.details, 'qty_receive');
-            var totalWeight = calculateTotals(value.details, 'weight');
-            var totalWeightReceive = calculateTotals(value.details, 'weight_receive');
-            // selisih qty, dibuat absolut
-            var selisih_qty = (totalQty - totalQtyReceive)
-            var selisih_weight = (totalWeight - totalWeightReceive)
-            var iconSelisihQty = ''
-            var iconSelisihWeight = ''
-            if (totalQtyReceive) {
-                if (selisih_qty > 0) {
-                    iconSelisihQty = '<i class="fa fa-warning text-warning small-text ms-1" title="Selisih ' + selisih_qty + '"></i>'
-                }
-            }
-            if (totalWeightReceive) {
-                if (selisih_weight > 0) {
-                    iconSelisihWeight = '<i class="fa fa-warning text-warning small-text ms-1" title="Selisih ' + selisih_weight + '"></i>'
-                }
-            }
-            html += '<tr>'
-            html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + formatDate(value.shipment_at) + ' ' + formatTime(value.shipment_at) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.document_number + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_destination.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + shortenName(value.user_sender.name, 1) + '</td>'
-
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(totalQty) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(totalQtyReceive) + '' + iconSelisihQty + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(totalWeight) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(totalWeightReceive) + '' + iconSelisihWeight + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_model.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">'
-            //picture
-            html += '<div class="avatars text-center">'
-            if (value.driver_photos) {
-                for (let j = 0; j < value.driver_photos.length; j++) {
-                    var hide = ''
-                    if (j >= 3) {
-                        hide = 'hidden'
-                    }
-                    html += '<span class="avatar pointer" href="' + linkPhoto + value.driver_photos[j] + '" data-fancybox="gallery' + key + '" data-caption="Gallery ' + key + '" ' + hide + '>'
-                    html += '<img src="' + linkPhoto + value.driver_photos[j] + '">'
-                    html += '</span>'
-                }
-            } else {
-                html += '<span class="avatar">'
-                var pict = '<?= base_url('assets/image/jpg/no_pict.jpg') ?>'
-                html += '<img src="' + pict + '">'
-                html += '</span>'
-            }
-            html += '</div>'
-            //picture
-            html += '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.driver_name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.driver_phone + '</td>'
-            if (value.is_receive) {
-                if (value.receive_at) {
-                    value.receive_at = formatDate(value.receive_at) + '<br>' + formatTime(value.receive_at)
-                } else {
-                    value.receive_at = ''
-                }
-                if (value.receive_close_at) {
-                    value.receive_close_at = formatDate(value.receive_close_at) + '<br>' + formatTime(value.receive_close_at)
-                } else {
-                    value.receive_close_at = ''
-                }
-                if (!value.user_receiver.name) {
-                    value.user_receiver.name = ''
-                }
-                html += '<td class="bg-white align-middle small-text text-center">' + value.receive_at + '</td>'
-                html += '<td class="bg-white align-middle small-text text-center">' + value.receive_close_at + '</td>'
-                html += '<td class="bg-white align-middle small-text text-center">' + value.user_receiver.name + '</td>'
-            } else {
-                html += '<td class="bg-white align-middle small-text text-center"></td>'
-                html += '<td class="bg-white align-middle small-text text-center"></td>'
-                html += '<td class="bg-white align-middle small-text text-center"></td>'
-            }
-            var badge = ''
-            if (value.is_receive_all == 1) {
-                if (value.is_receive_close == 1) {
-                    badge = '<span class="badge rounded-pill bg-success super-small-text p-2 w-100">SELESAI DITERIMA</span>'
-                } else {
-                    badge = '<span class="badge rounded-pill bg-info super-small-text p-2 w-100">DITERIMA SEMUA</span>'
-                    // tombol closing (is_receive_close = 1), batal selesai terima (is_receive_all = null)
-                }
-            } else {
-                // jika belum diterima
-                if (totalQtyReceive) {
-                    badge = '<span class="badge rounded-pill bg-warning super-small-text p-2 w-100">PROSES TERIMA</span>'
-                } else {
-                    badge = '<span class="badge rounded-pill bg-grey super-small-text p-2 w-100">IN TRANSIT</span>'
-                }
-            }
-            html += '<td class="bg-white align-middle small-text text-center">' + badge + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">'
-            html += '<button class="super-small-text btn btn-sm btn-outline-dark py-1 px-2 shadow-none" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>'
-            html += '<div class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuButton">'
-            html += '<a class="dropdown-item" onclick="getPackingList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-list-ul me-2"></i> Packing List</a>'
-            // html += '<a class="dropdown-item" onclick="getReceiveList(' + "'" + value.id + "'" + ',' + "'" + value.document_number + "'" + ')"><i class="fa fa-arrow-down me-2"></i> Receive List</a>'
-            if (value.is_receive_all == 1 && value.is_receive_close == null) {
-                html += '<div class="text-center pe-2 ps-2 mt-2">'
-                html += '<hr class="m-0">'
-                html += '<button class="btn btn-sm btn-success w-100 mt-2 py-2" onclick="selesaiTerima(' + "'" + value.id + "'" + ')">Selesai Terima</button>'
-                html += '<button class="btn btn-sm text-danger w-100 py-2 mt-2 border-0 super-small-text" onclick="batalTerima(' + "'" + value.id + "'" + ')">Batal Terima</button>'
-                html += '</div>'
-            }
-            html += '</div>'
-            html += '</td>'
-            html += '</tr>'
-            all_total_qty += parseInt(totalQty)
-            all_total_qty_receive += parseInt(totalQtyReceive)
-            all_total_weight += parseInt(totalWeight)
-            all_total_weight_receive += parseInt(totalWeightReceive)
-            b++
-        })
-        $('#bodyTable').html(html)
-        for (let i = 0; i < b; i++) {
-            Fancybox.bind('[data-fancybox="gallery' + i + '"]', {
-                // Custom options for the first gallery
-            });
-        }
-        footTable()
-    }
-
-    function footTable() {
-        var html = ''
-        html += '<tr>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center">Total</th>'
-        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty) + '</th>'
-        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty_receive) + '</th>'
-        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight) + '</th>'
-        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight_receive) + '</th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '<th class="px-2 align-middle small text-center"></th>'
-        html += '</tr>'
-        $('#footTable').html(html)
-        $('#tableDetail').DataTable({
-            ordering: true, // Menonaktifkan pengurutan
-            pageLength: 200,
-            scrollY: "600px",
-            scrollX: true,
-            scrollCollapse: true,
-            paging: false,
-            fixedHeader: true,
-            "initComplete": function(settings, json) {
-                $('div.dataTables_filter input').attr('placeholder', 'Search...');
-            },
-            searching: true,
-        })
-        $('#custom-search-container').html($('.dataTables_filter'));
-    }
-
-    function cetakSuratJalan(id, document_number) {
-        var text = '#SJ-' + id
-        var qrcode = new QRCode("qrcode", {
-            text: text,
-            width: 100,
-            height: 100,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-        imgBase64Data = qrcode._oDrawing._elCanvas.toDataURL("image/png")
-        var image = btoa(imgBase64Data)
-        eval('var url = "<?= base_url() ?>page/cetakSuratJalan"')
-        var params = "*$" + id + "*$" + document_number + "*$" + image
-        window.open(url + '?params=' + encodeURIComponent(params), '_blank');
-    }
-
-    function selesaiTerima(id) {
-        Swal.fire({
-            text: 'Apakah Anda yakin ingin menyelesaikan penerimaan Surat Jalan ini ?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                simpanDataTerimaSJ(id)
-            }
-        })
-    }
-
-    function batalTerima(id) {
-        Swal.fire({
-            text: 'Apakah Anda yakin ingin membatalkan penerimaan Surat Jalan ini ?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                simpanDataBatalSJ(id)
-            }
-        })
-    }
-
-    function simpanDataTerimaSJ(id) {
-        var type = 'POST'
-        var button = '.btnSimpan'
-        var url = '<?php echo api_produksi('setShipment'); ?>'
-        var data = {
-            shipment: [{
-                "id": id,
-                "is_receive_close": 1
-            }]
-        }
-        kelolaData(data, type, url, button)
-    }
-
-    function simpanDataBatalSJ(id) {
-        var type = 'POST'
-        var button = '.btnSimpan'
-        var url = '<?php echo api_produksi('setShipment'); ?>'
-        var data = {
-            shipment: [{
-                "id": id,
-                "is_receive_all": null
-            }]
-        }
-        kelolaData(data, type, url, button)
-    }
-
-    function kelolaData(data, type, url, button) {
+    function getInventoryScan(id) {
+        indexInventory = 0
         $.ajax({
-            url: url,
-            type: type,
-            data: data,
-            error: function(xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Error Data'
-                });
-                $(button).prop("disabled", false);
-            },
-            beforeSend: function() {
-                $(button).prop("disabled", true);
-            },
-            success: function(response) {
-                if (response.success == true) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Data Berhasil Tersimpan',
-                        icon: 'success',
-                    }).then((responses) => {
-                        $(button).prop("disabled", false);
-                        $('#modal').modal('hide')
-                        loadData()
-                    })
-                }
-            }
-        });
-    }
-
-    function getPackingList(id, doc_num) {
-        data_packing_list = []
-        $.ajax({
-            url: "<?= api_url('getHistoryShipmentItem'); ?>",
+            url: "<?= api_url('inventoryScan'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
-                shipmentId: id,
-                dataProfile: 'DETAIL',
+                id: id,
             },
             error: function(xhr) {
                 showOverlay('hide')
@@ -1243,422 +1456,367 @@
             },
             success: function(response) {
                 showOverlay('hide')
-                data_packing_list = response.data.history_shipment_item.data
-                data_packing_list_showed = eval(statusLineVariablePacking[indexVariablePacking].getData)
-                // statusLinePacking(id, doc_num)
-                detailPackingList(id, doc_num)
+                var data = response.data.inventory
+                data_inventory = deepCopy(data)
+                inventoryScan(data)
             }
         })
     }
 
-    function statusLineSwitchPacking(id, getData, id_shipment, doc_num) {
-        indexVariablePacking = id
-        let updatedData = statusLineVariablePacking.map(item => {
-            return {
-                ...item,
-                selected: false
-            };
-        });
-        let updatedData2 = updatedData.map(item => {
-            if (item.id == id) {
-                return {
-                    ...item,
-                    selected: true
-                };
-            }
-            return item;
-        });
-        statusLineVariablePacking = updatedData2
-        data_packing_list_showed = eval(getData)
-        statusLinePacking(id_shipment, doc_num)
-    }
-
-    function statusLinePacking(id, doc_num) {
-        var html = ''
-        html += '<div class="row ps-3" style="height:30px">'
-        statusLineVariablePacking.forEach(e => {
-            var text = 'text-grey'
-            var icon = 'text-grey bg-light'
-            if (e.selected) {
-                text = 'fw-bold filter-border'
-                icon = 'bg-light-blue text-white'
-            }
-            var num = eval(e.functions)
-            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitchPacking(' + e.id + ',' + "'" + e.getData + "'" + ',' + "'" + id + "'" + ',' + "'" + doc_num + "'" + ')" id="colStatusLine' + e.id + '">'
-            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
-            html += ' </div>'
-
-        });
-        html += '</div>'
-        $('#statusLinePacking').html(html)
-        // console.log('test')
-        dataPackingList(id)
-    }
-
-
-    function detailPackingList(id, doc_num) {
+    function inventoryScan(data) {
         $('#modal').modal('show')
-        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable modal-lg');
+        $('#modalDialog').addClass('modal-dialog modal-dialog-scrollable');
         var html_header = '';
-        html_header += '<h5 class="modal-title small">Packing List ' + doc_num + '</h5>';
+        html_header += '<h5 class="modal-title small">Data Inventory</h5>';
         html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
         $('#modalHeader').html(html_header);
         var html_body = '';
         html_body += '<div class="row">'
-        html_body += '<div class="col mb-2 text-end" id="statusLinePacking">'
+        html_body += '<div class="col-12" id="statusInventoryLine">'
         html_body += '</div>'
-        html_body += '<div class="col mb-2 text-end">'
-        // tombol cetak packing list
-        html_body += '<button type="button" class="btn btn-outline-primary btn-sm small-text p-2 me-2" onclick="cetakPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-print me-2"></i>Cetak Packing List</button>'
-        html_body += '<button type="button" class="btn btn-outline-success btn-sm small-text p-2" onclick="excelPackingList( \'' + id + '\', \'' + doc_num + '\')"><i class="fa fa-file-excel-o me-2"></i>Excel Packing List</button>'
-        html_body += '</div>'
-        html_body += '<div class="col-12 table-responsive" id="dataPackingList">'
+        html_body += '<div class="col-12" id="bodyInventory">'
         html_body += '</div>'
         html_body += '</div>'
         $('#modalBody').html(html_body);
         var html_footer = '';
         html_footer += '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>'
         $('#modalFooter').html(html_footer);
-        statusLinePacking(id, doc_num)
+        statusInventoryLine(data)
     }
 
-    function dataPackingList(id) {
-        var html = '';
-        html += '<table class="table table-bordered table-hover table-sm small w-100 tablePackingList" id="tablePackingList">'
-        html += '<thead>'
-        html += '<tr>'
-        html += '<th class="align-middle small-text" style="width:5%">No</th>'
-        // html += '<th class="align-middle small-text">Tgl</th>'
-        html += '<th class="align-middle small-text" style="width:10%">Global Code</th>'
-        html += '<th class="align-middle small-text" style="width:20%">No. Bale</th>'
-        html += '<th class="align-middle small-text" style="width:5%">QTY</th>'
-        html += '<th class="align-middle small-text" style="width:5%">QTY Terima</th>'
-        html += '<th class="align-middle small-text" style="width:5%">Berat</th>'
-        html += '<th class="align-middle small-text" style="width:5%">Berat Terima</th>'
-        html += '<th class="align-middle small-text" style="width:10%">Item</th>'
-        html += '<th class="align-middle small-text" style="width:10%">Grade</th>'
-        if (indexVariablePacking == 1) {
-            html += '<th class="align-middle small-text" style="width:15%">Receive At</th>'
-            html += '<th class="align-middle small-text" style="width:10%">Barcode</th>'
-        }
-        html += '</tr>'
-        html += '</thead>'
-        html += '<tbody>'
-        html += '</tbody>'
-        html += '<tfoot>'
-        html += '</tfoot>'
-        html += '</table>'
-        $('#dataPackingList').html(html)
-        dataTablePackingList(id)
-    }
-
-    function formatDate2(inputDate) {
-        // Mengambil tanggal dari input
-        const date = new Date(inputDate);
-
-        // Mengambil hari, bulan, dan tahun dari objek Date
-        let day = date.getDate();
-        let month = date.getMonth() + 1; // Bulan dimulai dari 0, jadi ditambahkan 1
-        let year = date.getFullYear();
-
-        // Mengubah tahun ke dua digit terakhir
-        year = year.toString().slice(-2);
-
-        // Menambahkan 0 di depan hari dan bulan jika kurang dari 10
-        if (day < 10) day = '0' + day;
-        if (month < 10) month = '0' + month;
-
-        // Menggabungkan hari, bulan, dan tahun sesuai format DD/MM/YY
-        return `${day}/${month}/${year}`;
-    }
-
-    function dataTablePackingList(id) {
-        var html = '';
-        var a = 1
-        var total = {
-            qty: 0,
-            qty_receive: 0,
-            weight: 0,
-            weight_receive: 0
-        }
-        var dataFind = deepCopy(data_packing_list_showed)
-        dataFind.forEach(e => {
-            if (!e.inventory.global_code) {
-                e.inventory.global_code = ''
+    function statusInventoryLine(data) {
+        var html = ''
+        html += '<div class="row ps-3 mb-3" style="height:20px">'
+        $.each(data, function(key, value) {
+            var text = 'text-grey'
+            if (key == indexInventory) {
+                text = 'fw-bold filter-border'
             }
-            if (!e.qty) {
-                e.qty = 0
-            }
-            if (!e.qty_receive) {
-                e.qty_receive = 0
-            }
-            if (!e.weight) {
-                e.weight = 0
-            }
-            if (!e.weight_receive) {
-                e.weight_receive = 0
-            }
-            html += '<tr>'
-            html += '<td class="align-middle small-text text-center">' + a++ + '</td>'
-            html += '<td class="align-middle small-text text-center">' + e.inventory.global_code + '</td>'
-            html += '<td class="align-middle small-text text-center">' + formatDate2(e.inventory.date) + '-' + e.inventory.bale_number + '</td>'
-            html += '<td class="align-middle small-text text-end">' + number_format(roundToTwo(e.qty)) + '</td>'
-            html += '<td class="align-middle small-text text-end">' + number_format(roundToTwo(e.qty_receive)) + '</td>'
-            html += '<td class="align-middle small-text text-end">' + number_format(roundToTwo(e.weight)) + '</td>'
-            html += '<td class="align-middle small-text text-end">' + number_format(roundToTwo(e.weight_receive)) + '</td>'
-            html += '<td class="align-middle small-text text-center">' + e.item.name + '</td>'
-            html += '<td class="align-middle small-text text-center">' + e.item_grade.name + '</td>'
-            if (indexVariablePacking == 1) {
-                if (e.receive_at) {
-                    e.receive_at = formatDate(e.receive_at) + ' ' + formatTime(e.receive_at)
-                } else {
-                    e.receive_at = '-'
-                }
-                html += '<td class="align-middle small-text text-center">' + e.receive_at + '</td>'
-                html += '<td class="align-middle small-text text-center"><button class="btn btn-sm btn-outline-dark small-text p-1" onclick="showBarcode(\'' + e.id + '\', \'' + e.inventory.code + '\')">Lihat</button></td>'
-            }
-            html += '</tr>'
-
-            total.qty += e.qty
-            total.qty_receive += e.qty_receive
-            total.weight += e.weight
-            total.weight_receive += e.weight_receive
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitchPacking(' + key + ')" id="colStatusLinekey">'
+            html += '#' + (key + 1)
+            html += ' </div>'
         });
-        $('#tablePackingList tbody').html(html)
-        dataTablePackingListFooter(id, total)
-    }
-
-    function dataTablePackingListFooter(id, total) {
-        var html = '';
-        html += '<tr>'
-        html += '<th class="align-middle small-text text-center"></th>'
-        html += '<th class="align-middle small-text text-center"></th>'
-        html += '<th class="align-middle small-text text-end">Total</th>'
-        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.qty)) + '</th>'
-        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.qty_receive)) + '</th>'
-        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.weight)) + '</th>'
-        html += '<th class="align-middle small-text text-end">' + number_format(roundToTwo(total.weight_receive)) + '</th>'
-        html += '<th class="align-middle small-text"></th>'
-        html += '<th class="align-middle small-text text-center"></th>'
-        if (indexVariablePacking == 1) {
-            html += '<th class="align-middle small-text text-center"></th>'
-            html += '<th class="align-middle small-text text-center"></th>'
-        }
-        html += '</tr>'
-        $('#tablePackingList tfoot').html(html)
-        $('#tablePackingList').DataTable({
-            ordering: true, // Menonaktifkan pengurutan
-            // pageLength: 200,
-            paging: false,
-            fixedHeader: true,
-            searching: false,
-            // scrollY: "400px",
-            // scrollX: true,
-            // scrollCollapse: true,
-            "info": false, // Mematikan tampilan informasi
-            "lengthChange": false
-        })
-    }
-
-    function cetakPackingList(id, doc_num) {
-        var url = "<?= base_url() ?>page/cetakPackingList"
-        var params = "*$" + id + "*$" + doc_num
-        window.open(url + '?params=' + encodeURIComponent(params), '_blank');
-    }
-
-    function excelPackingList(id, doc_num) {
-        var url = '<?= base_url('report/excelPackingList') ?>';
-        var params = "*$" + id + "*$" + doc_num
-        window.open(url + '?params=' + encodeURIComponent(params), '_blank');
-    }
-    var printerKey = ''
-
-    function showBarcode(id, code) {
-        defaultLabelPrinter = localStorage.getItem("defaultLabelPrinter") || '';
-        printerKey = ''
-        $('#modal2').modal('show')
-        $('#modalDialog2').addClass('modal-dialog modal-dialog-scrollable');
-        var html_header = '';
-        html_header += '<h5 class="modal-title">Barcode</h5>';
-        html_header += '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>';
-        $('#modalHeader2').html(html_header);
-        var html_body = '';
-        $('#modalBody2').html(html_body);
-        var html_footer = '';
-        $('#modalFooter2').html(html_footer).addClass('d-none')
-        $('#qrcodePacking').empty()
-        // if (defaultLabelPrinter) {
-        //     choosePrinter(printerKey, defaultLabelPrinter)
-        // }
-        layoutPrinted(id, code)
-    }
-
-    function layoutPrinted(id, code) {
-        var data = data_packing_list_showed.find(item => item.id == id)
-        var weight = data.inventory.weight
-        if (!weight) {
-            weight = data.inventory.weight_est
-        }
-        var html = '';
-        html += '<div class="row">'
-        html += '<div class="col-3">'
-        html += '<div id="qrcodePacking" style="margin-top:15px;margin:auto;"></div>'
         html += '</div>'
-        html += '<div class="col-9">'
+        $('#statusInventoryLine').html(html)
+        bodyInventory()
+    }
 
+    function statusLineSwitchPacking(key) {
+        indexInventory = key
+        statusInventoryLine(data_inventory)
+    }
+
+    function iconBox(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-box-seam-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15.528 2.973a.75.75 0 0 1 .472.696v8.662a.75.75 0 0 1-.472.696l-7.25 2.9a.75.75 0 0 1-.557 0l-7.25-2.9A.75.75 0 0 1 0 12.331V3.669a.75.75 0 0 1 .471-.696L7.443.184l.01-.003.268-.108a.75.75 0 0 1 .558 0l.269.108.01.003zM10.404 2 4.25 4.461 1.846 3.5 1 3.839v.4l6.5 2.6v7.922l.5.2.5-.2V6.84l6.5-2.6v-.4l-.846-.339L8 5.961 5.596 5l6.154-2.461z"/></svg>'
+        return html
+    }
+
+    function iconDirect(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg"width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>'
+        return html
+    }
+
+    function iconQTY(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg"  width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-box-seam" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2zm3.564 1.426L5.596 5 8 5.961 14.154 3.5zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464z"/></svg>'
+        return html
+    }
+
+    function iconWeight(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg"  width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-minecart-loaded" viewBox="0 0 16 16"><path d="M4 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2m0 1a2 2 0 1 0 0-4 2 2 0 0 0 0 4m8-1a1 1 0 1 1 0-2 1 1 0 0 1 0 2m0 1a2 2 0 1 0 0-4 2 2 0 0 0 0 4M.115 3.18A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 14 12H2a.5.5 0 0 1-.491-.408l-1.5-8a.5.5 0 0 1 .106-.411zm.987.82 1.313 7h11.17l1.313-7z"/><path fill-rule="evenodd" d="M6 1a2.498 2.498 0 0 1 4 0c.818 0 1.545.394 2 1 .67 0 1.552.57 2 1h-2c-.314 0-.611-.15-.8-.4-.274-.365-.71-.6-1.2-.6-.314 0-.611-.15-.8-.4a1.497 1.497 0 0 0-2.4 0c-.189.25-.486.4-.8.4-.507 0-.955.251-1.228.638q-.136.194-.308.362H3c.13-.147.401-.432.562-.545a1.6 1.6 0 0 0 .393-.393A2.5 2.5 0 0 1 6 1"/></svg>'
+        return html
+    }
+
+    function iconHistory(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/></svg>'
+        return html
+    }
+
+    function iconPURCHASE(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-credit-card" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z"/><path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/></svg>'
+        return html
+    }
+
+    function iconMATERIAL(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16"><path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/></svg>'
+        return html
+
+    }
+
+    function iconSEND(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-truck" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.732 11h5.536a2 2 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456M12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2"/></svg>'
+        return html
+
+    }
+
+    function iconRECEIVE(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/></svg>'
+        return html
+
+    }
+
+    function iconDEFAULT(width, height) {
+        var html = ''
+        html += '<svg xmlns="http://www.w3.org/2000/svg"width="' + width + '" height="' + height + '" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/></svg>'
+        return html
+
+    }
+
+    function formatDateIndonesiaTanggalBulanSortWithYear(orginaldate) {
+        var date = new Date(orginaldate);
+        var bulan = date.getMonth();
+        var tanggal = date.getDate();
+        var tahun = date.getFullYear();
+        if (tanggal < 10) {
+            tanggal = "0" + tanggal;
+        }
+        switch (bulan) {
+            case 0:
+                bulan = "Jan";
+                break;
+            case 1:
+                bulan = "Feb";
+                break;
+            case 2:
+                bulan = "Mar";
+                break;
+            case 3:
+                bulan = "Apr";
+                break;
+            case 4:
+                bulan = "Mei";
+                break;
+            case 5:
+                bulan = "Jun";
+                break;
+            case 6:
+                bulan = "Jul";
+                break;
+            case 7:
+                bulan = "Agu";
+                break;
+            case 8:
+                bulan = "Sep";
+                break;
+            case 9:
+                bulan = "Okt";
+                break;
+            case 10:
+                bulan = "Nov";
+                break;
+            case 11:
+                bulan = "Des";
+                break;
+        }
+        var tampilTanggal = tanggal + " " + bulan + " " + tahun
+        return tampilTanggal;
+    }
+
+    function abbreviate(text) {
+        return text
+            .split(' ') // Memisahkan teks berdasarkan spasi
+            .map(word => word[0]) // Mengambil huruf pertama dari setiap kata
+            .join('') // Menggabungkan huruf-huruf tersebut menjadi singkatan
+            .toUpperCase(); // Mengubah hasilnya menjadi huruf kapital
+    }
+
+    function bodyInventory() {
+        var data = deepCopy(data_inventory[indexInventory])
+        // console.log(data)
+        var html = ''
+        html += '<div class="row">'
+        // information
+        html += '<div class="col-12 mb-2">'
+        html += '<div class="card shadow-sm">'
+        html += '<div class="card-body p-0">'
+        //content
+        html += '<div class="row p-3 pb-0">'
+        html += '<div class="col-auto d-flex text-end align-self-center">'
+        html += '<div class="circle-icon bg-warning">' + iconBox(14, 14) + '</div>'
+        html += '</div>'
+        html += '<div class="col-auto ps-0 align-self-center">'
+        html += '<p class="m-0 small-text">No. Inventory : ' + data.code + '</p>'
+        html += '<p class="m-0 fw-bolder">(' + data.item_code + ') ' + data.item_name + '</p>'
+        html += '</div>'
+        html += '</div>'
         html += '<div class="row">'
         html += '<div class="col-12">'
-        html += '<p class="m-0 small-text fw-bolder">' + formatDateBarcode(data.inventory.purchase_at) + '</p>'
-        html += '</div>'
-        html += '<div class="col-6">'
-        html += '<p class="m-0 small-text">GRADE</p>'
-        html += '<h1 class="m-0 fw-bolder" style="font-size:50px !important">' + data.item_grade.name + '</h1>'
-        html += '</div>'
-        html += '<div class="col-6">'
-        html += '<p class="m-0 small-text">BERAT (Kg)</p>'
-        html += '<h1 class="m-0 fw-bolder" style="font-size:50px !important">' + weight + '</h1>'
+        html += '<hr>'
         html += '</div>'
         html += '</div>'
-
+        html += '<div class="row p-3 pt-0">'
+        html += '<div class="col-12">'
+        // detail data
+        html += '<div class="row d-flex justify-content-between">'
+        html += '<div class="col">'
+        html += '<p class="m-0 super-small-text text-dark-grey">Bale</p>'
+        html += '<p class="m-0 small text-grey-dark fw-bolder">' + data.bale_number + '</p>'
         html += '</div>'
-
-        html += '<div class="col-12 mt-2">'
-        html += '<p class="m-0 small-text fw-bold">' + data.inventory.code + '</p>'
-        html += '<p class="m-0 small fw-bolder">' + data.item.name + '</p>'
+        html += '<div class="col">'
+        html += '<p class="m-0 super-small-text text-dark-grey">Grade</p>'
+        html += '<p class="m-0 small text-grey-dark fw-bolder">' + data.item_grade.name + '</p>'
         html += '</div>'
-
-        html += '<div class="col-6 mt-3">'
-        html += '<p class="m-0 small fw-bolder">' + data.supplier.name + '</p>'
-        html += '<p class="m-0 small fw-bolder">' + data.inventory.bale_number + '</p>'
+        html += '<div class="col">'
+        html += '<p class="m-0 super-small-text text-dark-grey">Satuan</p>'
+        html += '<p class="m-0 small text-grey-dark fw-bolder">' + data.item_unit.name + '</p>'
         html += '</div>'
-
-        html += '<div class="col-6 mt-3 text-end">'
-        html += '<p class="m-0 small fw-bolder">' + data.inventory.global_code + '</p>'
+        html += '<div class="col">'
+        html += '<p class="m-0 super-small-text text-dark-grey">Supplier</p>'
+        html += '<p class="m-0 small text-grey-dark fw-bolder">' + data.supplier.name + '</p>'
         html += '</div>'
-
         html += '</div>'
-        $('#modalBody2').html(html);
-        $('#qrcodePacking').empty()
-        var qrcode = new QRCode("qrcodePacking", {
-            text: code,
-            width: 100,
-            height: 100,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    }
-
-    function layoutPrintCard(id, code) {
-        var html
+        // detail data
+        html += '</div>'
+        html += '</div>'
+        //content
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        // information
+        // recent location
+        html += '<div class="col-12 mb-2">'
+        html += '<div class="card shadow-sm bg-light-warning">'
+        html += '<div class="card-header py-2">'
+        html += '<p class="m-0 fw-bold small-text d-flex align-items-center"><span class="text-warning d-flex align-items-center me-2">' + iconDirect(10, 10) + '</span> <span class="small-text">Current Location</span></p>'
+        html += '</div>'
+        html += '<div class="card-body p-3">'
+        // isi location
         html += '<div class="row">'
-        //filter
-        html += '<div class="col-6 text-center mb-2">'
-        html += '<div id="qrcodePacking" style="margin-top:15px;margin:auto;"></div>'
-        html += '</div>'
-        // print barcode
-        html += '<div class="col-6 ps-0">'
-        // list printer
-        html += '<div class="row mb-2">'
-        html += '<div class="col-12" style="max-height: 200px;overflow-x: hidden;overflow-y: auto;">'
-        if (printers.length) {
-            $.each(printers, (key, value) => {
-                if (defaultLabelPrinter == value) {
-                    printerKey = key
-                }
-                html += '<div class="card shadow-none pointer card-hoper mb-2 cardChoosePrinter" onclick="choosePrinter(' + key + ',' + "'" + value + "'" + ')" id="cardChoosePrinter' + key + '">'
-                html += '<div class="card-body p-1 px-2">'
-                // text
-                html += '<div class="row">'
-                html += '<div class="col-10 align-self-center">'
-                html += '<p class="m-0 super-small-text fw-bolder">' + value + '</p>'
-                html += '</div>'
-                html += '<div class="col-2 text-end">'
-                html += '<i class="fa fa-check-circle text-grey iconChoosePrinter" id="iconChoosePrinter' + key + '"></i>'
-                html += '</div>'
-                html += '</div>'
-                // text
-                html += '</div>'
-                html += '</div>'
-            })
+        if (data.locations) {
+            if (data.locations.length) {
+                data.locations.forEach(e => {
+                    html += '<div class="col">'
+                    html += '<div class="row">'
+                    html += '<div class="col-auto d-flex align-items-center pe-0">'
+                    html += '<div class="circle-icon bg-white border-warning" style="border: 1px solid;" title="' + e.type + '"><span class="small-text text-warning">' + abbreviate(e.type) + '<span></div>'
+                    html += '</div>'
+                    html += '<div class="col-auto">'
+                    html += '<p class="m-0 super-small-text fw-bold">Location</p>'
+                    // html += '<p class="m-0 super-small-text fw-bold">' + e.type + '</p>'
+                    html += '<p class="m-0 fw-bolder">' + e.name + '</p>'
+                    html += '</div>'
+                    html += '<div class="col-auto">'
+                    html += '<p class="m-0 super-small-text fw-bold">Date</p>'
+                    html += '<p class="m-0 fw-bolder">' + formatDateIndonesiaTanggalBulanSortWithYear(e.datetime) + '</p>'
+                    html += '</div>'
+                    html += '<div class="col-auto">'
+                    html += '<p class="m-0 super-small-text fw-bold">Dimension</p>'
+                    html += '<p class="m-0 small-text me-2 fw-bolder">' + iconQTY(10, 10) + ' ' + number_format(e.qty) + ' ' + data.item_unit.name + ' <span class="ms-3 me-2">' + iconWeight(10, 10) + ' ' + number_format(e.weight) + ' kg</span></p>'
+                    html += '</div>'
+                    html += '</div>'
+                    html += '</div>'
+                })
+            }
         } else {
-            html += '<div class="card shadow-none">'
-            html += '<div class="card-body">'
-            html += '<p class="text-center small-text fw-bolder"><i>Printer Tidak Ditemukan</i></p>'
-            html += '<p class="m-0 text-center small-text">Silahkan untuk instalasi JSPM Terlebih Dahulu</p>'
-            html += '<p class="m-0 text-center small-text">Jika printer sudah terinstall, silahkan refresh halaman ini</p>'
-            html += '</div>'
+            html += '<div class="col text-center">'
+            html += '<p class="m-0 small-text"><i>No Data</i></p>'
             html += '</div>'
         }
         html += '</div>'
+        // isi location
         html += '</div>'
-        // list printer
-        html += '<button type="button" class="btn btn-primary btn-sm small-text" onclick="printQrCode(\'' + id + '\')" id="btnCetakQRCode" disabled>Cetak QR Code</button>'
         html += '</div>'
-        // print barcode
-        //filter
+        html += '</div>'
+        // recent location
+        // history
+        html += '<div class="col-12 mb-2">'
+        html += '<div class="card shadow-sm bg-white">'
+        html += '<div class="card-header py-2 bg-white">'
+        html += '<p class="m-0 fw-bold small-text d-flex align-items-center"><span class="text-warning d-flex align-items-center me-2">' + iconHistory(10, 10) + '</span> <span class="small-text">History</span></p>'
+        html += '</div>'
+        html += '<div class="card-body p-0">'
+        // timeline
+        if (data.history) {
+            if (data.history.length) {
+                html += '<div class="tracking-list border-0">'
+                data.history.forEach(e => {
+                    html += trackingItem(e)
+                });
+                html += '</div>'
+            }
+        }
+        // timeline
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        // history
+        html += '</div>'
+        $('#bodyInventory').html(html)
+    }
+
+    function trackingItem(data) {
+        var html = ''
+        html += '<div class="tracking-item">'
+        html += '<div class="tracking-icon status-intransit fw-bolder text-dark">'
+        html += eval('icon' + data.type + '(20, 20)')
+        html += '</div>'
+        html += '<div class="tracking-date small-text">'
+        html += '<span class="super-small-text fw-bolder" style="font-size:8px !important">' + formatDateIndonesia(data.datetime) + '</span>'
+        html += '<span class="super-small-text" style="font-size:8px !important">' + formatTime(data.datetime) + '</span>'
+        html += '</div>'
+        html += '<div class="tracking-content">'
+        // destination and source
+        html += '<div class="row mb-2">'
+        // html += '<div class="col-12">'
+        // html += '<p class="m-0 super-small-text text-grey-dark">' + toTitleCase(data.type) + ' Item by ' + data.user_admin.name + '</p>'
+        // html += '</div>'
+        html += '<div class="col-12">'
+        // badge
+        html += '<div class="row mb-2">'
+        html += '<div class="col-auto pe-0">'
+        html += '<span class="badge bg-warning p-1 super-small-text text-white me-1">' + iconBox(10, 10) + ' ' + number_format(data.qty) + '</span>'
+        html += '</div>'
+        html += '<div class="col-auto pe-0 ps-0">'
+        html += '<span class="badge bg-warning p-1 super-small-text text-white me-1">' + iconWeight(10, 10) + ' ' + number_format(data.weight) + ' kg</span>'
+        html += '</div>'
+        html += '<div class="col-auto pe-0 ps-0">'
+        html += '<span class="badge bg-warning p-1 super-small-text text-white me-1">Rp ' + number_format(data.price) + '</span>'
+        html += '</div>'
+        html += '<div class="col-auto pe-0 ps-0">'
+        html += '<span class="badge bg-warning p-1 super-small-text text-white me-1"><i class="fa fa-user"></i> ' + data.user_admin.name + '</span>'
+        html += '</div>'
+        html += '</div>'
+        // badge
+        html += '</div>'
+        html += '<div class="col-auto">'
+        html += '<p class="m-0 super-small-text fw-bold text-dark-grey">Source</p>'
+        html += '<p class="m-0 small fw-bolder">' + data.source.name + '</p>'
+        html += '</div>'
+        html += '<div class="col-auto align-self-center">'
+        html += '<span class="fa fa-long-arrow-right text-grey"></span>'
+        html += '</div>'
+        html += '<div class="col-auto">'
+        html += '<p class="m-0 super-small-text fw-bold text-dark-grey">Destination</p>'
+        html += '<p class="m-0 small fw-bolder">' + data.dest.name + '</p>'
+        html += '</div>'
+        html += '</div>'
+        // destination and source
+        html += '</div>'
         html += '</div>'
         return html
     }
 
-    function choosePrinter(key, value) {
-        localStorage.setItem('defaultLabelPrinter', value)
-        $('.cardChoosePrinter').removeClass('border-success bg-light')
-        $('.iconChoosePrinter').removeClass('text-success')
-        $('#cardChoosePrinter' + key).addClass('border-success bg-light')
-        $('#iconChoosePrinter' + key).addClass('text-success')
-        $('#btnCetakQRCode').prop('disabled', false)
+    function downloadExcel() {
+        itemId = $('#selectItem').val()
+        gradeId = $('.selectGradeItem:checked').map(function() {
+            return $(this).val();
+        }).get()
+        warehouse_id_origin = $('#selectWarehouse').val()
+        item_unit_id = $('#selectUnit').val()
+        exportExcel()
     }
 
-    function formatDateBarcode(dateString) {
-        // Create a new Date object from the input date string
-        const date = new Date(dateString);
-
-        // Array of month names for converting month number to name
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        ];
-
-        // Extract day, month, year, hours, and minutes
-        const day = date.getDate(); // Day of the month
-        const month = months[date.getMonth()]; // Month name
-        const year = String(date.getFullYear()).slice(-2); // Last 2 digits of the year
-        const hours = String(date.getHours()).padStart(2, '0'); // Hour in 2 digits
-        const minutes = String(date.getMinutes()).padStart(2, '0'); // Minutes in 2 digits
-
-        // Format the date as '18 Sep 24, 16:06'
-        return `${day} ${month} ${year}, ${hours}:${minutes}`;
-    }
-
-    function printQrCode(id) {
-        var data = data_packing_list_showed.find(item => item.id == id)
-        var weight = data.inventory.weight
-        if (!weight) {
-            weight = data.inventory.weight_est
-        }
-        let cmds = '';
-        cmds += '^XA' +
-            '^FO30,30^BQR,2,10,H,10^FDQA,' + data.inventory.code + '^FS' + // QR code with inventory code
-            '^FO30,300^CF0,30^FD' + data.inventory.code + '^FS' + // Display inventory code
-            '^FO30,340^CF0,40^FD' + data.item.name + '^FS' + // Item description
-            '^FO300,30^CF0,30^FD' + formatDateBarcode(data.inventory.purchase_at) + '^FS' + // Date and time
-            '^CFA,30^FO300,70^FDGRADE^FS' + // Grade label
-            '^CF0,160^FO300,110^FD' + data.item_grade.name + '^FS' + // Grade value
-            '^CFA,30^FO710,70^FDBERAT(Kg)^FS' + // Weight label
-            '^CF0,160^FO710,110^FD' + weight + '^FS' + // Weight value
-            '^CF0,40^FO750,440^FD' + data.inventory.global_code + '^FS' + // Lot number
-            '^CF0,40^FO30,470^FD' + data.supplier.name + '^FS' + // Press label
-            '^CF0,40^FO30,520^FD' + data.inventory.bale_number + '^FS' + // Batch info
-            // '^FO850,480^BY1,2,80^BCN,80,N,N,N^FD' + data.inventory.code + '^FS' + // Barcode with inventory code
-            '^XZ'; // End of label
-        defaultLabelPrinter = localStorage.getItem("defaultLabelPrinter") || '';
-        if (JSPM.JSPrintManager.websocket_status == JSPM.WSStatus.Open) {
-            var cpj = new JSPM.ClientPrintJob();
-            cpj.clientPrinter = new JSPM.InstalledPrinter(defaultLabelPrinter);
-            // cpj.clientPrinter = new JSPM.BluetoothPrinter("60:95:32:23:E4:45", 1);
-            cpj.printerCommands = cmds;
-            cpj.sendToClient();
-
-        }
+    function exportExcel() {
+        var url = '<?= base_url('report/excelWarehouseStockList') ?>';
+        var params = "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + gradeId + "*$" + warehouse_id_origin + "*$" + item_unit_id + "*$" + warehouse_id
+        window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 </script>

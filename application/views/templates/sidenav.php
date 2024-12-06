@@ -97,10 +97,12 @@ $routeTemplate = [
     'report-shipment',
     'history-purchase',
     'history-shipment',
-    'shippings',
+    'shippings-list',
+    'shippings-list-view',
     'recap-production',
     'history-production',
-    'receptions',
+    'receptions-list',
+    'receptions-list-view',
     'history-material',
     'master-supplier',
     'history-receive',
@@ -120,8 +122,14 @@ $routeTemplate = [
                 </a>
                 <?php foreach ($permission as $key => $value) {
                     if (in_array($value['route'], $routeTemplate)) {
+                        // Cek apakah route mengandung '-view'
+                        $routeUrl = $value['route'];
+                        // if (strpos($routeUrl, '-view') !== false) {
+                        //     // Ubah '-view' menjadi '/view'
+                        //     $routeUrl = str_replace('-view', '/view', $routeUrl);
+                        // }
                 ?>
-                        <a class="nav-link" href="<?= base_url(); ?>page/<?= $value['route'] ?>">
+                        <a class="nav-link" href="<?= base_url(); ?>page/<?= $routeUrl ?>">
                             <div class="nav-link-icon"><i class="fa fa-file-o"></i></div>
                             <?= $value['name'] ?>
                         </a>

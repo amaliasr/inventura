@@ -132,13 +132,13 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $itemId = $explodedParams[4];
         $supplierId = $explodedParams[5];
         $dataProfile = $explodedParams[6];
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&itemIds=' . $itemId . '&supplierIds=' . $supplierId . '&dataProfile=' . urlencode($dataProfile))))->data->recap_purchase_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&itemIds=' . $itemId . '&supplierIds=' . $supplierId . '&dataProfile=' . urlencode($dataProfile))))->data->recap_purchase_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -224,10 +224,10 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItemSupplier?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_purchase_item_supplier->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItemSupplier?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_purchase_item_supplier->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -310,10 +310,10 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapShipmentItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_shipment_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapShipmentItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_shipment_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -388,11 +388,11 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $dataProfile = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapReceiveItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($dataProfile))))->data->recap_receive_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapReceiveItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($dataProfile))))->data->recap_receive_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -473,10 +473,10 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getReportShipmentItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_shipment_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getReportShipmentItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_shipment_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -554,11 +554,11 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $dataProfile = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getReportReceiveItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($dataProfile))))->data->report_receive_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getReportReceiveItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($dataProfile))))->data->report_receive_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -642,11 +642,11 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $data_profile = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryShipmentItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($data_profile))))->data->history_shipment_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryShipmentItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($data_profile))))->data->history_shipment_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -754,11 +754,11 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $mapping = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapStock?warehouseId=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapStock?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
         $dataDetail = $body->recapStock->data;
         $kerangka_mapping = $body->mappingMutation;
         $ker_mapping = [
@@ -972,13 +972,13 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $itemId = $explodedParams[4];
         $supplierId = $explodedParams[5];
         $dataProfile = $explodedParams[6];
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryPurchaseDetail?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&itemIds=' . $itemId . '&supplierIds=' . $supplierId . '&dataProfile=' . urlencode($dataProfile))))->data->history_purchase_detail->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryPurchaseDetail?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&itemIds=' . $itemId . '&supplierIds=' . $supplierId . '&dataProfile=' . urlencode($dataProfile))))->data->history_purchase_detail->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -1102,10 +1102,10 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapProduction?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getRecapProduction?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
         $spreadsheet = new Spreadsheet();
         $dataVariable = ['recap_production_complete', 'recap_production_on_process'];
         $dataVariableTitle = ['Complete', 'On Process'];
@@ -1197,12 +1197,12 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $itemId = $explodedParams[4];
         $dataProfile = $explodedParams[5];
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryProduction?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&itemIds=' . $itemId . '&dataProfile=' . urlencode($dataProfile))))->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryProduction?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&itemIds=' . $itemId . '&dataProfile=' . urlencode($dataProfile))))->data;
         $spreadsheet = new Spreadsheet();
         $dataVariable = ['history_production_complete', 'history_production_on_process'];
         $dataVariableTitle = ['Complete', 'On Process'];
@@ -1380,6 +1380,8 @@ class Report extends CI_Controller
         $total_weight = 0;
         $total_weight_received = 0;
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Global Code');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Inv Code');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No Bale');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY Terima');
@@ -1392,6 +1394,8 @@ class Report extends CI_Controller
         foreach ($body as $key => $value) {
             $jumlahColumn = $jumlahColumnStart;
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->global_code);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->code);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, date('d/m/y', strtotime($value->inventory->date)) . '-' . $value->inventory->bale_number);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty_receive);
@@ -1673,11 +1677,11 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $dataProfile = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryMaterial?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dataProfile=' . urlencode($dataProfile))))->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryMaterial?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dataProfile=' . urlencode($dataProfile))))->data;
         $spreadsheet = new Spreadsheet();
         $dataVariable = ['history_material_complete', 'history_material_on_process'];
         $dataVariableTitle = ['Complete', 'On Process'];
@@ -1761,11 +1765,11 @@ class Report extends CI_Controller
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
-        $warehouse_id = $explodedParams[1];
+        $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $data_profile = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryReceiveItem?warehouse_id=' . $warehouse_id . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($data_profile))))->data->history_receive_item->data;
+        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryReceiveItem?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end . '&dataProfile=' . urlencode($data_profile))))->data->history_receive_item->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -1887,6 +1891,98 @@ class Report extends CI_Controller
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
         $filename = 'RECEIVE HISTORY ' . $data_profile . ' ' . $epoch;
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+    public function excelWarehouseStockList()
+    {
+        $params = $this->input->get('params');
+        $decodedParams = urldecode($params);
+        $explodedParams = explode("*$", $decodedParams);
+        $date_start = date('Y-m-d', strtotime($explodedParams[1]));
+        $date_end = date('Y-m-d', strtotime($explodedParams[2]));
+        $itemId = $explodedParams[3];
+        $gradeId = $explodedParams[4];
+        $warehouse_id_origin = $explodedParams[5];
+        $item_unit_id = $explodedParams[6];
+        $warehouse_id = $explodedParams[7];
+        if ($date_start) {
+            $body = json_decode($this->curl->simple_get(api_produksi('getInventoryStockList?itemId=' . urlencode($itemId) . '&itemGradeId=' . urlencode($gradeId) . '&warehouseIdOrigin=' . urlencode($warehouse_id_origin) . '&itemUnitId=' . urlencode($item_unit_id) . '&warehouseId=' . $warehouse_id . '&dateEnd=' . $date_end . '&dateStart=' . $date_start)))->data->inventoryStockList->data;
+        } else {
+            $body = json_decode($this->curl->simple_get(api_produksi('getInventoryStockList?itemId=' . urlencode($itemId) . '&itemGradeId=' . urlencode($gradeId) . '&warehouseIdOrigin=' . urlencode($warehouse_id_origin) . '&itemUnitId=' . urlencode($item_unit_id) . '&warehouseId=' . $warehouse_id . '&dateEnd=' . $date_end)))->data->inventoryStockList->data;
+        }
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $jumlahColumnStart = 1;
+        $jumlahColumn = $jumlahColumnStart;
+        $total_qty = 0;
+        $total_weight = 0;
+        $total_total = 0;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Age (Days)');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item Origin');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Unit');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weght');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Supplier');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Bale Number');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Code');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Global Code');
+        $jumlahRow = 2;
+        $no = 1;
+        foreach ($body as $key => $value) {
+            $jumlahColumn = $jumlahColumnStart;
+            if (!$value->weight) {
+                $value->weight = 0;
+            }
+            if (!$value->qty) {
+                $value->qty = 0;
+            }
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->age_days);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse_origin->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item_grade->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->unit->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->supplier->name);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->bale_number);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->code);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->inventory->global_code);
+            $total_qty += $value->qty;
+            $total_weight += $value->weight;
+            $jumlahRow++;
+        }
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $jumlahColumn = $jumlahColumnStart;
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
+        $jumlahColumnEnd = $jumlahColumn - 1;
+        $sheet->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
+        // tampil totalan
+        $date_time = date('Y-m-d H:i:s');
+        $epoch = strtotime($date_time);
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'WAREHOUSE STOCK LIST ' . $epoch;
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

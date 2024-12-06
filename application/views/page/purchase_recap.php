@@ -437,7 +437,7 @@
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
-            warehouse_id: warehouse_id,
+            warehouseId: warehouse_id,
             itemIds: itemId,
             supplierIds: supplierId,
             dataProfile: dataProfile,

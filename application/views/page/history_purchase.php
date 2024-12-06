@@ -300,6 +300,7 @@
     var supplierId = []
     var dataProfile = ''
     var data_user = {}
+    var warehouse_id_origin = []
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
@@ -395,6 +396,7 @@
         arrangeVariable()
     }
 
+
     function arrangeVariable() {
         itemId = $('#selectItem').map(function() {
             return $(this).val();
@@ -435,7 +437,7 @@
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
-            warehouse_id: warehouse_id,
+            warehouseId: warehouse_id,
             itemIds: itemId,
             supplierIds: supplierId,
             dataProfile: dataProfile,

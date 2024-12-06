@@ -38,6 +38,11 @@
                                     <option value="SUMMARY ITEM GRADE">Summary Item Grade</option>
                                 </select>
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item Origin</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse">
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -290,12 +295,12 @@
     var date_start = getFirstDate()
     var date_end = currentDate()
     var dataProfile = ''
-    var leftFix = 8
-
+    var leftFix = 9
+    var warehouse_id_origin = []
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
-        loadData()
+        loadDataStart()
     })
 
     function getFirstDate() {
@@ -312,10 +317,49 @@
         return formattedDate;
     }
 
-    function loadData() {
+    function loadDataStart() {
         setDaterange()
         dateRangeString()
+        loadData()
+    }
+    var data_master = {}
 
+    function loadData() {
+        $.ajax({
+            url: "<?= api_url('loadPageRecapReportWarehouse'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                })
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_master = response.data
+                selectWarehouse()
+            }
+        })
+    }
+
+    function selectWarehouse() {
+        var html = ''
+        data_master.warehouse.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectWarehouse').html(html)
+        $('#selectWarehouse').selectpicker('refresh');
     }
 
     function dateRangeString() {
@@ -342,6 +386,7 @@
 
     function simpanData() {
         dataProfile = $('#selectDataProfile').val()
+        warehouse_id_origin = $('#selectWarehouse').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
@@ -349,8 +394,9 @@
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
-            warehouse_id: warehouse_id,
+            warehouseId: warehouse_id,
             dataProfile: dataProfile,
+            warehouseIdOrigin: warehouse_id_origin
         }
         kelolaData(data, type, url, button)
     }
@@ -381,11 +427,11 @@
                 if (data_report) {
                     if (data_report.length) {
                         if (dataProfile == 'DETAIL') {
-                            leftFix = 8
+                            leftFix = 9
                         } else if (dataProfile == 'SUMMARY ITEM') {
-                            leftFix = 5
-                        } else if (dataProfile == 'SUMMARY ITEM GRADE') {
                             leftFix = 6
+                        } else if (dataProfile == 'SUMMARY ITEM GRADE') {
+                            leftFix = 7
                         }
                         updatedStructure()
                     } else {
@@ -430,6 +476,7 @@
             html += '<th class="align-middle text-center small-text bg-white" style="z-index:9">Bale<br>Number</th>'
         }
         html += '<th class="align-middle text-center small-text bg-white" style="z-index:9">Item</th>'
+        html += '<th class="align-middle text-center small-text bg-white" style="z-index:9">Item Origin</th>'
         if (dataProfile != 'SUMMARY ITEM') {
             html += '<th class="align-middle text-center small-text bg-white"  style="z-index:9">Grade</th>'
         }
@@ -480,6 +527,7 @@
                 html += '<td class="bg-white align-middle small-text text-center">' + value.inventory.bale_number + '</td>'
             }
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
+            html += '<td class="bg-white align-middle small-text">' + value.item_origin.name + '</td>'
             if (dataProfile != 'SUMMARY ITEM') {
                 html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
             }
@@ -523,6 +571,7 @@
         if (dataProfile != 'SUMMARY ITEM') {
             html += '<th class="bg-white align-middle small-text text-end"></th>'
         }
+        html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end">Total</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_qty)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_qty_receive)) + '</th>'

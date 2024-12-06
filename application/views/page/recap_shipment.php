@@ -30,6 +30,11 @@
                                 <p class="fw-bolder small-text m-0">Tanggal</p>
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item Origin</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse">
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -281,10 +286,11 @@
     var data_report = ""
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var warehouse_id_origin = []
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
-        loadData()
+        loadDataStart()
     })
 
     function getFirstDate() {
@@ -301,10 +307,49 @@
         return formattedDate;
     }
 
-    function loadData() {
+    function loadDataStart() {
         setDaterange()
         dateRangeString()
+        loadData()
+    }
+    var data_master = {}
 
+    function loadData() {
+        $.ajax({
+            url: "<?= api_url('loadPageRecapReportWarehouse'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                })
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_master = response.data
+                selectWarehouse()
+            }
+        })
+    }
+
+    function selectWarehouse() {
+        var html = ''
+        data_master.warehouse.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectWarehouse').html(html)
+        $('#selectWarehouse').selectpicker('refresh');
     }
 
     function dateRangeString() {
@@ -330,6 +375,7 @@
     }
 
     function simpanData() {
+        warehouse_id_origin = $('#selectWarehouse').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
@@ -337,7 +383,8 @@
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
-            warehouse_id: warehouse_id,
+            warehouseId: warehouse_id,
+            warehouseIdOrigin: warehouse_id_origin
         }
         kelolaData(data, type, url, button)
     }
@@ -449,11 +496,11 @@
         var html = ''
         html += '<tr>'
         html += '<th class="bg-white align-middle small-text text-end" colspan="3">Total</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty_receive) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_qty)) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_qty_receive)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight_receive) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_weight)) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_weight_receive)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '</tr>'

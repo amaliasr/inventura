@@ -310,7 +310,7 @@ function formatIndonesianDate($dateString)
                                 <p class="m-0 small-text"><?= formatIndonesianDate($datas->shipment_at) ?></p>
                             </td>
                         </tr>
-                        <tr>
+                        <!-- <tr>
                             <td width="55px" style="vertical-align: top;">
                                 <p class="m-0 small-text">Pemilik</p>
                             </td>
@@ -320,7 +320,7 @@ function formatIndonesianDate($dateString)
                             <td>
                                 <p class="m-0 small-text">Bpk Bambang Sunarto</p>
                             </td>
-                        </tr>
+                        </tr> -->
                         <tr>
                             <td width="55px" style="vertical-align: top;">
                                 <p class="m-0 small-text">Tujuan</p>
@@ -363,8 +363,8 @@ function formatIndonesianDate($dateString)
                         <td class="td_main p-5 small text-center"><?= $key + 1 ?></td>
                         <td class="td_main p-5 small text-center"><?= $value->item->name ?></td>
                         <td class="td_main p-5 small text-center"><?= $value->item_grade->name ?></td>
-                        <td class="td_main p-5 small text-end"><?= number_format($value->qty) ?></td>
-                        <td class="td_main p-5 small text-end"><?= number_format($value->weight) ?></td>
+                        <td class="td_main p-5 small text-end"><?= number_format($value->qty, 2, '.', '') ?></td>
+                        <td class="td_main p-5 small text-end"><?= number_format($value->weight, 2, '.', '') ?></td>
                     </tr>
                 <?php
                     $totalQty += $value->qty;
@@ -372,8 +372,8 @@ function formatIndonesianDate($dateString)
                 } ?>
                 <tr>
                     <th class="th_main p-5 small text-end" colspan="3">Total</th>
-                    <th class="th_main p-5 small text-end"><?= number_format($totalQty) ?></th>
-                    <th class="th_main p-5 small text-end"><?= number_format($totalWeight) ?></th>
+                    <th class="th_main p-5 small text-end"><?= number_format($totalQty, 2, '.', '',) ?></th>
+                    <th class="th_main p-5 small text-end"><?= number_format($totalWeight, 2, '.', '') ?></th>
                 </tr>
             <?php } else { ?>
                 <tr>

@@ -35,6 +35,11 @@
                                 <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" id="selectDataProfile" onchange="arrangeVariable()">
                                 </select>
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item Origin</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse" onchange="arrangeVariable()">
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -298,6 +303,7 @@
     var dataProfile = ''
     var data_user = {}
     var indexVariable = 0
+    var warehouse_id_origin = []
     var statusLineVariable = [{
             id: 0,
             name: 'Complete',
@@ -325,6 +331,10 @@
         }, {
             name: 'Item',
             variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Item Origin',
+            variable: 'value.item_origin.name',
             text: ''
         }, {
             name: 'Grade',
@@ -376,6 +386,10 @@
             variable: 'value.item.name',
             text: ''
         }, {
+            name: 'Item Origin',
+            variable: 'value.item_origin.name',
+            text: ''
+        }, {
             name: 'Unit',
             variable: 'value.unit.name',
             text: 'text-center'
@@ -403,6 +417,10 @@
         }, {
             name: 'Item',
             variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Item Origin',
+            variable: 'value.item_origin.name',
             text: ''
         }, {
             name: 'Grade',
@@ -434,7 +452,7 @@
         'DETAIL': [{
             variable: '"Total"',
             text: 'text-end',
-            colspan: '6',
+            colspan: '7',
         }, {
             variable: 'number_format(roundToTwo(total_qty))',
             text: 'text-end',
@@ -459,7 +477,7 @@
         'ITEM': [{
             variable: '"Total"',
             text: 'text-end',
-            colspan: '4',
+            colspan: '5',
         }, {
             variable: 'number_format(roundToTwo(total_qty))',
             text: 'text-end',
@@ -480,7 +498,7 @@
         'ITEM GRADE': [{
             variable: '"Total"',
             text: 'text-end',
-            colspan: '5',
+            colspan: '6',
         }, {
             variable: 'number_format(roundToTwo(total_qty))',
             text: 'text-end',
@@ -603,6 +621,18 @@
         $('#selectDataProfile').selectpicker({
 
         });
+        selectWarehouse()
+    }
+
+    function selectWarehouse() {
+        var html = ''
+        data_user.warehouse.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectWarehouse').html(html)
+        $('#selectWarehouse').selectpicker('refresh');
         arrangeVariable()
     }
 
@@ -611,6 +641,7 @@
             return $(this).val();
         }).get()
         dataProfile = $('#selectDataProfile').val()
+        warehouse_id_origin = $('#selectWarehouse').val()
     }
 
     function dateRangeString() {
@@ -643,8 +674,9 @@
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
-            warehouse_id: warehouse_id,
+            warehouseId: warehouse_id,
             dataProfile: dataProfile,
+            warehouseIdOrigin: warehouse_id_origin
         }
         kelolaData(data, type, url, button)
     }

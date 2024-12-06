@@ -216,6 +216,7 @@ if (isset($_COOKIE['visiting'])) {
         html_body += '<div class="row">'
         html_body += '<div class="col-12">'
         var a = 0
+        // console.log(dataRoles)
         dataRoles.forEach(e => {
             html_body += '<div class="card shadow-none mb-2 card-hoper pointer" onclick="sessionLogin(' + a++ + ')">'
             html_body += '<div class="card-body">'
