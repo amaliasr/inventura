@@ -375,7 +375,7 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getReportShipmentItem'); ?>'
+        var url = '<?php echo api_url('getReportShipmentItemNew'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,

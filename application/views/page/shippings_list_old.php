@@ -183,7 +183,7 @@
                     </div>
                     <div class="col-auto">
                         <button type="button" class="btn btn-sm shadow-none btn-outline-primary" onclick="loadData()"><i class="fa fa-refresh"></i></button>
-                        <button type="button" class="btn btn-light border border-dark btn-sm btnSimpan ms-1" onclick="switchToOld()">Switch to Old ver</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm btnSimpan ms-1" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -415,7 +415,7 @@
 
     function loadData() {
         $.ajax({
-            url: "<?= api_url('getShipmentListNew'); ?>",
+            url: "<?= api_url('getShipmentList'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
@@ -574,37 +574,6 @@
         setDaterange()
         kerangkaHistory()
     }
-    const weightLabelsRaw = [{
-            key: "weight_gross",
-            label: "Total Weight Gross"
-        },
-        {
-            key: "weight_gross_receive",
-            label: "Total Weight Gross Receive"
-        },
-        {
-            key: "weight_net",
-            label: "Total Weight Net"
-        },
-        {
-            key: "weight_net_receive",
-            label: "Total Weight Net Receive"
-        },
-        {
-            key: "weight_packaging",
-            label: "Total Weight Packaging"
-        },
-        {
-            key: "weight_packaging_receive",
-            label: "Total Weight Packaging Receive"
-        }
-    ];
-
-    const weightLabels = weightLabelsRaw.map(item => ({
-        key: item.key,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
-
 
     function kerangkaHistory() {
         var html = ''
@@ -619,9 +588,8 @@
         html += '<th class="align-middle text-center small-text bg-white">Sender</th>'
         html += '<th class="align-middle text-center small-text bg-white">Total QTY</th>'
         html += '<th class="align-middle text-center small-text bg-white">Total QTY<br>Receive</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="align-middle text-center small-text bg-white">' + e.label + '</th>'
-        });
+        html += '<th class="align-middle text-center small-text bg-white">Total Weight</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Total Weight<br>Receive</th>'
         html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Model</th>'
         html += '<th class="align-middle text-center small-text bg-white">Vehicle<br>Number</th>'
         html += '<th class="align-middle text-center small-text bg-white">Driver<br>Photo</th>'
@@ -655,24 +623,23 @@
     }
     var all_total_qty = 0
     var all_total_qty_receive = 0
-    var all_total = {}
+    var all_total_weight = 0
+    var all_total_weight_receive = 0
 
     function bodyHistory() {
         var html = ''
         var a = 1
         all_total_qty = 0
         all_total_qty_receive = 0
-        all_total = {}
+        all_total_weight = 0
+        all_total_weight_receive = 0
         var dataFind = deepCopy(data_shipment_showed)
         var b = 0
         $.each(dataFind, function(key, value) {
             var totalQty = calculateTotals(value.details, 'qty');
             var totalQtyReceive = calculateTotals(value.details, 'qty_receive');
-            var total_all = {}
-            weightLabels.forEach(e => {
-                total_all[e.key] = calculateTotals(value.details, e.key);
-            });
-            // var totalWeightReceive = calculateTotals(value.details, 'weight_receive');
+            var totalWeight = calculateTotals(value.details, 'weight');
+            var totalWeightReceive = calculateTotals(value.details, 'weight_receive');
             // selisih qty, dibuat absolut
             var selisih_qty = Math.abs(totalQty - totalQtyReceive)
             var iconSelisih = ''
@@ -694,14 +661,8 @@
 
             html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalQty)) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalQtyReceive)) + '' + iconSelisih + '</td>'
-            weightLabels.forEach(e => {
-                if (all_total[e.key]) {
-                    all_total[e.key] += total_all[e.key]
-                } else {
-                    all_total[e.key] = total_all[e.key]
-                }
-                html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_all[e.key])) + '</td>'
-            });
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalWeight)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(totalWeightReceive)) + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_model.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.vehicle_number + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">'
@@ -775,8 +736,8 @@
             html += '</tr>'
             all_total_qty += parseInt(totalQty)
             all_total_qty_receive += parseInt(totalQtyReceive)
-            // all_total_weight += parseInt(totalWeight)
-            // all_total_weight_receive += parseInt(totalWeightReceive)
+            all_total_weight += parseInt(totalWeight)
+            all_total_weight_receive += parseInt(totalWeightReceive)
             b++
         })
         $('#bodyTable').html(html)
@@ -799,9 +760,8 @@
         html += '<th class="px-2 align-middle small text-center">Total</th>'
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty) + '</th>'
         html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_qty_receive) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="px-2 align-middle small text-center">' + number_format(all_total[e.key]) + '</th>'
-        });
+        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight) + '</th>'
+        html += '<th class="px-2 align-middle small text-center">' + number_format(all_total_weight_receive) + '</th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
         html += '<th class="px-2 align-middle small text-center"></th>'
@@ -1063,7 +1023,7 @@
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
-    function switchToOld() {
+    function switchToNew() {
         let currentUrl = window.location.href;
 
         // Pisahkan URL berdasarkan '/'
@@ -1072,13 +1032,9 @@
         // Ambil bagian terakhir dari URL (nama halaman)
         let lastSegment = urlParts[urlParts.length - 1];
 
-        // Periksa apakah sudah ada '-old'
+        // Periksa apakah ada '-old' dan hapus jika ada
         if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
             lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
         }
 
         // Gabungkan kembali URL dengan segmen yang diperbarui

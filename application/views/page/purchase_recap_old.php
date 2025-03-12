@@ -15,9 +15,9 @@
     </header>
     <!-- Main page content-->
     <div class="container-xl mt-n10">
-        <div class="row justify-content-between mb-2">
+        <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PURCHASE SUPPLIER</h1>
+                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PURCHASE</h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -29,6 +29,21 @@
                             <div class="col-auto">
                                 <p class="fw-bolder small-text m-0">Tanggal</p>
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectItem" title="Pilih Item" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Supplier</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectSupplier" title="Pilih Supplier" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Data Profile</p>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" id="selectDataProfile" onchange="arrangeVariable()">
+                                </select>
                             </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
@@ -44,7 +59,6 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-light border border-dark btn-sm btnSimpan small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -282,11 +296,25 @@
     var data_report = ""
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var itemId = []
+    var supplierId = []
+    var dataProfile = ''
+    var data_user = {}
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
         loadData()
     })
+
+    function arrangeVariable() {
+        itemId = $('#selectItem').map(function() {
+            return $(this).val();
+        }).get()
+        supplierId = $('#selectSupplier').map(function() {
+            return $(this).val();
+        }).get()
+        dataProfile = $('#selectDataProfile').val()
+    }
 
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
@@ -303,9 +331,80 @@
     }
 
     function loadData() {
-        setDaterange()
-        dateRangeString()
+        $.ajax({
+            url: "<?= api_url('loadPageRecapReportPurchase'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                });
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_user = response['data']
+                setDaterange()
+                dateRangeString()
+                selectItem()
+            }
+        })
 
+
+    }
+
+    function selectItem() {
+        var html = ''
+        data_user.item.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.code + ' - ' + e.name + '</option>'
+        });
+        $('#selectItem').html(html)
+        $('#selectItem').selectpicker('refresh');
+        $('#selectItem').selectpicker({
+
+        });
+        selectSupplier()
+    }
+
+    function selectSupplier() {
+        var html = ''
+        data_user.supplier.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectSupplier').html(html)
+        $('#selectSupplier').selectpicker('refresh');
+        $('#selectSupplier').selectpicker({
+
+        });
+        selectDataProfile()
+    }
+
+    function selectDataProfile() {
+        var html = ''
+        var a = 0
+        data_user.data_profile.forEach(e => {
+            var select = ''
+            html += '<option value="' + e + '" ' + select + '>' + e + '</option>'
+            a++
+        });
+        $('#selectDataProfile').html(html)
+        $('#selectDataProfile').selectpicker('refresh');
+        $('#selectDataProfile').selectpicker({
+
+        });
+        arrangeVariable()
     }
 
     function dateRangeString() {
@@ -334,11 +433,14 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapPurchaseItemSupplierNew'); ?>'
+        var url = '<?php echo api_url('getRecapPurchaseItem'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
             warehouseId: warehouse_id,
+            itemIds: itemId,
+            supplierIds: supplierId,
+            dataProfile: dataProfile,
         }
         kelolaData(data, type, url, button)
     }
@@ -365,7 +467,7 @@
                 showOverlay('hide')
                 dateRangeString()
                 $(button).prop("disabled", false);
-                data_report = response.data.recap_purchase_item_supplier.data
+                data_report = response.data.recap_purchase_item.data
                 if (data_report) {
                     if (data_report.length) {
                         updatedStructure()
@@ -397,70 +499,17 @@
         $('#dataTable').html(html)
         headTable()
     }
-    const weightLabelsRaw = [{
-            key: "weight_deduction_purchase",
-            label: "Weight Deduction Purchase"
-        },
-        {
-            key: "weight_gross_latest",
-            label: "Weight Gross Latest"
-        },
-        {
-            key: "weight_gross_purchase",
-            label: "Weight Gross Purchase"
-        },
-        {
-            key: "weight_gross_stock",
-            label: "Weight Gross Stock"
-        },
-        {
-            key: "weight_net_latest",
-            label: "Weight Net Latest"
-        },
-        {
-            key: "weight_net_purchase",
-            label: "Weight Net Purchase"
-        },
-        {
-            key: "weight_net_stock",
-            label: "Weight Net Stock"
-        },
-        {
-            key: "weight_packaging_latest",
-            label: "Weight Packaging Latest"
-        },
-        {
-            key: "weight_packaging_purchase",
-            label: "Weight Packaging Purchase"
-        },
-        {
-            key: "weight_packaging_stock",
-            label: "Weight Packaging Stock"
-        },
-        {
-            key: "weight_paid",
-            label: "Weight Paid"
-        }
-    ];
-
-    const weightLabels = weightLabelsRaw.map(item => ({
-        key: item.key,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
-
 
     function headTable() {
         var html = ''
         html += '<tr>'
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Supplier</th>'
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        if (dataProfile == 'ITEM GRADE') {
+            html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
+        }
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        // html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
-        weightLabels.forEach(e => {
-            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
-        });
+        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
         html += '<th class="align-middle text-center small-text bg-white">Price</th>'
         html += '<th class="align-middle text-center small-text bg-white">Tax Out Come</th>'
         html += '<th class="align-middle text-center small-text bg-white">Total</th>'
@@ -469,7 +518,7 @@
         bodyTable()
     }
     var total_qty = 0
-    var total_weight = {}
+    var total_weight = 0
     var total_price = 0
     var total_tax_out_come = 0
     var total_total = 0
@@ -477,61 +526,63 @@
     function bodyTable() {
         var html = ''
         total_qty = 0
-        total_weight = {}
+        total_weight = 0
         total_price = 0
         total_tax_out_come = 0
         total_total = 0
+        var html_popover = {}
         $.each(data_report, function(key, value) {
             if (!value.tax_out_come) {
                 value.tax_out_come = 0
             }
-            if (!value.price) {
-                value.price = 0
+            if (!value.price_avg) {
+                value.price_avg = 0
             }
             if (!value.total) {
                 value.total = 0
             }
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text">' + value.supplier.name + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            if (dataProfile == 'ITEM GRADE') {
+                html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            }
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.weight) + '</td>'
-            weightLabels.forEach(e => {
-                if (!value[e.key]) {
-                    value[e.key] = 0
-                }
-                // total weight each
-                if (total_weight[e.key] == undefined) {
-                    total_weight[e.key] = 0
-                } else {
-                    total_weight[e.key] += parseFloat(total_weight[e.key])
-                }
-                html += `<td class="bg-white align-middle small-text text-end">${number_format(value[e.key])}</td>`;
-            });
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.price) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end" id="popoverHover' + key + '" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Price List">' + number_format(roundToTwo(value.price_avg)) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
             html += '</tr>'
             total_qty += parseFloat(value.qty)
-            total_price += parseFloat(value.price)
+            total_weight += parseFloat(value.weight)
+            total_price += parseFloat(value.price_avg)
             total_tax_out_come += parseFloat(value.tax_out_come)
             total_total += parseFloat(value.total)
+            if (!html_popover[key]) {
+                html_popover[key] = ''
+            }
+            value.prices.forEach(e => {
+                if (!e) {
+                    e = 0
+                }
+                html_popover[key] += '<p class="m-0 small-text">' + number_format(roundToTwo(e)) + '</p>'
+            });
         })
         $('#bodyTable').html(html)
-        footTable()
+        footTable(html_popover)
     }
 
-    function footTable() {
+    function footTable(html_popover) {
         var html = ''
         html += '<tr>'
-        html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
+        if (dataProfile == 'ITEM GRADE') {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="3">Total</th>'
+        } else {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="2">Total</th>'
+        }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
-        })
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_price)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
         html += '</tr>'
@@ -548,41 +599,30 @@
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
         })
+        $.each(data_report, function(key, value) {
+            var popoverTriggerEl = document.getElementById('popoverHover' + key)
+            var popover = new bootstrap.Popover(popoverTriggerEl, {
+                placement: 'bottom', // Menentukan posisi popover
+                trigger: 'hover focus', // Menentukan trigger popover (dalam contoh ini, hover)
+                html: true,
+                content: html_popover[key],
+                customClass: 'custom-popover',
+            });
+        });
+    }
+
+    function arrayToString(arr) {
+        var resultString = arr.join(',');
+        return resultString;
     }
 
     function exportExcel() {
-        var url = '<?= base_url('report/excelPurchaseSupplierRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$NEW";
+        var url = '<?= base_url('report/excelPurchaseRecap') ?>';
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + supplierId + "*$" + dataProfile
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
     function roundToOne(num) {
         return +(Math.round(num + "e+1") + "e-1");
-    }
-
-    function switchToOld() {
-        let currentUrl = window.location.href;
-
-        // Pisahkan URL berdasarkan '/'
-        let urlParts = currentUrl.split('/');
-
-        // Ambil bagian terakhir dari URL (nama halaman)
-        let lastSegment = urlParts[urlParts.length - 1];
-
-        // Periksa apakah sudah ada '-old'
-        if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
-            lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
-        }
-
-        // Gabungkan kembali URL dengan segmen yang diperbarui
-        urlParts[urlParts.length - 1] = lastSegment;
-        let newUrl = urlParts.join('/');
-
-        // Redirect ke URL baru
-        window.location.href = newUrl;
     }
 </script>

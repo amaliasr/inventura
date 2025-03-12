@@ -15,9 +15,9 @@
     </header>
     <!-- Main page content-->
     <div class="container-xl mt-n10">
-        <div class="row justify-content-between mb-2">
+        <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PURCHASE SUPPLIER</h1>
+                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">REPORT SHIPMENT</h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -29,6 +29,11 @@
                             <div class="col-auto">
                                 <p class="fw-bolder small-text m-0">Tanggal</p>
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
+                            </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Item Origin</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse">
+                                </select>
                             </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
@@ -44,7 +49,6 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-light border border-dark btn-sm btnSimpan small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -282,6 +286,7 @@
     var data_report = ""
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var warehouse_id_origin = []
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
@@ -301,11 +306,46 @@
 
         return formattedDate;
     }
+    var data_master = {}
 
     function loadData() {
         setDaterange()
         dateRangeString()
+        $.ajax({
+            url: "<?= api_url('loadPageRecapReportWarehouse'); ?>",
+            method: "GET",
+            dataType: 'JSON',
+            data: {
+                warehouseId: warehouse_id,
+            },
+            error: function(xhr) {
+                showOverlay('hide')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error Data'
+                })
+            },
+            beforeSend: function() {
+                showOverlay('show')
+            },
+            success: function(response) {
+                showOverlay('hide')
+                data_master = response.data
+                selectWarehouse()
+            }
+        })
+    }
 
+    function selectWarehouse() {
+        var html = ''
+        data_master.warehouse.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectWarehouse').html(html)
+        $('#selectWarehouse').selectpicker('refresh');
     }
 
     function dateRangeString() {
@@ -331,14 +371,16 @@
     }
 
     function simpanData() {
+        warehouse_id_origin = $('#selectWarehouse').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapPurchaseItemSupplierNew'); ?>'
+        var url = '<?php echo api_url('getReportShipmentItem'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
             warehouseId: warehouse_id,
+            warehouseIdOrigin: warehouse_id_origin
         }
         kelolaData(data, type, url, button)
     }
@@ -365,7 +407,7 @@
                 showOverlay('hide')
                 dateRangeString()
                 $(button).prop("disabled", false);
-                data_report = response.data.recap_purchase_item_supplier.data
+                data_report = response.data.recap_shipment_item.data
                 if (data_report) {
                     if (data_report.length) {
                         updatedStructure()
@@ -397,127 +439,54 @@
         $('#dataTable').html(html)
         headTable()
     }
-    const weightLabelsRaw = [{
-            key: "weight_deduction_purchase",
-            label: "Weight Deduction Purchase"
-        },
-        {
-            key: "weight_gross_latest",
-            label: "Weight Gross Latest"
-        },
-        {
-            key: "weight_gross_purchase",
-            label: "Weight Gross Purchase"
-        },
-        {
-            key: "weight_gross_stock",
-            label: "Weight Gross Stock"
-        },
-        {
-            key: "weight_net_latest",
-            label: "Weight Net Latest"
-        },
-        {
-            key: "weight_net_purchase",
-            label: "Weight Net Purchase"
-        },
-        {
-            key: "weight_net_stock",
-            label: "Weight Net Stock"
-        },
-        {
-            key: "weight_packaging_latest",
-            label: "Weight Packaging Latest"
-        },
-        {
-            key: "weight_packaging_purchase",
-            label: "Weight Packaging Purchase"
-        },
-        {
-            key: "weight_packaging_stock",
-            label: "Weight Packaging Stock"
-        },
-        {
-            key: "weight_paid",
-            label: "Weight Paid"
-        }
-    ];
-
-    const weightLabels = weightLabelsRaw.map(item => ({
-        key: item.key,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
-
 
     function headTable() {
         var html = ''
         html += '<tr>'
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Supplier</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Date</th>'
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
         html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        // html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
-        weightLabels.forEach(e => {
-            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
-        });
-        html += '<th class="align-middle text-center small-text bg-white">Price</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Tax Out Come</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Total</th>'
+        html += '<th class="align-middle text-center small-text bg-white">QTY<br>Receive</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Weight<br>Receive</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Origin</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Destination</th>'
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
     }
     var total_qty = 0
-    var total_weight = {}
-    var total_price = 0
-    var total_tax_out_come = 0
-    var total_total = 0
+    var total_qty_receive = 0
+    var total_weight = 0
+    var total_weight_receive = 0
 
     function bodyTable() {
         var html = ''
         total_qty = 0
-        total_weight = {}
-        total_price = 0
-        total_tax_out_come = 0
-        total_total = 0
+        total_qty_receive = 0
+        total_weight = 0
+        total_weight_receive = 0
         $.each(data_report, function(key, value) {
-            if (!value.tax_out_come) {
-                value.tax_out_come = 0
-            }
-            if (!value.price) {
-                value.price = 0
-            }
-            if (!value.total) {
-                value.total = 0
-            }
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text">' + value.supplier.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.date + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.weight) + '</td>'
-            weightLabels.forEach(e => {
-                if (!value[e.key]) {
-                    value[e.key] = 0
-                }
-                // total weight each
-                if (total_weight[e.key] == undefined) {
-                    total_weight[e.key] = 0
-                } else {
-                    total_weight[e.key] += parseFloat(total_weight[e.key])
-                }
-                html += `<td class="bg-white align-middle small-text text-end">${number_format(value[e.key])}</td>`;
-            });
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.price) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.qty_receive + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.weight_receive + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_dest.name + '</td>'
             html += '</tr>'
             total_qty += parseFloat(value.qty)
-            total_price += parseFloat(value.price)
-            total_tax_out_come += parseFloat(value.tax_out_come)
-            total_total += parseFloat(value.total)
+            total_qty_receive += parseFloat(value.qty_receive)
+            total_weight += parseFloat(value.weight)
+            total_weight_receive += parseFloat(value.weight_receive)
         })
         $('#bodyTable').html(html)
         footTable()
@@ -528,12 +497,12 @@
         html += '<tr>'
         html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
-        })
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty_receive) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end"></th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight_receive) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end"></th>'
+        html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
@@ -551,38 +520,12 @@
     }
 
     function exportExcel() {
-        var url = '<?= base_url('report/excelPurchaseSupplierRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$NEW";
+        var url = '<?= base_url('report/excelShipmentReport') ?>';
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end;
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
     function roundToOne(num) {
         return +(Math.round(num + "e+1") + "e-1");
-    }
-
-    function switchToOld() {
-        let currentUrl = window.location.href;
-
-        // Pisahkan URL berdasarkan '/'
-        let urlParts = currentUrl.split('/');
-
-        // Ambil bagian terakhir dari URL (nama halaman)
-        let lastSegment = urlParts[urlParts.length - 1];
-
-        // Periksa apakah sudah ada '-old'
-        if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
-            lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
-        }
-
-        // Gabungkan kembali URL dengan segmen yang diperbarui
-        urlParts[urlParts.length - 1] = lastSegment;
-        let newUrl = urlParts.join('/');
-
-        // Redirect ke URL baru
-        window.location.href = newUrl;
     }
 </script>

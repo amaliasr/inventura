@@ -15,9 +15,9 @@
     </header>
     <!-- Main page content-->
     <div class="container-xl mt-n10">
-        <div class="row justify-content-between mb-2">
+        <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PURCHASE SUPPLIER</h1>
+                <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 900 !important">RECAP PURCHASE SUPPLIER <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -44,7 +44,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-light border border-dark btn-sm btnSimpan small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm btnSimpan small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -334,7 +334,7 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapPurchaseItemSupplierNew'); ?>'
+        var url = '<?php echo api_url('getRecapPurchaseItemSupplier'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -397,57 +397,6 @@
         $('#dataTable').html(html)
         headTable()
     }
-    const weightLabelsRaw = [{
-            key: "weight_deduction_purchase",
-            label: "Weight Deduction Purchase"
-        },
-        {
-            key: "weight_gross_latest",
-            label: "Weight Gross Latest"
-        },
-        {
-            key: "weight_gross_purchase",
-            label: "Weight Gross Purchase"
-        },
-        {
-            key: "weight_gross_stock",
-            label: "Weight Gross Stock"
-        },
-        {
-            key: "weight_net_latest",
-            label: "Weight Net Latest"
-        },
-        {
-            key: "weight_net_purchase",
-            label: "Weight Net Purchase"
-        },
-        {
-            key: "weight_net_stock",
-            label: "Weight Net Stock"
-        },
-        {
-            key: "weight_packaging_latest",
-            label: "Weight Packaging Latest"
-        },
-        {
-            key: "weight_packaging_purchase",
-            label: "Weight Packaging Purchase"
-        },
-        {
-            key: "weight_packaging_stock",
-            label: "Weight Packaging Stock"
-        },
-        {
-            key: "weight_paid",
-            label: "Weight Paid"
-        }
-    ];
-
-    const weightLabels = weightLabelsRaw.map(item => ({
-        key: item.key,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
-
 
     function headTable() {
         var html = ''
@@ -457,10 +406,7 @@
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
         html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        // html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
-        weightLabels.forEach(e => {
-            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
-        });
+        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
         html += '<th class="align-middle text-center small-text bg-white">Price</th>'
         html += '<th class="align-middle text-center small-text bg-white">Tax Out Come</th>'
         html += '<th class="align-middle text-center small-text bg-white">Total</th>'
@@ -469,7 +415,7 @@
         bodyTable()
     }
     var total_qty = 0
-    var total_weight = {}
+    var total_weight = 0
     var total_price = 0
     var total_tax_out_come = 0
     var total_total = 0
@@ -477,7 +423,7 @@
     function bodyTable() {
         var html = ''
         total_qty = 0
-        total_weight = {}
+        total_weight = 0
         total_price = 0
         total_tax_out_come = 0
         total_total = 0
@@ -497,24 +443,13 @@
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.weight) + '</td>'
-            weightLabels.forEach(e => {
-                if (!value[e.key]) {
-                    value[e.key] = 0
-                }
-                // total weight each
-                if (total_weight[e.key] == undefined) {
-                    total_weight[e.key] = 0
-                } else {
-                    total_weight[e.key] += parseFloat(total_weight[e.key])
-                }
-                html += `<td class="bg-white align-middle small-text text-end">${number_format(value[e.key])}</td>`;
-            });
+            html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.price) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
             html += '</tr>'
             total_qty += parseFloat(value.qty)
+            total_weight += parseFloat(value.weight)
             total_price += parseFloat(value.price)
             total_tax_out_come += parseFloat(value.tax_out_come)
             total_total += parseFloat(value.total)
@@ -528,9 +463,7 @@
         html += '<tr>'
         html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
-        })
+        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_price) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
@@ -552,7 +485,7 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelPurchaseSupplierRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$NEW";
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$OLD";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
@@ -560,7 +493,7 @@
         return +(Math.round(num + "e+1") + "e-1");
     }
 
-    function switchToOld() {
+    function switchToNew() {
         let currentUrl = window.location.href;
 
         // Pisahkan URL berdasarkan '/'
@@ -569,13 +502,9 @@
         // Ambil bagian terakhir dari URL (nama halaman)
         let lastSegment = urlParts[urlParts.length - 1];
 
-        // Periksa apakah sudah ada '-old'
+        // Periksa apakah ada '-old' dan hapus jika ada
         if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
             lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
         }
 
         // Gabungkan kembali URL dengan segmen yang diperbarui

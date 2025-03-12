@@ -407,7 +407,6 @@
 
 
     function chooseDataPending() {
-        console.log('e')
         var data = data_invoices.dataInvoiceIncomplete.data
         return data
     }
@@ -609,7 +608,7 @@
     var newNumberInvoice = ''
 
     function headerInvoice(id) {
-        var data = data_invoice_detail_showed.find((value, key) => {
+        var data = data_invoices.dataInvoice.data.find((value, key) => {
             if (value.id == id) return true
         });
         data_detail_invoices = data
@@ -1049,7 +1048,7 @@
         var type = 'POST'
         var button = '#btnHapus'
         var url = '<?php echo api_produksi('setInvoice'); ?>'
-        var dataInvoice = data_invoice_detail_showed.find((value, key) => {
+        var dataInvoice = data_invoices.dataInvoice.data.find((value, key) => {
             if (value.id == id) return true
         });
         var purchase_detail = []

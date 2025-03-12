@@ -221,13 +221,33 @@ class Report extends CI_Controller
     }
     public function excelPurchaseSupplierRecap()
     {
+        $weightLabels = [
+            ["key" => "weight_deduction_purchase", "label" => "Weight Deduction Purchase", "total" => 0],
+            ["key" => "weight_gross_latest", "label" => "Weight Gross Latest", "total" => 0],
+            ["key" => "weight_gross_purchase", "label" => "Weight Gross Purchase", "total" => 0],
+            ["key" => "weight_gross_stock", "label" => "Weight Gross Stock", "total" => 0],
+            ["key" => "weight_net_latest", "label" => "Weight Net Latest", "total" => 0],
+            ["key" => "weight_net_purchase", "label" => "Weight Net Purchase", "total" => 0],
+            ["key" => "weight_net_stock", "label" => "Weight Net Stock", "total" => 0],
+            ["key" => "weight_packaging_latest", "label" => "Weight Packaging Latest", "total" => 0],
+            ["key" => "weight_packaging_purchase", "label" => "Weight Packaging Purchase", "total" => 0],
+            ["key" => "weight_packaging_stock", "label" => "Weight Packaging Stock", "total" => 0],
+            ["key" => "weight_paid", "label" => "Weight Paid", "total" => 0]
+        ];
+
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
         $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapPurchaseItemSupplier?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_purchase_item_supplier->data;
+        $statusFile = $explodedParams[4];
+        if ($statusFile == 'NEW') {
+            $textAPI = 'getRecapPurchaseItemSupplierNew';
+        } else {
+            $textAPI = 'getRecapPurchaseItemSupplier';
+        }
+        $body = json_decode($this->curl->simple_get(api_produksi($textAPI . '?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data->recap_purchase_item_supplier->data;
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $jumlahColumnStart = 1;
@@ -243,7 +263,13 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        if ($statusFile == 'NEW') {
+            foreach ($weightLabels as $weightLabel) {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', $weightLabel['label']);
+            }
+        } else {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Price');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Tax Out Come');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Total');
@@ -266,12 +292,19 @@ class Report extends CI_Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+            if ($statusFile == 'NEW') {
+                foreach ($weightLabels as $weightLabel) {
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->{$weightLabel['key']});
+                    $weightLabel['total'] += $value->{$weightLabel['key']};
+                }
+            } else {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+                $total_weight += $value->weight;
+            }
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->price);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->tax_out_come);
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->total);
             $total_qty += $value->qty;
-            $total_weight += $value->weight;
             $total_price += $value->price;
             $total_tax_outcome += $value->tax_out_come;
             $total_total += $value->total;
@@ -287,7 +320,13 @@ class Report extends CI_Controller
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        if ($statusFile == 'NEW') {
+            foreach ($weightLabels as $weightLabel) {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $weightLabel['total']);
+            }
+        } else {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+        }
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_price);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_tax_outcome);
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_total);
@@ -297,7 +336,11 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'PURCHASE SUPPLIER RECAP ' . $epoch;
+        if ($statusFile == 'NEW') {
+            $filename = 'PURCHASE SUPPLIER RECAP NEW ' . $epoch;
+        } else {
+            $filename = 'PURCHASE SUPPLIER RECAP ' . $epoch;
+        }
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

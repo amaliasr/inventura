@@ -114,6 +114,16 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/recap_puchase_supplier', $data);
     }
+    public function recap_puchase_supplier_old()
+    {
+        // $this->check_permission('recap_puchase_supplier_old');
+        $data['title'] = 'Purchase Supplier Recap';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/recap_puchase_supplier_old', $data);
+    }
     public function recap_warehouse_stock()
     {
         $this->check_permission('recap_warehouse_stock');
@@ -164,6 +174,16 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $data['status_view'] = '';
         $this->template->views('page/shippings_list', $data);
+    }
+    public function shippings_list_old()
+    {
+        $data['title'] = 'Shipping';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $data['status_view'] = '';
+        $this->template->views('page/shippings_list_old', $data);
     }
     public function shippings_list_view()
     {
