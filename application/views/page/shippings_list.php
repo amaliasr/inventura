@@ -668,7 +668,7 @@
         $.each(dataFind, function(key, value) {
             var totalQty = calculateTotals(value.details, 'qty');
             var totalQtyReceive = calculateTotals(value.details, 'qty_receive');
-            var total_all = {}
+            total_all = {}
             weightLabels.forEach(e => {
                 total_all[e.key] = calculateTotals(value.details, e.key);
             });

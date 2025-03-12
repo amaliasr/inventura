@@ -170,7 +170,8 @@
             <div class="col-8">
                 <div class="row">
                     <div class="col-10 align-self-center">
-                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Shippings</h1>
+                        <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 700 !important">Shippings <span class="badge bg-orange small-text ms-2">OLD</span></h1>
+                        </h1>
                         <p class="m-0 super-small-text">Panel Kegiatan Entri untuk Management Shipping <br>dan Cetak Surat Jalan Pengiriman</p>
                     </div>
                 </div>

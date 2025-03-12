@@ -144,6 +144,16 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/report_shipment', $data);
     }
+
+    public function report_shipment_old()
+    {
+        $data['title'] = 'Shipment Report';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/report_shipment_old', $data);
+    }
     public function history_purchase()
     {
         $this->check_permission('history_purchase');
@@ -261,6 +271,16 @@ class Page extends CI_Controller
         $data['status_view'] = '';
         $this->template->views('page/receptions_list', $data);
     }
+    public function receptions_list_old()
+    {
+        $data['title'] = 'Receptions';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $data['status_view'] = '';
+        $this->template->views('page/receptions_list_old', $data);
+    }
     public function receptions_list_view()
     {
         $this->check_permission('receptions_list_view');
@@ -331,5 +351,14 @@ class Page extends CI_Controller
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
         $this->template->views('page/warehouse_stock_list', $data);
+    }
+    public function warehouse_stock_list_old()
+    {
+        $data['title'] = 'Warehouse Stock List';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/warehouse_stock_list_old', $data);
     }
 }

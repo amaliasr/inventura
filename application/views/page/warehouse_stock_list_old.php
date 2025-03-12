@@ -324,7 +324,7 @@
             <div class="col-4">
                 <div class="row">
                     <div class="col-12 align-self-center">
-                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Stock List</h1>
+                        <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 700 !important">Stock List <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                         <p class="m-0 super-small-text" id="dateRangeString"></p>
                     </div>
                 </div>
@@ -339,6 +339,7 @@
                         <button type="button" class="btn btn-sm shadow-none btn-outline-primary me-2" onclick="datatableStock()"><i class="fa fa-refresh"></i></button>
                         <input class="form-control form-control-sm datepicker shadow-none me-2" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off" style="width: 200px;">
                         <button type="button" class="btn btn-sm shadow-none btn-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Filter</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm ms-2" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -1816,7 +1817,29 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelWarehouseStockList') ?>';
-        var params = "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + gradeId + "*$" + warehouse_id_origin + "*$" + item_unit_id + "*$" + warehouse_id
+        var params = "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + gradeId + "*$" + warehouse_id_origin + "*$" + item_unit_id + "*$" + warehouse_id + "*$OLD";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
+    }
+
+    function switchToNew() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah ada '-old' dan hapus jika ada
+        if (lastSegment.includes('-old')) {
+            lastSegment = lastSegment.replace('-old', '');
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

@@ -339,6 +339,7 @@
                         <button type="button" class="btn btn-sm shadow-none btn-outline-primary me-2" onclick="datatableStock()"><i class="fa fa-refresh"></i></button>
                         <input class="form-control form-control-sm datepicker shadow-none me-2" type="text" id="dateRange" placeholder="Tanggal" autocomplete="off" style="width: 200px;">
                         <button type="button" class="btn btn-sm shadow-none btn-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Filter</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm ms-2" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -411,7 +412,11 @@
                                         <th class="align-middle text-center small-text bg-white">Grade</th>
                                         <th class="align-middle text-center small-text bg-white">QTY</th>
                                         <th class="align-middle text-center small-text bg-white">Unit</th>
-                                        <th class="align-middle text-center small-text bg-white">Weight<br>(Kg)</th>
+                                        <th class="align-middle text-center small-text bg-white">Weight<br>Gross End</th>
+                                        <th class="align-middle text-center small-text bg-white">Weight<br>Gross Init</th>
+                                        <th class="align-middle text-center small-text bg-white">Weight<br>Net End</th>
+                                        <th class="align-middle text-center small-text bg-white">Weight<br>Tara End</th>
+                                        <th class="align-middle text-center small-text bg-white">Weight<br>Tara Init</th>
                                         <th class="align-middle text-center small-text bg-white">Supplier</th>
                                         <th class="align-middle text-center small-text bg-white">Bale Number</th>
                                         <th class="align-middle text-center small-text bg-white">Code</th>
@@ -881,7 +886,7 @@
                     data.dateStart = date_start
                 }
                 $.ajax({
-                    url: 'https://rest.pt-bks.com/tobacco/getInventoryStockList',
+                    url: 'https://rest.pt-bks.com/tobacco/getInventoryStockListNew',
                     data: data,
                     error: function(xhr) {
                         showOverlay('hide')
@@ -940,7 +945,23 @@
                     className: 'align-middle text-center super-small-text'
                 },
                 { // Kolom Weight (Kg)
-                    data: 'weight',
+                    data: 'weight_gross_end',
+                    className: 'align-middle text-center super-small-text'
+                },
+                { // Kolom Weight (Kg)
+                    data: 'weight_gross_init',
+                    className: 'align-middle text-center super-small-text'
+                },
+                { // Kolom Weight (Kg)
+                    data: 'weight_net_end',
+                    className: 'align-middle text-center super-small-text'
+                },
+                { // Kolom Weight (Kg)
+                    data: 'weight_tara_end',
+                    className: 'align-middle text-center super-small-text'
+                },
+                { // Kolom Weight (Kg)
+                    data: 'weight_tara_init',
                     className: 'align-middle text-center super-small-text'
                 },
                 { // Kolom Supplier
@@ -1816,7 +1837,33 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelWarehouseStockList') ?>';
-        var params = "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + gradeId + "*$" + warehouse_id_origin + "*$" + item_unit_id + "*$" + warehouse_id
+        var params = "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + gradeId + "*$" + warehouse_id_origin + "*$" + item_unit_id + "*$" + warehouse_id + "*$NEW";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
+    }
+
+    function switchToOld() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah sudah ada '-old'
+        if (lastSegment.includes('-old')) {
+            // Jika sudah ada '-old', hapus bagian '-old'
+            lastSegment = lastSegment.replace('-old', '');
+        } else {
+            // Jika belum ada, tambahkan '-old'
+            lastSegment += '-old';
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

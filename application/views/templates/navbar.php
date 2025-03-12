@@ -216,7 +216,7 @@ if (isset($_COOKIE['visiting'])) {
         html_body += '<div class="row">'
         html_body += '<div class="col-12">'
         var a = 0
-        // console.log(dataRoles)
+        console.log(dataRoles)
         dataRoles.forEach(e => {
             html_body += '<div class="card shadow-none mb-2 card-hoper pointer" onclick="sessionLogin(' + a++ + ')">'
             html_body += '<div class="card-body">'
@@ -224,7 +224,9 @@ if (isset($_COOKIE['visiting'])) {
             html_body += '<div class="row justify-content-between">'
             html_body += '<div class="col-auto align-self-center">'
             html_body += '<p class="m-0 small-text">' + e.name + '</p>'
-            html_body += '<p class="m-0 fw-bolder">' + e.login_data.name + '</p>'
+            if (e.login_data) {
+                html_body += '<p class="m-0 fw-bolder">' + e.login_data.name + '</p>'
+            }
             html_body += '</div>'
             html_body += '<div class="col-1 align-self-center">'
             html_body += '<i class="fa fa-chevron-right"></i>'

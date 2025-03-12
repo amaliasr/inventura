@@ -170,7 +170,7 @@
             <div class="col-8">
                 <div class="row">
                     <div class="col-10 align-self-center">
-                        <h1 class="text-dark fw-bolder m-0" style="font-weight: 700 !important">Receptions</h1>
+                        <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 700 !important">Receptions <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                         <p class="m-0 super-small-text">Panel Kegiatan Entri untuk Management Receptions <br>dan Cetak Surat Jalan Pengiriman</p>
                     </div>
                 </div>
@@ -183,6 +183,7 @@
                     </div>
                     <div class="col-auto">
                         <button type="button" class="btn btn-sm shadow-none btn-outline-primary" onclick="loadData()"><i class="fa fa-refresh"></i></button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm ms-2" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -1487,5 +1488,27 @@
             cpj.sendToClient();
 
         }
+    }
+
+    function switchToNew() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah ada '-old' dan hapus jika ada
+        if (lastSegment.includes('-old')) {
+            lastSegment = lastSegment.replace('-old', '');
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>
