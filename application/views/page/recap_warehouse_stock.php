@@ -42,6 +42,11 @@
                                 <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse">
                                 </select>
                             </div>
+                            <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Select Parent</p>
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectParent" title="Pilih Parent">
+                                </select>
+                            </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-sm btnSimpan" style="border-radius: 20px;padding: 10px;" onclick="simpanData()">Search</button>
                             </div>
@@ -56,6 +61,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -311,10 +317,27 @@
             variable: 'qty',
         },
         {
-            name: 'Weight',
-            variable: 'weight',
+            name: 'Weight Deduction',
+            variable: 'weight_deduction',
+        },
+        {
+            name: 'Weight Gross',
+            variable: 'weight_gross',
+        },
+        {
+            name: 'Weight Net',
+            variable: 'weight_net',
+        },
+        {
+            name: 'Weight Packaging',
+            variable: 'weight_packaging',
+        },
+        {
+            name: 'Weight Paid',
+            variable: 'weight_paid',
         }
     ]
+    var selectedParentMaster = []
     var child = [{
             name: 'Start',
             variable: 'start',
@@ -376,6 +399,8 @@
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
+        selectedParentMaster = deepCopy(parent)
+        console.log(selectedParentMaster)
         loadDataStart()
     })
 
@@ -451,6 +476,18 @@
         });
         $('#selectWarehouse').html(html)
         $('#selectWarehouse').selectpicker('refresh');
+        selectParent()
+    }
+
+    function selectParent() {
+        var html = ''
+        selectedParentMaster.forEach(e => {
+            var select = ''
+            select = 'selected'
+            html += '<option value="' + e.variable + '" ' + select + '>' + e.name + '</option>'
+        });
+        $('#selectParent').html(html)
+        $('#selectParent').selectpicker('refresh');
     }
 
     function dateRangeString() {
@@ -484,7 +521,7 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapStock'); ?>'
+        var url = '<?php echo api_url('getRecapStockNew'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -597,6 +634,20 @@
                 getData: 'chooseDataAllData(' + e.id + ')'
             })
         });
+        var mappingParent = []
+        var selectParented = $('#selectParent').val()
+        console.log(selectedParentMaster)
+        //  pilih parent yang di select saya kemudian dikembalikan ke parent lagi
+        if (selectParented.length) {
+            selectParented.forEach(e => {
+                selectedParentMaster.forEach(el => {
+                    if (el.variable == e) {
+                        mappingParent.push(el)
+                    }
+                })
+            })
+        }
+        parent = mappingParent
         statusLine()
     }
 
@@ -777,11 +828,37 @@
     function exportExcel() {
         var mappingId = $('#selectMapping').val()
         var url = '<?= base_url('report/excelWarehouseStockRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + mappingId
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + mappingId + "*$NEW";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
     function roundToOne(num) {
         return +(Math.round(num + "e+1") + "e-1");
+    }
+
+    function switchToOld() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah sudah ada '-old'
+        if (lastSegment.includes('-old')) {
+            // Jika sudah ada '-old', hapus bagian '-old'
+            lastSegment = lastSegment.replace('-old', '');
+        } else {
+            // Jika belum ada, tambahkan '-old'
+            lastSegment += '-old';
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

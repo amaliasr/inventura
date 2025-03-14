@@ -59,6 +59,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -433,7 +434,7 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapPurchaseItem'); ?>'
+        var url = '<?php echo api_url('getRecapPurchaseItemNew'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -481,6 +482,44 @@
             }
         });
     }
+    const weightLabelsRaw = [{
+            key: "weight_gross_send",
+            label: "Weight Gross Send",
+            total: 0
+        },
+        {
+            key: "weight_packaging_send",
+            label: "Weight Packaging Send",
+            total: 0
+        },
+        {
+            key: "weight_net_send",
+            label: "Weight Net Send",
+            total: 0
+        },
+        {
+            key: "weight_gross_receive",
+            label: "Weight Gross Receive",
+            total: 0
+        },
+        {
+            key: "weight_packaging_receive",
+            label: "Weight Packaging Receive",
+            total: 0
+        },
+        {
+            key: "weight_net_receive",
+            label: "Weight Net Receive",
+            total: 0
+        }
+    ];
+
+    const weightLabels = weightLabelsRaw.map(item => ({
+        ...item,
+        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
+    }));
+
+    console.log(weightLabels);
 
     function updatedStructure() {
         dataTable()
@@ -509,7 +548,9 @@
             html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
         }
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
+        weightLabels.forEach(e => {
+            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
+        });
         html += '<th class="align-middle text-center small-text bg-white">Price</th>'
         html += '<th class="align-middle text-center small-text bg-white">Tax Out Come</th>'
         html += '<th class="align-middle text-center small-text bg-white">Total</th>'
@@ -518,7 +559,7 @@
         bodyTable()
     }
     var total_qty = 0
-    var total_weight = 0
+    var total_weight = {}
     var total_price = 0
     var total_tax_out_come = 0
     var total_total = 0
@@ -526,7 +567,7 @@
     function bodyTable() {
         var html = ''
         total_qty = 0
-        total_weight = 0
+        total_weight = {}
         total_price = 0
         total_tax_out_come = 0
         total_total = 0
@@ -548,13 +589,25 @@
                 html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
             }
             html += '<td class="bg-white align-middle small-text text-center">' + value.qty + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
+            // html += '<td class="bg-white align-middle small-text text-center">' + value.weight + '</td>'
+            weightLabels.forEach(e => {
+                if (!value[e.key]) {
+                    value[e.key] = 0
+                }
+                // total weight each
+                if (total_weight[e.key] == undefined) {
+                    total_weight[e.key] = 0
+                } else {
+                    total_weight[e.key] += parseFloat(total_weight[e.key])
+                }
+                html += `<td class="bg-white align-middle small-text text-end">${number_format(value[e.key])}</td>`;
+            });
             html += '<td class="bg-white align-middle small-text text-end" id="popoverHover' + key + '" data-bs-toggle="popover" data-bs-trigger="hover focus" title="Price List">' + number_format(roundToTwo(value.price_avg)) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.tax_out_come) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.total) + '</td>'
             html += '</tr>'
             total_qty += parseFloat(value.qty)
-            total_weight += parseFloat(value.weight)
+            // total_weight += parseFloat(value.weight)
             total_price += parseFloat(value.price_avg)
             total_tax_out_come += parseFloat(value.tax_out_come)
             total_total += parseFloat(value.total)
@@ -581,7 +634,10 @@
             html += '<th class="bg-white align-middle small-text text-end" colspan="2">Total</th>'
         }
         html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_qty) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
+        // html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight) + '</th>'
+        weightLabels.forEach(e => {
+            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
+        })
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_price)) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_tax_out_come) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_total) + '</th>'
@@ -618,11 +674,37 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelPurchaseRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + supplierId + "*$" + dataProfile
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + supplierId + "*$" + dataProfile + "*$NEW";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
     function roundToOne(num) {
         return +(Math.round(num + "e+1") + "e-1");
+    }
+
+    function switchToOld() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah sudah ada '-old'
+        if (lastSegment.includes('-old')) {
+            // Jika sudah ada '-old', hapus bagian '-old'
+            lastSegment = lastSegment.replace('-old', '');
+        } else {
+            // Jika belum ada, tambahkan '-old'
+            lastSegment += '-old';
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

@@ -17,7 +17,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP RECEIVE</h1>
+                <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 900 !important">RECAP WAREHOUSE STOCK <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -32,9 +32,9 @@
                             </div>
                             <div class="col-auto ps-0">
                                 <p class="fw-bolder small-text m-0">Data Profile</p>
-                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectDataProfile" title="Pilih Tipe Data">
-                                    <option value="SUMMARY ITEM" selected>Summary Item</option>
-                                    <option value="SUMMARY ITEM GRADE">Summary Item Grade</option>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectMapping" title="Pilih Tipe Data">
+                                    <option value="0" selected>Detail</option>
+                                    <option value="1">Summary</option>
                                 </select>
                             </div>
                             <div class="col-auto ps-0">
@@ -56,7 +56,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -64,11 +64,17 @@
             <div class="col-12 mb-2">
                 <div class="card shadow-none border-radius-20">
                     <div class="card-body">
-                        <p class="fw-bolder m-0">Detail</p>
-                        <div class="table-responsible" id="dataTable">
+                        <div class="row">
+                            <div class="col-12 px-4" id="statusLine">
 
+                            </div>
                         </div>
-
+                        <div class="row me-0">
+                            <div class="col-12 pe-0">
+                                <div class="table-responsible" id="dataTable">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,15 +298,102 @@
     })
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
     var data_report = ""
+    var kerangka_mapping = null
+    var data_report_mapping = []
+    var data_report_mapping_showed = []
+    var is_mapping = 0
     var date_start = getFirstDate()
     var date_end = currentDate()
-    var dataProfile = ''
+    var selectedChild = []
+    var indexVariable = 0
     var warehouse_id_origin = []
+    var parent = [{
+            name: 'QTY',
+            variable: 'qty',
+        },
+        {
+            name: 'Weight',
+            variable: 'weight',
+        }
+    ]
+    var child = [{
+            name: 'Start',
+            variable: 'start',
+        },
+        {
+            name: 'Purchase',
+            variable: 'purchase',
+        },
+        {
+            name: 'Receive',
+            variable: 'receive',
+        },
+        {
+            name: 'Production',
+            variable: 'production',
+        },
+        {
+            name: 'Send',
+            variable: 'send',
+        },
+        {
+            name: 'Material',
+            variable: 'material',
+        }, {
+            name: 'Adjust In',
+            variable: 'adjust_in'
+        }, {
+            name: 'Adjust Out',
+            variable: 'adjust_out'
+        }, {
+            name: 'End',
+            variable: 'end'
+        }
+    ]
+    var childMapping = [{
+            name: 'Start',
+            variable: 'start',
+        }, {
+            name: 'IN',
+            variable: 'IN',
+        },
+        {
+            name: 'OUT',
+            variable: 'OUT',
+        }, {
+            name: 'End',
+            variable: 'end'
+        }
+    ]
+    var statusLineFirst = {
+        id: 0,
+        name: 'All Data',
+        selected: true,
+        functions: 'countAllData()',
+        getData: 'chooseDataAllData()'
+    }
+    var statusLineVariable = []
+    var dataGroup = []
     $(document).ready(function() {
         $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
         $('select').selectpicker();
         loadDataStart()
     })
+
+    function chooseDataAllData(id = null) {
+        if (id == null) {
+            var data = data_report_mapping
+        } else {
+            var data = data_report_mapping.filter((v, k) => {
+                if (v.item.id == id) return true
+            })
+        }
+        return data
+    }
+
+    function countAllData(id = null) {
+        return chooseDataAllData(id).length
+    }
 
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
@@ -383,18 +476,20 @@
         })
     }
 
+    function deepCopy(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
     function simpanData() {
-        dataProfile = $('#selectDataProfile').val()
         warehouse_id_origin = $('#selectWarehouse').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapReceiveItemNew'); ?>'
+        var url = '<?php echo api_url('getRecapStock'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
             warehouseId: warehouse_id,
-            dataProfile: dataProfile,
             warehouseIdOrigin: warehouse_id_origin
         }
         kelolaData(data, type, url, button)
@@ -422,10 +517,11 @@
                 showOverlay('hide')
                 dateRangeString()
                 $(button).prop("disabled", false);
-                data_report = response.data.recap_receive_item.data
+                data_report = response.data.recapStock.data
+                kerangka_mapping = response.data.mappingMutation
                 if (data_report) {
                     if (data_report.length) {
-                        updatedStructure()
+                        arrangeVariable()
                     } else {
                         // tidak ada data
                         $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
@@ -436,42 +532,149 @@
             }
         });
     }
-    const weightLabelsRaw = [{
-            key: "weight_gross_receive",
-            label: "Weight Gross Receive",
-            total: 0
-        },
-        {
-            key: "weight_gross_send",
-            label: "Weight Gross Send",
-            total: 0
-        },
-        {
-            key: "weight_net_receive",
-            label: "Weight Net Receive",
-            total: 0
-        },
-        {
-            key: "weight_net_send",
-            label: "Weight Net Send",
-            total: 0
-        },
-        {
-            key: "weight_packaging_receive",
-            label: "Weight Packaging Receive",
-            total: 0
-        },
-        {
-            key: "weight_packaging_send",
-            label: "Weight Packaging Send",
-            total: 0
-        }
-    ];
 
-    const weightLabels = weightLabelsRaw.map(item => ({
-        ...item,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
+    function arrangeVariable() {
+        is_mapping = $('#selectMapping').val()
+        mapping(is_mapping)
+    }
+
+    function transformData(data, schema) {
+        return data.map(item => {
+            const transformQtyOrWeight = (obj) => {
+                let transformedObj = {};
+                for (let key in schema) {
+                    transformedObj[key] = schema[key].reduce((sum, field) => {
+                        return sum + (obj[field] || 0);
+                    }, 0);
+                }
+                return transformedObj;
+            };
+
+            return {
+                item: item.item,
+                item_grade: item.item_grade,
+                qty: transformQtyOrWeight(item.qty),
+                weight: transformQtyOrWeight(item.weight)
+            };
+        });
+    }
+
+    function mapping(is_mapping) {
+        dataGroup = []
+        statusLineVariable = []
+        var data = deepCopy(data_report)
+        var ker_mapping = {
+            'start': ['start'],
+            "IN": [
+                "purchase",
+                "receive",
+                "production",
+                "adjust_in"
+            ],
+            "OUT": [
+                "send",
+                "material",
+                "adjust_out"
+            ],
+            'end': ['end'],
+        }
+        if (is_mapping == 1) {
+            selectedChild = childMapping
+            data_report_mapping = transformData(data, ker_mapping)
+        } else {
+            selectedChild = child
+            data_report_mapping = data
+        }
+        data_report_mapping_showed = data_report_mapping
+        dataGroup = transformDataIntoGroupItem(data_report_mapping)
+        var a = 1
+        statusLineVariable.push(statusLineFirst)
+        dataGroup.forEach(e => {
+            statusLineVariable.push({
+                id: e.id,
+                name: e.code,
+                selected: false,
+                functions: 'countAllData(' + e.id + ')',
+                getData: 'chooseDataAllData(' + e.id + ')'
+            })
+        });
+        statusLine()
+    }
+
+    function transformDataIntoGroupItem(data) {
+        const result = [];
+        const uniqueItems = {};
+
+        data.forEach(entry => {
+            const {
+                id,
+                name,
+                code,
+                alias
+            } = entry.item;
+
+            if (!uniqueItems[id]) {
+                uniqueItems[id] = {
+                    id,
+                    name,
+                    code,
+                    alias
+                };
+            }
+        });
+
+        for (const key in uniqueItems) {
+            result.push(uniqueItems[key]);
+        }
+
+        return result;
+    }
+
+    function statusLineSwitch(id, getData) {
+        let updatedData = statusLineVariable.map(item => {
+            return {
+                ...item,
+                selected: false
+            };
+        });
+        let updatedData2 = updatedData.map(item => {
+            if (item.id == id) {
+                return {
+                    ...item,
+                    selected: true
+                };
+            }
+            return item;
+        });
+        statusLineVariable = updatedData2
+        data_report_mapping_showed = eval(getData)
+        statusLine()
+    }
+
+    function statusLine() {
+        var html = ''
+        html += '<div class="row justify-content-between">'
+        html += '<div class="col h-100">'
+        html += '<div class="row" style="height:30px">'
+        statusLineVariable.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
+
+        });
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        $('#statusLine').html(html)
+        updatedStructure()
+    }
 
     function updatedStructure() {
         dataTable()
@@ -479,7 +682,7 @@
 
     function dataTable() {
         var html = ''
-        html += '<table class="table table-bordered table-hover table-sm small w-100 tableDetail" id="tableDetail" style="width: 100%;white-space:nowrap;cursor: grab;overflow:auto;">'
+        html += '<table class="table table-bordered table-hover table-sm small w-100" id="tableDetail">'
         html += '<thead id="headTable">'
         html += '</thead>'
         html += '<tbody id="bodyTable">'
@@ -494,60 +697,49 @@
     function headTable() {
         var html = ''
         html += '<tr>'
-        html += '<th class="align-middle text-center small-text bg-white">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        if (dataProfile == 'SUMMARY ITEM GRADE') {
-            html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
-        }
-        html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">QTY<br>Receive</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
-        weightLabels.forEach(e => {
-            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
+        html += '<th class="align-middle text-center small-text bg-white" rowspan="2">#</th>'
+        html += '<th class="align-middle text-center small-text bg-white" rowspan="2">Item</th>'
+        html += '<th class="align-middle text-center small-text bg-white" rowspan="2">Grade</th>'
+        parent.forEach(e => {
+            html += '<th class="align-middle text-center small-text bg-white" colspan="' + selectedChild.length + '">' + e.name + '</th>'
         });
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Origin</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse<br>Destination</th>'
+
+        html += '</tr>'
+        html += '<tr>'
+
+        parent.forEach(e => {
+            selectedChild.forEach(el => {
+                html += '<th class="align-middle text-center small-text bg-white">' + el.name + '</th>'
+            })
+        })
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
     }
-    var total_qty = 0
-    var total_qty_receive = 0
-    var total_weight = {}
+    var total = {}
 
     function bodyTable() {
         var html = ''
-        total_qty = 0
-        total_weight = {}
-        $.each(data_report, function(key, value) {
+        total = {}
+        var dataFind = deepCopy(data_report_mapping_showed)
+        $.each(dataFind, function(key, value) {
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            if (dataProfile == 'SUMMARY ITEM GRADE') {
-                html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
-            }
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(value.qty_send)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(value.qty_receive)) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(value.weight)) + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(value.weight_receive)) + '</td>'
-            weightLabels.forEach(e => {
-                if (!value[e.key]) {
-                    value[e.key] = 0
-                }
-                // total weight each
-                if (total_weight[e.key] == undefined) {
-                    total_weight[e.key] = 0
-                } else {
-                    total_weight[e.key] += parseFloat(total_weight[e.key])
-                }
-                html += `<td class="bg-white align-middle small-text text-end">${number_format(value[e.key])}</td>`;
-            });
-            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_origin.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.warehouse_dest.name + '</td>'
+            html += '<td class="bg-white align-middle small-text text-center">' + value.item_grade.name + '</td>'
+            parent.forEach(e => {
+                selectedChild.forEach(el => {
+                    if (!total[e.variable]) {
+                        total[e.variable] = {}
+                    }
+                    if (!total[e.variable][el.variable]) {
+                        total[e.variable][el.variable] = 0
+                    }
+                    total[e.variable][el.variable] += value[e.variable][el.variable]
+                    html += '<td class="bg-white align-middle small-text text-center">' + value[e.variable][el.variable] + '</td>'
+                })
+            })
             html += '</tr>'
-            total_qty += parseFloat(value.qty_send)
-            total_qty_receive += parseFloat(value.qty_receive)
         })
         $('#bodyTable').html(html)
         footTable()
@@ -556,21 +748,14 @@
     function footTable() {
         var html = ''
         html += '<tr>'
-        if (dataProfile == 'SUMMARY ITEM GRADE') {
-            html += '<th class="bg-white align-middle small-text text-end" colspan="3">Total</th>'
-        } else {
-            html += '<th class="bg-white align-middle small-text text-end" colspan="2">Total</th>'
-        }
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_qty)) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_qty_receive)) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end"></th>'
-        // html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_weight)) + '</th>'
-        // html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_weight_receive)) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
-        })
         html += '<th class="bg-white align-middle small-text text-end"></th>'
         html += '<th class="bg-white align-middle small-text text-end"></th>'
+        html += '<th class="bg-white align-middle small-text text-end">Total</th>'
+        parent.forEach(e => {
+            selectedChild.forEach(el => {
+                html += '<th class="bg-white align-middle small-text text-center">' + number_format(total[e.variable][el.variable]) + '</th>'
+            })
+        });
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
@@ -581,6 +766,9 @@
             scrollCollapse: true,
             paging: false,
             fixedHeader: true,
+            fixedColumns: {
+                left: 3
+            },
             "initComplete": function(settings, json) {
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
@@ -588,9 +776,9 @@
     }
 
     function exportExcel() {
-        dataProfile = $('#selectDataProfile').val()
-        var url = '<?= base_url('report/excelReceiveRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile + "*$NEW";
+        var mappingId = $('#selectMapping').val()
+        var url = '<?= base_url('report/excelWarehouseStockRecap') ?>';
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + mappingId + "*$OLD";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
@@ -598,7 +786,7 @@
         return +(Math.round(num + "e+1") + "e-1");
     }
 
-    function switchToOld() {
+    function switchToNew() {
         let currentUrl = window.location.href;
 
         // Pisahkan URL berdasarkan '/'
@@ -607,13 +795,9 @@
         // Ambil bagian terakhir dari URL (nama halaman)
         let lastSegment = urlParts[urlParts.length - 1];
 
-        // Periksa apakah sudah ada '-old'
+        // Periksa apakah ada '-old' dan hapus jika ada
         if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
             lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
         }
 
         // Gabungkan kembali URL dengan segmen yang diperbarui

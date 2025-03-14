@@ -17,7 +17,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP RECEIVE</h1>
+                <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 900 !important">RECAP RECEIVE <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -56,6 +56,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -540,11 +541,33 @@
     function exportExcel() {
         dataProfile = $('#selectDataProfile').val()
         var url = '<?= base_url('report/excelReceiveRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile + "*$OLD";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
     function roundToOne(num) {
         return +(Math.round(num + "e+1") + "e-1");
+    }
+
+    function switchToNew() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah ada '-old' dan hapus jika ada
+        if (lastSegment.includes('-old')) {
+            lastSegment = lastSegment.replace('-old', '');
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

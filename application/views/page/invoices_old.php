@@ -47,12 +47,13 @@
     <div class="container-xl mt-n10">
         <div class="row mb-4">
             <div class="col-8">
-                <h1 class="text-dark fw-bolder mb-2" style="font-weight: 700 !important"><span class="text-orange">I</span>NVOICES <span class="text-orange">L</span>IST</h1>
+                <h1 class="text-dark fw-bolder mb-2 d-flex align-items-center" style="font-weight: 700 !important"><span class="text-orange">I</span>NVOICES <span class="text-orange">L</span>IST <span class="badge bg-orange small-text ms-2">OLD</span></h1>
             </div>
             <div class="col-4 text-end">
                 <!-- <button type="button" class="btn btn-sm shadow-none btn-outline-primary" onclick="addNewPR()"><i class="fa fa-plus me-2"></i>Tambah Baru</button> -->
                 <!-- <button type="button" class="btn btn-sm shadow-none btn-outline-dark" onclick="formReport()"><i class="fa fa-table"></i></button> -->
                 <button type="button" class="btn btn-sm shadow-none btn-outline-dark" onclick="refresh()"><i class="fa fa-refresh"></i></button>
+                <button type="button" class="btn btn-light border border-dark btn-sm ms-2" onclick="switchToNew()">Switch to New ver</button>
             </div>
             <div class="col-8">
                 <p class="m-0 super-small-text">In Purchase Requisition section you can review and manage all requests with their details. You can view and edit many information such as of all orders, ordered product, send notifications, price, and make a purchase order. Only administrations and team leaders can reach. the changes you make will be approved after they are checked</p>
@@ -1167,5 +1168,27 @@
     function inputNewInvoiceNumber() {
         var invoiceNumber = $('#nomorInvoiceManual').val()
         newNumberInvoice = invoiceNumber
+    }
+
+    function switchToNew() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah ada '-old' dan hapus jika ada
+        if (lastSegment.includes('-old')) {
+            lastSegment = lastSegment.replace('-old', '');
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

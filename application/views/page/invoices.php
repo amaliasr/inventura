@@ -53,6 +53,7 @@
                 <!-- <button type="button" class="btn btn-sm shadow-none btn-outline-primary" onclick="addNewPR()"><i class="fa fa-plus me-2"></i>Tambah Baru</button> -->
                 <!-- <button type="button" class="btn btn-sm shadow-none btn-outline-dark" onclick="formReport()"><i class="fa fa-table"></i></button> -->
                 <button type="button" class="btn btn-sm shadow-none btn-outline-dark" onclick="refresh()"><i class="fa fa-refresh"></i></button>
+                <button type="button" class="btn btn-light border border-dark btn-sm ms-2" onclick="switchToOld()">Switch to Old ver</button>
             </div>
             <div class="col-8">
                 <p class="m-0 super-small-text">In Purchase Requisition section you can review and manage all requests with their details. You can view and edit many information such as of all orders, ordered product, send notifications, price, and make a purchase order. Only administrations and team leaders can reach. the changes you make will be approved after they are checked</p>
@@ -267,7 +268,7 @@
 
     function loadData() {
         $.ajax({
-            url: "<?= api_url('getAllInvoices'); ?>",
+            url: "<?= api_url('getAllInvoicesNew'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
@@ -407,7 +408,7 @@
 
 
     function chooseDataPending() {
-        console.log('e')
+        // console.log('e')
         var data = data_invoices.dataInvoiceIncomplete.data
         return data
     }
@@ -462,7 +463,7 @@
         html += '<th class="align-middle small" style="background-color: white;">Warehouse</th>'
         html += '<th class="align-middle small" style="background-color: white;">PD</th>'
         html += '<th class="align-middle small" style="background-color: white;">Total<br>QTY</th>'
-        html += '<th class="align-middle small" style="background-color: white;">Total<br>Berat</th>'
+        html += '<th class="align-middle small" style="background-color: white;">Total<br>Berat Purchase</th>'
         html += '<th class="align-middle small" style="background-color: white;">Total<br>Harga</th>'
         html += '<th class="align-middle small" style="background-color: white;">Notes</th>'
         html += '<th class="align-middle small" style="background-color: white;">Notes<br>Purchase</th>'
@@ -513,14 +514,14 @@
             if (!e.total) {
                 e.total = 0
             }
-            if (!e.weight) {
-                e.weight = 0
+            if (!e.weight_purchase) {
+                e.weight_purchase = 0
             }
             if (!e.qty) {
                 e.qty = 0
             }
             html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.qty) + '</td>'
-            html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.weight) + '</td>'
+            html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.weight_purchase) + '</td>'
             html += '<td class="' + bg + ' px-2 align-middle small-text text-end" style="background-color: white;">' + number_format(e.total) + '</td>'
             if (!e.note) {
                 e.note = ''
@@ -538,7 +539,7 @@
             html += '</tr>'
 
             total_qty += e.qty
-            total_weight += e.weight
+            total_weight += e.weight_purchase
             total_total += e.total
         });
         $('#bodyTable').html(html)
@@ -776,8 +777,8 @@
         var a = 0
         var b = 1
         data.purchase_details.forEach(e => {
-            if (!e.weight) {
-                e.weight = 0
+            if (!e.weight_purchase) {
+                e.weight_purchase = 0
             }
             html += '<div class="row mb-3">'
             html += '<div class="col-1 pe-0 align-self-center">'
@@ -785,7 +786,7 @@
             html += '</div>'
             html += '<div class="col-5 align-self-center">'
             html += '<p class="m-0 small-text fw-bolder">' + e.item.name + ' (' + e.grade.name + ')</p>'
-            html += '<p class="m-0 small-text me-2">' + iconBox() + ' ' + number_format(e.qty) + ' ' + e.unit.name + ' <span class="ms-3 me-2">' + iconWight() + ' ' + number_format(e.weight) + ' kg</span></p>'
+            html += '<p class="m-0 small-text me-2">' + iconBox() + ' ' + number_format(e.qty) + ' ' + e.unit.name + ' <span class="ms-3 me-2">' + iconWight() + ' ' + number_format(e.weight_purchase) + ' kg</span></p>'
             html += '</div>'
             html += '<div class="col-3 align-self-center p-0">'
             html += '<div class="d-flex align-items-center">'
@@ -805,14 +806,14 @@
             if (!harga_satuan) {
                 harga_satuan = 0
             }
-            var price = parseFloat(harga_satuan) * parseFloat(e.weight)
+            var price = parseFloat(harga_satuan) * parseFloat(e.weight_purchase)
             if (!data.is_complete && data.is_ready_print) {
                 var stylenya = ''
             } else {
                 var stylenya = 'readonly style="background-color:transparent !important"'
             }
             // console.log(harga_satuan)
-            html += '<input class="form-control form-control-sm shadow-none border-0 nominal inputHargaSatuan ' + isHargaRecom + '" type="text" placeholder="0" value="' + harga_satuan + '" id="inputHargaSatuan' + a + '" data-id="' + a + '" data-weight="' + e.weight + '" oninput="updatePrice(' + "'" + a + "'" + ')" ' + stylenya + ' >'
+            html += '<input class="form-control form-control-sm shadow-none border-0 nominal inputHargaSatuan ' + isHargaRecom + '" type="text" placeholder="0" value="' + harga_satuan + '" id="inputHargaSatuan' + a + '" data-id="' + a + '" data-weight="' + e.weight_purchase + '" oninput="updatePrice(' + "'" + a + "'" + ')" ' + stylenya + ' >'
             html += '</div>'
             html += '<hr class="m-0">'
             // html += isHargaRecom
@@ -826,7 +827,7 @@
             html += '</div>'
             subTotal += price
             totalBale += e.qty
-            totalWeight += e.weight
+            totalWeight += e.weight_purchase
             unitName = e.unit.name
             a++
         });
@@ -1168,5 +1169,31 @@
     function inputNewInvoiceNumber() {
         var invoiceNumber = $('#nomorInvoiceManual').val()
         newNumberInvoice = invoiceNumber
+    }
+
+    function switchToOld() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah sudah ada '-old'
+        if (lastSegment.includes('-old')) {
+            // Jika sudah ada '-old', hapus bagian '-old'
+            lastSegment = lastSegment.replace('-old', '');
+        } else {
+            // Jika belum ada, tambahkan '-old'
+            lastSegment += '-old';
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

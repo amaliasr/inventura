@@ -63,6 +63,15 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/invoices', $data);
     }
+    public function invoices_old()
+    {
+        $data['title'] = 'Invoices Lists';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/invoices_old', $data);
+    }
     public function cetakInvoices()
     {
 
@@ -93,6 +102,15 @@ class Page extends CI_Controller
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
         $this->template->views('page/purchase_recap', $data);
+    }
+    public function purchase_recap_old()
+    {
+        $data['title'] = 'Purchase Recap';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/purchase_recap_old', $data);
     }
     public function recap_shipment()
     {
@@ -133,6 +151,15 @@ class Page extends CI_Controller
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
         $this->template->views('page/recap_warehouse_stock', $data);
+    }
+    public function recap_warehouse_stock_old()
+    {
+        $data['title'] = 'Warehouse Stock Recap';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/recap_warehouse_stock_old', $data);
     }
     public function report_shipment()
     {
@@ -332,6 +359,15 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/report_receive', $data);
     }
+    public function report_receive_old()
+    {
+        $data['title'] = 'Report Receive';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/report_receive_old', $data);
+    }
     public function recap_receive()
     {
         $this->check_permission('recap_receive');
@@ -341,6 +377,15 @@ class Page extends CI_Controller
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
         $this->template->views('page/recap_receive', $data);
+    }
+    public function recap_receive_old()
+    {
+        $data['title'] = 'Recap Receive';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/recap_receive_old', $data);
     }
     public function warehouse_stock_list()
     {

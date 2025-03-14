@@ -398,6 +398,7 @@ function formatIndonesianDate($dateString)
                     <br>
                     <br>
                     <p class="m-0 small"><?= $datas->driver_name ?></p>
+                    <p class="m-0 small"><?= $datas->driver_phone ?></p>
                 </td>
                 <td width="30%" class="text-center">
                     <p class="m-0 small">Penerima</p>
