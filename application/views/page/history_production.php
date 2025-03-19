@@ -214,6 +214,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -769,12 +770,102 @@
             },
         })
     }
+    const weightLabelsRaw = [{
+            key: "weight_deduction_purchase",
+            label: "Weight Deduction Purchase",
+            total: 0
+        },
+        {
+            key: "weight_gross",
+            label: "Weight Gross",
+            total: 0
+        },
+        {
+            key: "weight_gross_latest",
+            label: "Weight Gross Latest",
+            total: 0
+        },
+        {
+            key: "weight_gross_material",
+            label: "Weight Gross Material",
+            total: 0
+        },
+        {
+            key: "weight_gross_purchase",
+            label: "Weight Gross Purchase",
+            total: 0
+        },
+        {
+            key: "weight_gross_stock",
+            label: "Weight Gross Stock",
+            total: 0
+        },
+        {
+            key: "weight_net",
+            label: "Weight Net",
+            total: 0
+        },
+        {
+            key: "weight_net_latest",
+            label: "Weight Net Latest",
+            total: 0
+        },
+        {
+            key: "weight_net_material",
+            label: "Weight Net Material",
+            total: 0
+        },
+        {
+            key: "weight_net_purchase",
+            label: "Weight Net Purchase",
+            total: 0
+        },
+        {
+            key: "weight_net_stock",
+            label: "Weight Net Stock",
+            total: 0
+        },
+        {
+            key: "weight_packaging",
+            label: "Weight Packaging",
+            total: 0
+        },
+        {
+            key: "weight_packaging_latest",
+            label: "Weight Packaging Latest",
+            total: 0
+        },
+        {
+            key: "weight_packaging_material",
+            label: "Weight Packaging Material",
+            total: 0
+        },
+        {
+            key: "weight_packaging_purchase",
+            label: "Weight Packaging Purchase",
+            total: 0
+        },
+        {
+            key: "weight_packaging_stock",
+            label: "Weight Packaging Stock",
+            total: 0
+        },
+        {
+            key: "weight_paid",
+            label: "Weight Paid",
+            total: 0
+        }
+    ];
+    const weightLabels = weightLabelsRaw.map(item => ({
+        ...item,
+        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
+    }));
 
     function simpanData() {
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getHistoryProduction'); ?>'
+        var url = '<?php echo api_url('getHistoryProductionNew'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -874,9 +965,10 @@
         }
         html += '<th class="align-middle text-center small-text bg-white">Unit</th>'
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
+        weightLabels.forEach(e => {
+            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
+        });
         html += '<th class="align-middle text-center small-text bg-white">Material<br>QTY</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Material<br>Weight</th>'
         if (dataProfile == 'DETAIL') {
             html += '<th class="align-middle text-center small-text bg-white"></th>'
         }
@@ -886,14 +978,14 @@
     }
 
     var total_qty = 0
-    var total_weight = 0
+    var total_weight = {}
     var total_material_qty = 0
     var total_material_weight = 0
 
     function bodyTable() {
         var html = ''
         total_qty = 0
-        total_weight = 0
+        total_weight = {}
         total_material_qty = 0
         total_material_weight = 0
         var dataFind = deepCopy(data_report_showed)
@@ -901,14 +993,8 @@
             if (!value.qty) {
                 value.qty = 0
             }
-            if (!value.weight) {
-                value.weight = 0
-            }
             if (!value.material_qty) {
                 value.material_qty = 0
-            }
-            if (!value.material_weight) {
-                value.material_weight = 0
             }
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
@@ -924,9 +1010,19 @@
             }
             html += '<td class="bg-white align-middle small-text text-center">' + value.unit.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.qty) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.weight) + '</td>'
+            weightLabels.forEach(e => {
+                if (!value[e.key]) {
+                    value[e.key] = 0
+                }
+                // total weight each
+                if (total_weight[e.key] == undefined) {
+                    total_weight[e.key] = 0
+                } else {
+                    total_weight[e.key] += parseFloat(total_weight[e.key])
+                }
+                html += `<td class="bg-white align-middle small-text text-end">${number_format(value[e.key])}</td>`;
+            });
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.material_qty) + '</td>'
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(value.material_weight) + '</td>'
             if (dataProfile == 'DETAIL') {
                 html += '<td class="bg-white align-middle small-text">'
                 html += `<div class="dropdown">
@@ -946,9 +1042,7 @@
             }
             html += '</tr>'
             total_qty += parseInt(value.qty)
-            total_weight += parseFloat(value.weight)
             total_material_qty += parseInt(value.material_qty)
-            total_material_weight += parseFloat(value.material_weight)
         })
         $('#bodyTable').html(html)
         footTable()
@@ -1343,9 +1437,10 @@
             html += '<th class="bg-white align-middle small-text text-end" colspan="8">Total</th>'
         }
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_qty)) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_weight)) + '</th>'
+        weightLabels.forEach(e => {
+            html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_weight[e.key])) + '</th>'
+        })
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_material_qty)) + '</th>'
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_material_weight)) + '</th>'
         if (dataProfile == 'DETAIL') {
             html += '<th class="bg-white align-middle small-text"></th>'
         }
@@ -1367,7 +1462,7 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelProductionHistory') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + dataProfile
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + itemId + "*$" + dataProfile + "*$NEW";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
@@ -1537,5 +1632,31 @@
                 $('div.dataTables_filter input').attr('placeholder', 'Search...');
             },
         })
+    }
+
+    function switchToOld() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah sudah ada '-old'
+        if (lastSegment.includes('-old')) {
+            // Jika sudah ada '-old', hapus bagian '-old'
+            lastSegment = lastSegment.replace('-old', '');
+        } else {
+            // Jika belum ada, tambahkan '-old'
+            lastSegment += '-old';
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

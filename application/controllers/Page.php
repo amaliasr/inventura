@@ -287,6 +287,15 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/history_production', $data);
     }
+    public function history_production_old()
+    {
+        $data['title'] = 'Production History';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/history_production_old', $data);
+    }
     public function receptions_list()
     {
         $this->check_permission('receptions_list');

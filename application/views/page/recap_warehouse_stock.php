@@ -747,9 +747,9 @@
     function headTable() {
         var html = ''
         html += '<tr>'
-        html += '<th class="align-middle text-center small-text bg-white" rowspan="2">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white" rowspan="2">Item</th>'
-        html += '<th class="align-middle text-center small-text bg-white" rowspan="2">Grade</th>'
+        html += '<th class="align-middle text-center small-text bg-white" rowspan="2" style="z-index:999">#</th>'
+        html += '<th class="align-middle text-center small-text bg-white" rowspan="2" style="z-index:999">Item</th>'
+        html += '<th class="align-middle text-center small-text bg-white" rowspan="2" style="z-index:999">Grade</th>'
         parent.forEach(e => {
             html += '<th class="align-middle text-center small-text bg-white" colspan="' + selectedChild.length + '">' + e.name + '</th>'
         });

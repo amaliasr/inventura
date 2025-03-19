@@ -916,7 +916,13 @@ class Report extends CI_Controller
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $mapping = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapStock?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
+        $statusFile = $explodedParams[5];
+        if ($statusFile == 'NEW') {
+            $textAPI = 'getRecapStockNew';
+        } else {
+            $textAPI = 'getRecapStock';
+        }
+        $body = json_decode($this->curl->simple_get(api_produksi($textAPI . '?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
         $dataDetail = $body->recapStock->data;
         $kerangka_mapping = $body->mappingMutation;
         $ker_mapping = [
@@ -952,16 +958,45 @@ class Report extends CI_Controller
                 "variable" => "end",
             ],
         ];
-        $parent = [
-            [
-                "name" => "QTY",
-                "variable" => "qty",
-            ],
-            [
-                "name" => "Weight",
-                "variable" => "weight",
-            ],
-        ];
+        if ($statusFile == 'NEW') {
+            $parent = [
+                [
+                    "name" => "QTY",
+                    "variable" => "qty",
+                ],
+                [
+                    "name" => "Weight Deduction",
+                    "variable" => "weight_deduction",
+                ],
+                [
+                    "name" => "Weight Gross",
+                    "variable" => "weight_gross",
+                ],
+                [
+                    "name" => "Weight Net",
+                    "variable" => "weight_net",
+                ],
+                [
+                    "name" => "Weight Packaging",
+                    "variable" => "weight_packaging",
+                ],
+                [
+                    "name" => "Weight Paid",
+                    "variable" => "weight_paid",
+                ]
+            ];
+        } else {
+            $parent = [
+                [
+                    "name" => "QTY",
+                    "variable" => "qty",
+                ],
+                [
+                    "name" => "Weight",
+                    "variable" => "weight",
+                ]
+            ];
+        }
 
         $child = [
             [
@@ -1117,7 +1152,11 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'WAREHOUSE STOCK RECAP ' . $epoch;
+        if ($statusFile == 'NEW') {
+            $filename = 'WAREHOUSE STOCK RECAP NEW ' . $epoch;
+        } else {
+            $filename = 'WAREHOUSE STOCK RECAP ' . $epoch;
+        }
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
