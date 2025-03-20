@@ -1437,6 +1437,7 @@
             html += '<th class="bg-white align-middle small-text text-end" colspan="8">Total</th>'
         }
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(roundToTwo(total_qty)) + '</th>'
+        console.log(total_weight)
         weightLabels.forEach(e => {
             html += '<th class="bg-white align-middle small-text text-center">' + number_format(roundToTwo(total_weight[e.key])) + '</th>'
         })

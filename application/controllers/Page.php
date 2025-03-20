@@ -122,6 +122,15 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/recap_shipment', $data);
     }
+    public function recap_shipment_old()
+    {
+        $data['title'] = 'Shipment Recap';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/recap_shipment_old', $data);
+    }
     public function recap_puchase_supplier()
     {
         $this->check_permission('recap_puchase_supplier');
