@@ -54,6 +54,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
                     </div>
                 </div>
             </div>
@@ -349,34 +350,39 @@
             variable: 'value.qty',
             text: 'text-end'
         }, {
-            name: 'Weight',
-            variable: 'value.weight',
+            name: 'Weight Deduction<br>Purchase',
+            variable: 'value.weight_deduction_purchase',
             text: 'text-end'
         }, {
-            name: 'Production<br>Bale Number',
-            variable: 'value.production_inventory.bale_number',
-            text: 'text-center'
-        }, {
-            name: 'Production<br>Item',
-            variable: 'value.production_item.name',
-            text: ''
-        }, {
-            name: 'Production<br>Grade',
-            variable: 'value.production_grade.name',
-            text: 'text-center'
-        }, {
-            name: 'Production<br>Unit',
-            variable: 'value.production_unit.name',
-            text: 'text-center'
-        }, {
-            name: 'Production<br>QTY',
-            variable: 'value.production_qty',
+            name: 'Weight Gross<br>Material',
+            variable: 'value.weight_gross_material',
             text: 'text-end'
         }, {
-            name: 'Production<br>Weight',
-            variable: 'value.production_weight',
+            name: 'Weight Gross<br>Purchase',
+            variable: 'value.weight_gross_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Net<br>Material',
+            variable: 'value.weight_net_material',
+            text: 'text-end'
+        }, {
+            name: 'Weight Net<br>Purchase',
+            variable: 'value.weight_net_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Packaging<br>Material',
+            variable: 'value.weight_packaging_material',
+            text: 'text-end'
+        }, {
+            name: 'Weight Packaging<br>Purchase',
+            variable: 'value.weight_packaging_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Paid',
+            variable: 'value.weight_paid',
             text: 'text-end'
         }],
+
         'ITEM': [{
             name: 'Date',
             variable: 'formatDate(value.datetime)',
@@ -398,18 +404,39 @@
             variable: 'value.qty',
             text: 'text-end'
         }, {
-            name: 'Weight',
-            variable: 'value.weight',
+            name: 'Weight Deduction<br>Purchase',
+            variable: 'value.weight_deduction_purchase',
             text: 'text-end'
         }, {
-            name: 'Production<br>QTY',
-            variable: 'value.production_qty',
+            name: 'Weight Gross<br>Material',
+            variable: 'value.weight_gross_material',
             text: 'text-end'
         }, {
-            name: 'Production<br>Weight',
-            variable: 'value.production_weight',
+            name: 'Weight Gross<br>Purchase',
+            variable: 'value.weight_gross_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Net<br>Material',
+            variable: 'value.weight_net_material',
+            text: 'text-end'
+        }, {
+            name: 'Weight Net<br>Purchase',
+            variable: 'value.weight_net_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Packaging<br>Material',
+            variable: 'value.weight_packaging_material',
+            text: 'text-end'
+        }, {
+            name: 'Weight Packaging<br>Purchase',
+            variable: 'value.weight_packaging_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Paid',
+            variable: 'value.weight_paid',
             text: 'text-end'
         }],
+
         'ITEM GRADE': [{
             name: 'Date',
             variable: 'formatDate(value.datetime)',
@@ -435,19 +462,40 @@
             variable: 'value.qty',
             text: 'text-end'
         }, {
-            name: 'Weight',
-            variable: 'value.weight',
+            name: 'Weight Deduction<br>Purchase',
+            variable: 'value.weight_deduction_purchase',
             text: 'text-end'
         }, {
-            name: 'Production<br>QTY',
-            variable: 'value.production_qty',
+            name: 'Weight Gross<br>Material',
+            variable: 'value.weight_gross_material',
             text: 'text-end'
         }, {
-            name: 'Production<br>Weight',
-            variable: 'value.production_weight',
+            name: 'Weight Gross<br>Purchase',
+            variable: 'value.weight_gross_purchase',
             text: 'text-end'
-        }],
-    }
+        }, {
+            name: 'Weight Net<br>Material',
+            variable: 'value.weight_net_material',
+            text: 'text-end'
+        }, {
+            name: 'Weight Net<br>Purchase',
+            variable: 'value.weight_net_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Packaging<br>Material',
+            variable: 'value.weight_packaging_material',
+            text: 'text-end'
+        }, {
+            name: 'Weight Packaging<br>Purchase',
+            variable: 'value.weight_packaging_purchase',
+            text: 'text-end'
+        }, {
+            name: 'Weight Paid',
+            variable: 'value.weight_paid',
+            text: 'text-end'
+        }]
+    };
+
     var dataFooterTable = {
         'DETAIL': [{
             variable: '"Total"',
@@ -458,22 +506,43 @@
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_weight))',
+            variable: 'number_format(roundToTwo(total_weight_deduction_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_gross_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_gross_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_net_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_net_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_packaging_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_packaging_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_paid))',
             text: 'text-end',
             colspan: '',
         }, {
             variable: '""',
             text: '',
             colspan: '4',
-        }, {
-            variable: 'number_format(roundToTwo(total_production_qty))',
-            text: 'text-end',
-            colspan: '',
-        }, {
-            variable: 'number_format(roundToTwo(total_production_weight))',
-            text: 'text-end',
-            colspan: '',
         }],
+
         'ITEM': [{
             variable: '"Total"',
             text: 'text-end',
@@ -483,18 +552,39 @@
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_weight))',
+            variable: 'number_format(roundToTwo(total_weight_deduction_purchase))',
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_production_qty))',
+            variable: 'number_format(roundToTwo(total_weight_gross_material))',
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_production_weight))',
+            variable: 'number_format(roundToTwo(total_weight_gross_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_net_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_net_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_packaging_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_packaging_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_paid))',
             text: 'text-end',
             colspan: '',
         }],
+
         'ITEM GRADE': [{
             variable: '"Total"',
             text: 'text-end',
@@ -504,19 +594,40 @@
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_weight))',
+            variable: 'number_format(roundToTwo(total_weight_deduction_purchase))',
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_production_qty))',
+            variable: 'number_format(roundToTwo(total_weight_gross_material))',
             text: 'text-end',
             colspan: '',
         }, {
-            variable: 'number_format(roundToTwo(total_production_weight))',
+            variable: 'number_format(roundToTwo(total_weight_gross_purchase))',
             text: 'text-end',
             colspan: '',
-        }],
-    }
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_net_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_net_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_packaging_material))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_packaging_purchase))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight_paid))',
+            text: 'text-end',
+            colspan: '',
+        }]
+    };
+
 
     function chooseDataComplete() {
         var data = data_report.history_material_complete.data
@@ -670,7 +781,7 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getHistoryMaterial'); ?>'
+        var url = '<?php echo api_url('getHistoryMaterialNew'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -766,7 +877,14 @@
     }
 
     var total_qty = 0
-    var total_weight = 0
+    var total_weight_deduction_purchase = 0;
+    var total_weight_gross_material = 0;
+    var total_weight_gross_purchase = 0;
+    var total_weight_net_material = 0;
+    var total_weight_net_purchase = 0;
+    var total_weight_packaging_material = 0;
+    var total_weight_packaging_purchase = 0;
+    var total_weight_paid = 0;
     var total_production_qty = 0
     var total_production_weight = 0
 
@@ -781,15 +899,31 @@
             if (!value.qty) {
                 value.qty = 0
             }
-            if (!value.weight) {
-                value.weight = 0
+            if (!value.weight_deduction_purchase) {
+                value.weight_deduction_purchase = 0;
             }
-            if (!value.production_qty) {
-                value.production_qty = 0
+            if (!value.weight_gross_material) {
+                value.weight_gross_material = 0;
             }
-            if (!value.production_weight) {
-                value.production_weight = 0
+            if (!value.weight_gross_purchase) {
+                value.weight_gross_purchase = 0;
             }
+            if (!value.weight_net_material) {
+                value.weight_net_material = 0;
+            }
+            if (!value.weight_net_purchase) {
+                value.weight_net_purchase = 0;
+            }
+            if (!value.weight_packaging_material) {
+                value.weight_packaging_material = 0;
+            }
+            if (!value.weight_packaging_purchase) {
+                value.weight_packaging_purchase = 0;
+            }
+            if (!value.weight_paid) {
+                value.weight_paid = 0;
+            }
+
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
             dataFillTable[dataProfile].forEach(e => {
@@ -797,9 +931,15 @@
             })
             html += '</tr>'
             total_qty += parseInt(value.qty)
-            total_weight += parseFloat(value.weight)
-            total_production_qty += parseInt(value.production_qty)
-            total_production_weight += parseFloat(value.production_weight)
+            total_weight_deduction_purchase += parseFloat(value.weight_deduction_purchase);
+            total_weight_gross_material += parseFloat(value.weight_gross_material);
+            total_weight_gross_purchase += parseFloat(value.weight_gross_purchase);
+            total_weight_net_material += parseFloat(value.weight_net_material);
+            total_weight_net_purchase += parseFloat(value.weight_net_purchase);
+            total_weight_packaging_material += parseFloat(value.weight_packaging_material);
+            total_weight_packaging_purchase += parseFloat(value.weight_packaging_purchase);
+            total_weight_paid += parseFloat(value.weight_paid);
+
         })
         $('#bodyTable').html(html)
         footTable()
@@ -833,11 +973,37 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelMaterialHistory') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile + "*$NEW";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
     function roundToOne(num) {
         return +(Math.round(num + "e+1") + "e-1");
+    }
+
+    function switchToOld() {
+        let currentUrl = window.location.href;
+
+        // Pisahkan URL berdasarkan '/'
+        let urlParts = currentUrl.split('/');
+
+        // Ambil bagian terakhir dari URL (nama halaman)
+        let lastSegment = urlParts[urlParts.length - 1];
+
+        // Periksa apakah sudah ada '-old'
+        if (lastSegment.includes('-old')) {
+            // Jika sudah ada '-old', hapus bagian '-old'
+            lastSegment = lastSegment.replace('-old', '');
+        } else {
+            // Jika belum ada, tambahkan '-old'
+            lastSegment += '-old';
+        }
+
+        // Gabungkan kembali URL dengan segmen yang diperbarui
+        urlParts[urlParts.length - 1] = lastSegment;
+        let newUrl = urlParts.join('/');
+
+        // Redirect ke URL baru
+        window.location.href = newUrl;
     }
 </script>

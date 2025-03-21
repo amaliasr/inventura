@@ -17,7 +17,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PRODUCTION</h1>
+                <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 900 !important">RECAP PRODUCTION <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -49,7 +49,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -470,7 +470,7 @@
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapProductionNew'); ?>'
+        var url = '<?php echo api_url('getRecapProduction'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
@@ -512,98 +512,6 @@
             }
         });
     }
-    const weightLabelsRaw = [{
-            key: "weight_deduction_material_purchase",
-            label: "Weight Deduction Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_gross",
-            label: "Weight Gross",
-            total: 0
-        },
-        {
-            key: "weight_gross_latest",
-            label: "Weight Gross Latest",
-            total: 0
-        },
-        {
-            key: "weight_gross_material",
-            label: "Weight Gross Material",
-            total: 0
-        },
-        {
-            key: "weight_gross_material_purchase",
-            label: "Weight Gross Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_gross_stock",
-            label: "Weight Gross Stock",
-            total: 0
-        },
-        {
-            key: "weight_material_paid",
-            label: "Weight Material Paid",
-            total: 0
-        },
-        {
-            key: "weight_net",
-            label: "Weight Net",
-            total: 0
-        },
-        {
-            key: "weight_net_latest",
-            label: "Weight Net Latest",
-            total: 0
-        },
-        {
-            key: "weight_net_material",
-            label: "Weight Net Material",
-            total: 0
-        },
-        {
-            key: "weight_net_material_purchase",
-            label: "Weight Net Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_net_stock",
-            label: "Weight Net Stock",
-            total: 0
-        },
-        {
-            key: "weight_packaging",
-            label: "Weight Packaging",
-            total: 0
-        },
-        {
-            key: "weight_packaging_latest",
-            label: "Weight Packaging Latest",
-            total: 0
-        },
-        {
-            key: "weight_packaging_material",
-            label: "Weight Packaging Material",
-            total: 0
-        },
-        {
-            key: "weight_packaging_material_purchase",
-            label: "Weight Packaging Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_packaging_stock",
-            label: "Weight Packaging Stock",
-            total: 0
-        }
-    ];
-
-    const weightLabels = weightLabelsRaw.map(item => ({
-        ...item,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
-
 
     function updatedStructure() {
         dataTable()
@@ -631,25 +539,23 @@
         html += '<th class="align-middle text-center small-text bg-white">Item</th>'
         html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
         html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        weightLabels.forEach(e => {
-            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
-        });
+        html += '<th class="align-middle text-center small-text bg-white">Weight</th>'
         html += '<th class="align-middle text-center small-text bg-white">Material<br>QTY</th>'
-        // html += '<th class="align-middle text-center small-text bg-white">Material<br>Weight</th>'
+        html += '<th class="align-middle text-center small-text bg-white">Material<br>Weight</th>'
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
     }
     var total_qty = 0
-    var total_weight = {}
+    var total_weight = 0
     var total_warehouse_qty = 0
-    // var total_warehouse_weight = 0
+    var total_warehouse_weight = 0
 
     function bodyTable() {
         total_qty = 0
-        total_weight = {}
+        total_weight = 0
         total_warehouse_qty = 0
-        // total_warehouse_weight = 0
+        total_warehouse_weight = 0
         var html = ''
         var dataFind = deepCopy(data_report_showed)
         $.each(dataFind, function(key, value) {
@@ -659,26 +565,14 @@
             html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.qty)) + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.weight)) + '</td>'
-            weightLabels.forEach(e => {
-                if (!value[e.key]) {
-                    value[e.key] = 0
-                }
-                // total weight each
-                if (total_weight[e.key] == undefined) {
-                    total_weight[e.key] = 0
-                } else {
-                    total_weight[e.key] += parseFloat(total_weight[e.key])
-                }
-                html += `<td class="bg-white align-middle small-text text-end">${number_format(checkNumberIsNull(value[e.key]))}</td>`;
-            });
+            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.weight)) + '</td>'
             html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_qty)) + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_weight)) + '</td>'
+            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_weight)) + '</td>'
             html += '</tr>'
             total_qty += checkNumberIsNull(value.qty)
-            // total_weight += checkNumberIsNull(value.weight)
+            total_weight += checkNumberIsNull(value.weight)
             total_warehouse_qty += checkNumberIsNull(value.material_qty)
-            // total_warehouse_weight += checkNumberIsNull(value.material_weight)
+            total_warehouse_weight += checkNumberIsNull(value.material_weight)
         })
         $('#bodyTable').html(html)
         footTable()
@@ -689,12 +583,9 @@
         html += '<tr>'
         html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_qty) + '</th>'
-        // html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_weight) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
-        })
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_weight) + '</th>'
         html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_qty) + '</th>'
-        // html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_weight) + '</th>'
+        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_weight) + '</th>'
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
@@ -725,7 +616,7 @@
 
     function exportExcel() {
         var url = '<?= base_url('report/excelProductionRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$NEW";
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$OLD";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
@@ -733,7 +624,7 @@
         return +(Math.round(num + "e+1") + "e-1");
     }
 
-    function switchToOld() {
+    function switchToNew() {
         let currentUrl = window.location.href;
 
         // Pisahkan URL berdasarkan '/'
@@ -742,13 +633,9 @@
         // Ambil bagian terakhir dari URL (nama halaman)
         let lastSegment = urlParts[urlParts.length - 1];
 
-        // Periksa apakah sudah ada '-old'
+        // Periksa apakah ada '-old' dan hapus jika ada
         if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
             lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
         }
 
         // Gabungkan kembali URL dengan segmen yang diperbarui

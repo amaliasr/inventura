@@ -17,7 +17,7 @@
     <div class="container-xl mt-n10">
         <div class="row justify-content-center mb-2">
             <div class="col pb-2">
-                <h1 class="text-dark fw-bolder m-0" style="font-weight: 900 !important">RECAP PRODUCTION</h1>
+                <h1 class="text-dark fw-bolder m-0 d-flex align-items-center" style="font-weight: 900 !important">HISTORY MATERIAL <span class="badge bg-orange small-text ms-2">OLD</span></h1>
                 <p class="m-0 small" id="dateRangeString">-</p>
             </div>
         </div>
@@ -31,8 +31,13 @@
                                 <input class="form-select form-select-sm datepicker formFilter" type="text" id="dateRange" placeholder="Tanggal Mulai" autocomplete="off">
                             </div>
                             <div class="col-auto ps-0">
+                                <p class="fw-bolder small-text m-0">Data Profile</p>
+                                <select class="selectpicker w-100" data-live-search="true" data-actions-box="true" id="selectDataProfile" onchange="arrangeVariable()">
+                                </select>
+                            </div>
+                            <div class="col-auto ps-0">
                                 <p class="fw-bolder small-text m-0">Item Origin</p>
-                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse">
+                                <select class="selectpicker w-100" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 1" id="selectWarehouse" title="Pilih Warehouse" onchange="arrangeVariable()">
                                 </select>
                             </div>
                             <div class="col-auto ps-0 d-flex align-items-end">
@@ -49,7 +54,7 @@
                                 <li><a class="dropdown-item" href="javascript:void(0);" onclick="exportExcel()">Excel</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToOld()">Switch to Old ver</button>
+                        <button type="button" class="btn btn-light border border-dark btn-sm small-text p-2 ms-2" style="border-radius: 20px;padding: 10px;" onclick="switchToNew()">Switch to New ver</button>
                     </div>
                 </div>
             </div>
@@ -68,7 +73,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -290,13 +294,17 @@
     $('#modal').on('hidden.bs.modal', function(e) {
         clearModal();
     })
-
     var warehouse_id = '<?= $this->session->userdata('warehouse_id') ?>'
     var data_report = ""
     var data_report_showed = []
     var date_start = getFirstDate()
     var date_end = currentDate()
+    var itemId = []
+    var supplierId = []
+    var dataProfile = ''
+    var data_user = {}
     var indexVariable = 0
+    var warehouse_id_origin = []
     var statusLineVariable = [{
             id: 0,
             name: 'Complete',
@@ -312,14 +320,207 @@
             getData: 'chooseDataOnProcess()'
         }
     ]
-    $(document).ready(function() {
-        $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
-        $('select').selectpicker();
-        loadDataStart()
-    })
+    var dataFillTable = {
+        'DETAIL': [{
+            name: 'Date',
+            variable: 'getDateTime(value.datetime)',
+            text: 'text-center'
+        }, {
+            name: 'Bale Number',
+            variable: 'value.inventory.bale_number',
+            text: 'text-center'
+        }, {
+            name: 'Item',
+            variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Item Origin',
+            variable: 'value.item_origin.name',
+            text: ''
+        }, {
+            name: 'Grade',
+            variable: 'value.grade.name',
+            text: 'text-center'
+        }, {
+            name: 'Unit',
+            variable: 'value.unit.name',
+            text: 'text-center'
+        }, {
+            name: 'QTY',
+            variable: 'value.qty',
+            text: 'text-end'
+        }, {
+            name: 'Weight',
+            variable: 'value.weight',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Bale Number',
+            variable: 'value.production_inventory.bale_number',
+            text: 'text-center'
+        }, {
+            name: 'Production<br>Item',
+            variable: 'value.production_item.name',
+            text: ''
+        }, {
+            name: 'Production<br>Grade',
+            variable: 'value.production_grade.name',
+            text: 'text-center'
+        }, {
+            name: 'Production<br>Unit',
+            variable: 'value.production_unit.name',
+            text: 'text-center'
+        }, {
+            name: 'Production<br>QTY',
+            variable: 'value.production_qty',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Weight',
+            variable: 'value.production_weight',
+            text: 'text-end'
+        }],
+        'ITEM': [{
+            name: 'Date',
+            variable: 'formatDate(value.datetime)',
+            text: 'text-center'
+        }, {
+            name: 'Item',
+            variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Item Origin',
+            variable: 'value.item_origin.name',
+            text: ''
+        }, {
+            name: 'Unit',
+            variable: 'value.unit.name',
+            text: 'text-center'
+        }, {
+            name: 'QTY',
+            variable: 'value.qty',
+            text: 'text-end'
+        }, {
+            name: 'Weight',
+            variable: 'value.weight',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>QTY',
+            variable: 'value.production_qty',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Weight',
+            variable: 'value.production_weight',
+            text: 'text-end'
+        }],
+        'ITEM GRADE': [{
+            name: 'Date',
+            variable: 'formatDate(value.datetime)',
+            text: 'text-center'
+        }, {
+            name: 'Item',
+            variable: 'value.item.name',
+            text: ''
+        }, {
+            name: 'Item Origin',
+            variable: 'value.item_origin.name',
+            text: ''
+        }, {
+            name: 'Grade',
+            variable: 'value.grade.name',
+            text: 'text-center'
+        }, {
+            name: 'Unit',
+            variable: 'value.unit.name',
+            text: 'text-center'
+        }, {
+            name: 'QTY',
+            variable: 'value.qty',
+            text: 'text-end'
+        }, {
+            name: 'Weight',
+            variable: 'value.weight',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>QTY',
+            variable: 'value.production_qty',
+            text: 'text-end'
+        }, {
+            name: 'Production<br>Weight',
+            variable: 'value.production_weight',
+            text: 'text-end'
+        }],
+    }
+    var dataFooterTable = {
+        'DETAIL': [{
+            variable: '"Total"',
+            text: 'text-end',
+            colspan: '7',
+        }, {
+            variable: 'number_format(roundToTwo(total_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: '""',
+            text: '',
+            colspan: '4',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_weight))',
+            text: 'text-end',
+            colspan: '',
+        }],
+        'ITEM': [{
+            variable: '"Total"',
+            text: 'text-end',
+            colspan: '5',
+        }, {
+            variable: 'number_format(roundToTwo(total_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_weight))',
+            text: 'text-end',
+            colspan: '',
+        }],
+        'ITEM GRADE': [{
+            variable: '"Total"',
+            text: 'text-end',
+            colspan: '6',
+        }, {
+            variable: 'number_format(roundToTwo(total_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_weight))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_qty))',
+            text: 'text-end',
+            colspan: '',
+        }, {
+            variable: 'number_format(roundToTwo(total_production_weight))',
+            text: 'text-end',
+            colspan: '',
+        }],
+    }
 
     function chooseDataComplete() {
-        var data = data_report.recap_production_complete.data
+        var data = data_report.history_material_complete.data
         return data
     }
 
@@ -329,7 +530,7 @@
 
 
     function chooseDataOnProcess() {
-        var data = data_report.recap_production_on_process.data
+        var data = data_report.history_material_on_process.data
         return data
     }
 
@@ -358,31 +559,11 @@
         data_report_showed = eval(getData)
         statusLine()
     }
-
-    function statusLine() {
-        var html = ''
-        html += '<div class="row justify-content-between">'
-        html += '<div class="col h-100">'
-        html += '<div class="row" style="height:30px">'
-        statusLineVariable.forEach(e => {
-            var text = 'text-grey'
-            var icon = 'text-grey bg-light'
-            if (e.selected) {
-                text = 'fw-bold filter-border'
-                icon = 'bg-light-blue text-white'
-            }
-            var num = eval(e.functions)
-            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
-            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
-            html += ' </div>'
-
-        });
-        html += '</div>'
-        html += '</div>'
-        html += '</div>'
-        $('#statusLine').html(html)
-        dataTable()
-    }
+    $(document).ready(function() {
+        $('#dataTable').html(emptyReturn('Belum Melakukan Pencarian atau Bisa Langsung Download File'))
+        $('select').selectpicker();
+        loadData()
+    })
 
     function getFirstDate() {
         // Mendapatkan tanggal hari ini
@@ -398,16 +579,9 @@
         return formattedDate;
     }
 
-    function loadDataStart() {
-        setDaterange()
-        dateRangeString()
-        loadData()
-    }
-    var data_master = {}
-
     function loadData() {
         $.ajax({
-            url: "<?= api_url('loadPageRecapReportWarehouse'); ?>",
+            url: "<?= api_url('loadpageReportProduction'); ?>",
             method: "GET",
             dataType: 'JSON',
             data: {
@@ -419,28 +593,56 @@
                     icon: 'error',
                     title: 'Oops...',
                     text: 'Error Data'
-                })
+                });
             },
             beforeSend: function() {
                 showOverlay('show')
             },
             success: function(response) {
                 showOverlay('hide')
-                data_master = response.data
-                selectWarehouse()
+                data_user = response['data']
+                setDaterange()
+                dateRangeString()
+                selectDataProfile()
             }
         })
     }
 
+
+    function selectDataProfile() {
+        var html = ''
+        var a = 0
+        data_user.data_profile.forEach(e => {
+            var select = ''
+            html += '<option value="' + e + '" ' + select + '>' + e + '</option>'
+            a++
+        });
+        $('#selectDataProfile').html(html)
+        $('#selectDataProfile').selectpicker('refresh');
+        $('#selectDataProfile').selectpicker({
+
+        });
+        selectWarehouse()
+    }
+
     function selectWarehouse() {
         var html = ''
-        data_master.warehouse.forEach(e => {
+        data_user.warehouse.forEach(e => {
             var select = ''
             select = 'selected'
             html += '<option value="' + e.id + '" ' + select + '>' + e.name + '</option>'
         });
         $('#selectWarehouse').html(html)
         $('#selectWarehouse').selectpicker('refresh');
+        arrangeVariable()
+    }
+
+    function arrangeVariable() {
+        itemId = $('#selectItem').map(function() {
+            return $(this).val();
+        }).get()
+        dataProfile = $('#selectDataProfile').val()
+        warehouse_id_origin = $('#selectWarehouse').val()
     }
 
     function dateRangeString() {
@@ -466,15 +668,15 @@
     }
 
     function simpanData() {
-        warehouse_id_origin = $('#selectWarehouse').val()
         // ----------------------------------------- //
         var type = 'GET'
         var button = '.btnSimpan'
-        var url = '<?php echo api_url('getRecapProductionNew'); ?>'
+        var url = '<?php echo api_url('getHistoryMaterial'); ?>'
         var data = {
             dateStart: date_start,
             dateEnd: date_end,
             warehouseId: warehouse_id,
+            dataProfile: dataProfile,
             warehouseIdOrigin: warehouse_id_origin
         }
         kelolaData(data, type, url, button)
@@ -503,107 +705,36 @@
                 dateRangeString()
                 $(button).prop("disabled", false);
                 data_report = response.data
-                // if (checkData && checkData2) {
                 data_report_showed = eval(statusLineVariable[indexVariable].getData)
                 statusLine()
-                // } else {
-                //     $('#dataTable').html(notFoundReturn('Data Tidak Ditemukan'))
-                // }
             }
         });
     }
-    const weightLabelsRaw = [{
-            key: "weight_deduction_material_purchase",
-            label: "Weight Deduction Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_gross",
-            label: "Weight Gross",
-            total: 0
-        },
-        {
-            key: "weight_gross_latest",
-            label: "Weight Gross Latest",
-            total: 0
-        },
-        {
-            key: "weight_gross_material",
-            label: "Weight Gross Material",
-            total: 0
-        },
-        {
-            key: "weight_gross_material_purchase",
-            label: "Weight Gross Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_gross_stock",
-            label: "Weight Gross Stock",
-            total: 0
-        },
-        {
-            key: "weight_material_paid",
-            label: "Weight Material Paid",
-            total: 0
-        },
-        {
-            key: "weight_net",
-            label: "Weight Net",
-            total: 0
-        },
-        {
-            key: "weight_net_latest",
-            label: "Weight Net Latest",
-            total: 0
-        },
-        {
-            key: "weight_net_material",
-            label: "Weight Net Material",
-            total: 0
-        },
-        {
-            key: "weight_net_material_purchase",
-            label: "Weight Net Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_net_stock",
-            label: "Weight Net Stock",
-            total: 0
-        },
-        {
-            key: "weight_packaging",
-            label: "Weight Packaging",
-            total: 0
-        },
-        {
-            key: "weight_packaging_latest",
-            label: "Weight Packaging Latest",
-            total: 0
-        },
-        {
-            key: "weight_packaging_material",
-            label: "Weight Packaging Material",
-            total: 0
-        },
-        {
-            key: "weight_packaging_material_purchase",
-            label: "Weight Packaging Material Purchase",
-            total: 0
-        },
-        {
-            key: "weight_packaging_stock",
-            label: "Weight Packaging Stock",
-            total: 0
-        }
-    ];
 
-    const weightLabels = weightLabelsRaw.map(item => ({
-        ...item,
-        label: item.label.replace(/ (.+)$/, "<br>$1") // Menambahkan <br> sebelum kata terakhir
-    }));
+    function statusLine() {
+        var html = ''
+        html += '<div class="row justify-content-between">'
+        html += '<div class="col h-100">'
+        html += '<div class="row" style="height:30px">'
+        statusLineVariable.forEach(e => {
+            var text = 'text-grey'
+            var icon = 'text-grey bg-light'
+            if (e.selected) {
+                text = 'fw-bold filter-border'
+                icon = 'bg-light-blue text-white'
+            }
+            var num = eval(e.functions)
+            html += '<div class="col-auto h-100 statusLine text-small pb-2 align-self-center ' + text + '" style="cursor:pointer" onclick="statusLineSwitch(' + e.id + ',' + "'" + e.getData + "'" + ')" id="colStatusLine' + e.id + '">'
+            html += e.name + '<span class="statusLineIcon ms-1 p-1 rounded ' + icon + '" id="statusLineIcon' + e.id + '">' + num + '</span>'
+            html += ' </div>'
 
+        });
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        $('#statusLine').html(html)
+        dataTable()
+    }
 
     function updatedStructure() {
         dataTable()
@@ -611,7 +742,7 @@
 
     function dataTable() {
         var html = ''
-        html += '<table class="table table-bordered table-hover table-sm small w-100 tableDetail" id="tableDetail">'
+        html += '<table class="table table-bordered table-hover table-sm small w-100 tableDetail" id="tableDetail" style="width: 100%;white-space:nowrap;cursor: grab;overflow:auto;">'
         html += '<thead id="headTable">'
         html += '</thead>'
         html += '<tbody id="bodyTable">'
@@ -627,74 +758,64 @@
         var html = ''
         html += '<tr>'
         html += '<th class="align-middle text-center small-text bg-white">#</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Warehouse</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Item</th>'
-        html += '<th class="align-middle text-center small-text bg-white">Grade</th>'
-        html += '<th class="align-middle text-center small-text bg-white">QTY</th>'
-        weightLabels.forEach(e => {
-            html += `<th class="align-middle text-center small-text bg-white">${e.label}</th>`;
+        dataFillTable[dataProfile].forEach(e => {
+            html += '<th class="align-middle text-center small-text bg-white">' + e.name + '</th>'
         });
-        html += '<th class="align-middle text-center small-text bg-white">Material<br>QTY</th>'
-        // html += '<th class="align-middle text-center small-text bg-white">Material<br>Weight</th>'
         html += '</tr>'
         $('#headTable').html(html)
         bodyTable()
     }
+
     var total_qty = 0
-    var total_weight = {}
-    var total_warehouse_qty = 0
-    // var total_warehouse_weight = 0
+    var total_weight = 0
+    var total_production_qty = 0
+    var total_production_weight = 0
 
     function bodyTable() {
-        total_qty = 0
-        total_weight = {}
-        total_warehouse_qty = 0
-        // total_warehouse_weight = 0
         var html = ''
+        total_qty = 0
+        total_weight = 0
+        total_production_qty = 0
+        total_production_weight = 0
         var dataFind = deepCopy(data_report_showed)
         $.each(dataFind, function(key, value) {
+            if (!value.qty) {
+                value.qty = 0
+            }
+            if (!value.weight) {
+                value.weight = 0
+            }
+            if (!value.production_qty) {
+                value.production_qty = 0
+            }
+            if (!value.production_weight) {
+                value.production_weight = 0
+            }
             html += '<tr>'
             html += '<td class="bg-white align-middle small-text text-center">' + (parseInt(key) + 1) + '</td>'
-            html += '<td class="bg-white align-middle small-text">' + value.warehouse.name + '</td>'
-            html += '<td class="bg-white align-middle small-text">' + value.item.code + ' - ' + value.item.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-center">' + value.grade.name + '</td>'
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.qty)) + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.weight)) + '</td>'
-            weightLabels.forEach(e => {
-                if (!value[e.key]) {
-                    value[e.key] = 0
-                }
-                // total weight each
-                if (total_weight[e.key] == undefined) {
-                    total_weight[e.key] = 0
-                } else {
-                    total_weight[e.key] += parseFloat(total_weight[e.key])
-                }
-                html += `<td class="bg-white align-middle small-text text-end">${number_format(checkNumberIsNull(value[e.key]))}</td>`;
-            });
-            html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_qty)) + '</td>'
-            // html += '<td class="bg-white align-middle small-text text-end">' + number_format(checkNumberIsNull(value.material_weight)) + '</td>'
+            dataFillTable[dataProfile].forEach(e => {
+                html += '<td class="bg-white align-middle small-text ' + e.text + '">' + eval(e.variable) + '</td>'
+            })
             html += '</tr>'
-            total_qty += checkNumberIsNull(value.qty)
-            // total_weight += checkNumberIsNull(value.weight)
-            total_warehouse_qty += checkNumberIsNull(value.material_qty)
-            // total_warehouse_weight += checkNumberIsNull(value.material_weight)
+            total_qty += parseInt(value.qty)
+            total_weight += parseFloat(value.weight)
+            total_production_qty += parseInt(value.production_qty)
+            total_production_weight += parseFloat(value.production_weight)
         })
         $('#bodyTable').html(html)
         footTable()
     }
 
+    function deepCopy(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
     function footTable() {
         var html = ''
         html += '<tr>'
-        html += '<th class="bg-white align-middle small-text text-end" colspan="4">Total</th>'
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_qty) + '</th>'
-        // html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_weight) + '</th>'
-        weightLabels.forEach(e => {
-            html += '<th class="bg-white align-middle small-text text-center">' + number_format(total_weight[e.key]) + '</th>'
+        dataFooterTable[dataProfile].forEach(e => {
+            html += '<th class="bg-white align-middle small-text text-end" colspan="' + e.colspan + '">' + eval(e.variable) + '</th>'
         })
-        html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_qty) + '</th>'
-        // html += '<th class="bg-white align-middle small-text text-end">' + number_format(total_warehouse_weight) + '</th>'
         html += '</tr>'
         $('#footTable').html(html)
         $('#tableDetail').DataTable({
@@ -711,21 +832,9 @@
         })
     }
 
-    function deepCopy(obj) {
-        return JSON.parse(JSON.stringify(obj));
-    }
-
-    function checkNumberIsNull(value) {
-        if (value == null) {
-            return 0
-        } else {
-            return value
-        }
-    }
-
     function exportExcel() {
-        var url = '<?= base_url('report/excelProductionRecap') ?>';
-        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$NEW";
+        var url = '<?= base_url('report/excelMaterialHistory') ?>';
+        var params = "*$" + warehouse_id + "*$" + date_start + "*$" + date_end + "*$" + dataProfile + "*$OLD";
         window.open(url + '?params=' + encodeURIComponent(params), '_blank');
     }
 
@@ -733,7 +842,7 @@
         return +(Math.round(num + "e+1") + "e-1");
     }
 
-    function switchToOld() {
+    function switchToNew() {
         let currentUrl = window.location.href;
 
         // Pisahkan URL berdasarkan '/'
@@ -742,13 +851,9 @@
         // Ambil bagian terakhir dari URL (nama halaman)
         let lastSegment = urlParts[urlParts.length - 1];
 
-        // Periksa apakah sudah ada '-old'
+        // Periksa apakah ada '-old' dan hapus jika ada
         if (lastSegment.includes('-old')) {
-            // Jika sudah ada '-old', hapus bagian '-old'
             lastSegment = lastSegment.replace('-old', '');
-        } else {
-            // Jika belum ada, tambahkan '-old'
-            lastSegment += '-old';
         }
 
         // Gabungkan kembali URL dengan segmen yang diperbarui

@@ -130,12 +130,16 @@ class Report extends CI_Controller
     public function excelPurchaseRecap()
     {
         $weightLabels = [
-            ["key" => "weight_gross_send", "label" => "Weight Gross Send", "total" => 0],
-            ["key" => "weight_packaging_send", "label" => "Weight Packaging Send", "total" => 0],
-            ["key" => "weight_net_send", "label" => "Weight Net Send", "total" => 0],
-            ["key" => "weight_gross_receive", "label" => "Weight Gross Receive", "total" => 0],
-            ["key" => "weight_packaging_receive", "label" => "Weight Packaging Receive", "total" => 0],
-            ["key" => "weight_net_receive", "label" => "Weight Net Receive", "total" => 0]
+            ["key" => "weight_deduction_purchase", "label" => "Weight Deduction Purchase", "total" => 0],
+            ["key" => "weight_gross_latest", "label" => "Weight Gross Latest", "total" => 0],
+            ["key" => "weight_gross_purchase", "label" => "Weight Gross Purchase", "total" => 0],
+            ["key" => "weight_gross_stock", "label" => "Weight Gross Stock", "total" => 0],
+            ["key" => "weight_net_latest", "label" => "Weight Net Latest", "total" => 0],
+            ["key" => "weight_net_stock", "label" => "Weight Net Stock", "total" => 0],
+            ["key" => "weight_packaging_latest", "label" => "Weight Packaging Latest", "total" => 0],
+            ["key" => "weight_packaging_purchase", "label" => "Weight Packaging Purchase", "total" => 0],
+            ["key" => "weight_packaging_stock", "label" => "Weight Packaging Stock", "total" => 0],
+            ["key" => "weight_paid", "label" => "Weight Paid", "total" => 0]
         ];
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
@@ -1350,13 +1354,20 @@ class Report extends CI_Controller
     }
     public function excelProductionRecap()
     {
+
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
         $warehouseId = $explodedParams[1];
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
-        $body = json_decode($this->curl->simple_get(api_produksi('getRecapProduction?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
+        $statusFile = $explodedParams[4];
+        if ($statusFile == 'NEW') {
+            $textAPI = 'getRecapProductionNew';
+        } else {
+            $textAPI = 'getRecapProduction';
+        }
+        $body = json_decode($this->curl->simple_get(api_produksi($textAPI . '?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dateEnd=' . $date_end)))->data;
         $spreadsheet = new Spreadsheet();
         $dataVariable = ['recap_production_complete', 'recap_production_on_process'];
         $dataVariableTitle = ['Complete', 'On Process'];
@@ -1369,6 +1380,25 @@ class Report extends CI_Controller
         }
         // exit();
         for ($k = 0; $k < count($dataVariable); $k++) {
+            $weightLabels = [
+                ["key" => "weight_deduction_material_purchase", "label" => "Weight Deduction Material Purchase", "total" => 0],
+                ["key" => "weight_gross", "label" => "Weight Gross", "total" => 0],
+                ["key" => "weight_gross_latest", "label" => "Weight Gross Latest", "total" => 0],
+                ["key" => "weight_gross_material", "label" => "Weight Gross Material", "total" => 0],
+                ["key" => "weight_gross_material_purchase", "label" => "Weight Gross Material Purchase", "total" => 0],
+                ["key" => "weight_gross_stock", "label" => "Weight Gross Stock", "total" => 0],
+                ["key" => "weight_material_paid", "label" => "Weight Material Paid", "total" => 0],
+                ["key" => "weight_net", "label" => "Weight Net", "total" => 0],
+                ["key" => "weight_net_latest", "label" => "Weight Net Latest", "total" => 0],
+                ["key" => "weight_net_material", "label" => "Weight Net Material", "total" => 0],
+                ["key" => "weight_net_material_purchase", "label" => "Weight Net Material Purchase", "total" => 0],
+                ["key" => "weight_net_stock", "label" => "Weight Net Stock", "total" => 0],
+                ["key" => "weight_packaging", "label" => "Weight Packaging", "total" => 0],
+                ["key" => "weight_packaging_latest", "label" => "Weight Packaging Latest", "total" => 0],
+                ["key" => "weight_packaging_material", "label" => "Weight Packaging Material", "total" => 0],
+                ["key" => "weight_packaging_material_purchase", "label" => "Weight Packaging Material Purchase", "total" => 0],
+                ["key" => "weight_packaging_stock", "label" => "Weight Packaging Stock", "total" => 0]
+            ];
             $total_qty = 0;
             $total_weight = 0;
             $total_material_qty = 0;
@@ -1381,9 +1411,18 @@ class Report extends CI_Controller
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Item');
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Grade');
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'QTY');
-            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+            // $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+            if ($statusFile == 'NEW') {
+                foreach ($weightLabels as $weightLabel) {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', $weightLabel['label']);
+                }
+            } else {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Weight');
+            }
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Material QTY');
-            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Material Weight');
+            if ($statusFile != 'NEW') {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'Material Weight');
+            }
             $jumlahRow = 2;
             $no = 1;
             foreach ($body->{$dataVariable[$k]}->data as $key => $value) {
@@ -1391,29 +1430,41 @@ class Report extends CI_Controller
                 if (!$value->qty) {
                     $value->qty = 0;
                 }
-                if (!$value->weight) {
-                    $value->weight = 0;
-                }
+
                 if (!$value->material_qty) {
                     $value->material_qty = 0;
                 }
-                if (!$value->material_weight) {
-                    $value->material_weight = 0;
-                }
+
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->warehouse->name);
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->code);
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->item->name);
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->grade->name);
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->qty);
-                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+                if ($statusFile == 'NEW') {
+                    foreach ($weightLabels as $weightLabel) {
+                        $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->{$weightLabel['key']});
+                        $weightLabel['total'] += $value->{$weightLabel['key']};
+                    }
+                } else {
+                    if (!$value->weight) {
+                        $value->weight = 0;
+                    }
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->weight);
+                    $total_weight += $value->weight;
+                }
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->material_qty);
-                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->material_weight);
+                if ($statusFile != 'NEW') {
+                    if (!$value->material_weight) {
+                        $value->material_weight = 0;
+                    }
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $value->material_weight);
+                    $total_material_weight += $value->material_weight;
+                }
                 $jumlahRow++;
                 $total_qty += $value->qty;
-                $total_weight += $value->weight;
+                // $total_weight += $value->weight;
                 $total_material_qty += $value->material_qty;
-                $total_material_weight += $value->material_weight;
             }
             $jumlahColumnEnd = $jumlahColumn - 1;
             $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
@@ -1425,9 +1476,18 @@ class Report extends CI_Controller
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, '');
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, 'Total');
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_qty);
-            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+            // $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+            if ($statusFile == 'NEW') {
+                foreach ($weightLabels as $weightLabel) {
+                    $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $weightLabel['total']);
+                }
+            } else {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_weight);
+            }
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_material_qty);
-            $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_material_weight);
+            if ($statusFile != 'NEW') {
+                $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $total_material_weight);
+            }
             $jumlahColumnEnd = $jumlahColumn - 1;
             $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart)  . $jumlahRow . ':' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . $jumlahRow)->applyFromArray($this->templateHeader);
             // tampil totalan
@@ -1435,7 +1495,11 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'PRODUCTION RECAP ' . $epoch;
+        if ($statusFile == 'NEW') {
+            $filename = 'PRODUCTION RECAP NEW ' . $epoch;
+        } else {
+            $filename = 'PRODUCTION RECAP ' . $epoch;
+        }
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
@@ -1749,244 +1813,6 @@ class Report extends CI_Controller
     }
     public function excelMaterialHistory()
     {
-        $dataFillTable = [
-            'DETAIL' => [
-                [
-                    'name' => 'Date',
-                    'variable' => 'date("Y-m-d m:i:s", strtotime($value->datetime))',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Bale Number',
-                    'variable' => '$value->inventory->bale_number',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Item',
-                    'variable' => '$value->item->name',
-                    'text' => ''
-                ],
-                [
-                    'name' => 'Grade',
-                    'variable' => '$value->grade->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Unit',
-                    'variable' => '$value->unit->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'QTY',
-                    'variable' => '$value->qty',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Weight',
-                    'variable' => '$value->weight',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Production Bale Number',
-                    'variable' => '$value->production_inventory->bale_number',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Production Item',
-                    'variable' => '$value->production_item->name',
-                    'text' => ''
-                ],
-                [
-                    'name' => 'Production Grade',
-                    'variable' => '$value->production_grade->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Production Unit',
-                    'variable' => '$value->production_unit->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Production QTY',
-                    'variable' => '$value->production_qty',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Production Weight',
-                    'variable' => '$value->production_weight',
-                    'text' => 'text-end'
-                ]
-            ],
-            'ITEM' => [
-                [
-                    'name' => 'Date',
-                    'variable' => '$value->datetime',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Item',
-                    'variable' => '$value->item->name',
-                    'text' => ''
-                ],
-                [
-                    'name' => 'Unit',
-                    'variable' => '$value->unit->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'QTY',
-                    'variable' => '$value->qty',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Weight',
-                    'variable' => '$value->weight',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Production QTY',
-                    'variable' => '$value->production_qty',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Production Weight',
-                    'variable' => '$value->production_weight',
-                    'text' => 'text-end'
-                ]
-            ],
-            'ITEM GRADE' => [
-                [
-                    'name' => 'Date',
-                    'variable' => '$value->datetime',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Item',
-                    'variable' => '$value->item->name',
-                    'text' => ''
-                ],
-                [
-                    'name' => 'Grade',
-                    'variable' => '$value->grade->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'Unit',
-                    'variable' => '$value->unit->name',
-                    'text' => 'text-center'
-                ],
-                [
-                    'name' => 'QTY',
-                    'variable' => '$value->qty',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Weight',
-                    'variable' => '$value->weight',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Production QTY',
-                    'variable' => '$value->production_qty',
-                    'text' => 'text-end'
-                ],
-                [
-                    'name' => 'Production Weight',
-                    'variable' => '$value->production_weight',
-                    'text' => 'text-end'
-                ]
-            ]
-        ];
-
-        $dataFooterTable = [
-            'DETAIL' => [
-                [
-                    'variable' => '""',
-                    'text' => 'text-end',
-                    'colspan' => 6
-                ],
-                [
-                    'variable' => 'number_format(round($total_qty,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_weight,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => '""',
-                    'text' => '',
-                    'colspan' => 4
-                ],
-                [
-                    'variable' => 'number_format(round($total_production_qty,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_production_weight,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ]
-            ],
-            'ITEM' => [
-                [
-                    'variable' => '""',
-                    'text' => 'text-end',
-                    'colspan' => 4
-                ],
-                [
-                    'variable' => 'number_format(round($total_qty,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_weight,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_production_qty,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_production_weight,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ]
-            ],
-            'ITEM GRADE' => [
-                [
-                    'variable' => '""',
-                    'text' => 'text-end',
-                    'colspan' => 5
-                ],
-                [
-                    'variable' => 'number_format(round($total_qty,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_weight,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_production_qty,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ],
-                [
-                    'variable' => 'number_format(round($total_production_weight,2))',
-                    'text' => 'text-end',
-                    'colspan' => 1
-                ]
-            ]
-        ];
-
         $params = $this->input->get('params');
         $decodedParams = urldecode($params);
         $explodedParams = explode("*$", $decodedParams);
@@ -1994,7 +1820,350 @@ class Report extends CI_Controller
         $date_start = date('Y-m-d', strtotime($explodedParams[2]));
         $date_end = date('Y-m-d', strtotime($explodedParams[3]));
         $dataProfile = $explodedParams[4];
-        $body = json_decode($this->curl->simple_get(api_produksi('getHistoryMaterial?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dataProfile=' . urlencode($dataProfile))))->data;
+        $statusFile = $explodedParams[5];
+        if ($statusFile == 'NEW') {
+            $dataFillTable = [
+                'DETAIL' => [
+                    ['name' => 'Date', 'variable' => 'date("Y-m-d H:i:s", strtotime($value->datetime))', 'text' => 'text-center'],
+                    ['name' => 'Bale Number', 'variable' => '$value->inventory->bale_number', 'text' => 'text-center'],
+                    ['name' => 'Item', 'variable' => '$value->item->name', 'text' => ''],
+                    ['name' => 'Grade', 'variable' => '$value->grade->name', 'text' => 'text-center'],
+                    ['name' => 'Unit', 'variable' => '$value->unit->name', 'text' => 'text-center'],
+                    ['name' => 'QTY', 'variable' => '$value->qty', 'text' => 'text-end'],
+                    ['name' => 'Weight Deduction Purchase', 'variable' => '$value->weight_deduction_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Gross Material', 'variable' => '$value->weight_gross_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Gross Purchase', 'variable' => '$value->weight_gross_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Net Material', 'variable' => '$value->weight_net_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Net Purchase', 'variable' => '$value->weight_net_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Packaging Material', 'variable' => '$value->weight_packaging_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Packaging Purchase', 'variable' => '$value->weight_packaging_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Paid', 'variable' => '$value->weight_paid', 'text' => 'text-end']
+                ],
+
+                'ITEM' => [
+                    ['name' => 'Date', 'variable' => '$value->datetime', 'text' => 'text-center'],
+                    ['name' => 'Item', 'variable' => '$value->item->name', 'text' => ''],
+                    ['name' => 'Unit', 'variable' => '$value->unit->name', 'text' => 'text-center'],
+                    ['name' => 'QTY', 'variable' => '$value->qty', 'text' => 'text-end'],
+                    ['name' => 'Weight Deduction Purchase', 'variable' => '$value->weight_deduction_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Gross Material', 'variable' => '$value->weight_gross_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Gross Purchase', 'variable' => '$value->weight_gross_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Net Material', 'variable' => '$value->weight_net_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Net Purchase', 'variable' => '$value->weight_net_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Packaging Material', 'variable' => '$value->weight_packaging_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Packaging Purchase', 'variable' => '$value->weight_packaging_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Paid', 'variable' => '$value->weight_paid', 'text' => 'text-end']
+                ],
+
+                'ITEM GRADE' => [
+                    ['name' => 'Date', 'variable' => '$value->datetime', 'text' => 'text-center'],
+                    ['name' => 'Item', 'variable' => '$value->item->name', 'text' => ''],
+                    ['name' => 'Grade', 'variable' => '$value->grade->name', 'text' => 'text-center'],
+                    ['name' => 'Unit', 'variable' => '$value->unit->name', 'text' => 'text-center'],
+                    ['name' => 'QTY', 'variable' => '$value->qty', 'text' => 'text-end'],
+                    ['name' => 'Weight Deduction Purchase', 'variable' => '$value->weight_deduction_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Gross Material', 'variable' => '$value->weight_gross_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Gross Purchase', 'variable' => '$value->weight_gross_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Net Material', 'variable' => '$value->weight_net_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Net Purchase', 'variable' => '$value->weight_net_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Packaging Material', 'variable' => '$value->weight_packaging_material', 'text' => 'text-end'],
+                    ['name' => 'Weight Packaging Purchase', 'variable' => '$value->weight_packaging_purchase', 'text' => 'text-end'],
+                    ['name' => 'Weight Paid', 'variable' => '$value->weight_paid', 'text' => 'text-end']
+                ]
+            ];
+
+            $dataFooterTable = [
+                'DETAIL' => [
+                    ['variable' => '""', 'text' => 'text-end', 'colspan' => 6],
+                    ['variable' => 'number_format(round($total_qty,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_deduction_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_gross_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_gross_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_net_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_net_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_packaging_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_packaging_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_paid,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => '""', 'text' => '', 'colspan' => 4],
+                    ['variable' => 'number_format(round($total_production_qty,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_deduction_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_gross_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_gross_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_net_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_net_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_packaging_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_packaging_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_production_weight_paid,2))', 'text' => 'text-end', 'colspan' => 1]
+                ],
+
+                'ITEM' => [
+                    ['variable' => '""', 'text' => 'text-end', 'colspan' => 4],
+                    ['variable' => 'number_format(round($total_qty,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_deduction_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_gross_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_gross_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_net_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_net_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_packaging_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_packaging_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_paid,2))', 'text' => 'text-end', 'colspan' => 1]
+                ],
+
+                'ITEM GRADE' => [
+                    ['variable' => '""', 'text' => 'text-end', 'colspan' => 5],
+                    ['variable' => 'number_format(round($total_qty,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_deduction_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_gross_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_gross_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_net_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_net_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_packaging_material,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_packaging_purchase,2))', 'text' => 'text-end', 'colspan' => 1],
+                    ['variable' => 'number_format(round($total_weight_paid,2))', 'text' => 'text-end', 'colspan' => 1]
+                ]
+            ];
+
+            $textAPI = 'getHistoryMaterialNew';
+        } else {
+            $dataFillTable = [
+                'DETAIL' => [
+                    [
+                        'name' => 'Date',
+                        'variable' => 'date("Y-m-d m:i:s", strtotime($value->datetime))',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Bale Number',
+                        'variable' => '$value->inventory->bale_number',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Item',
+                        'variable' => '$value->item->name',
+                        'text' => ''
+                    ],
+                    [
+                        'name' => 'Grade',
+                        'variable' => '$value->grade->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Unit',
+                        'variable' => '$value->unit->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'QTY',
+                        'variable' => '$value->qty',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Weight',
+                        'variable' => '$value->weight',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Production Bale Number',
+                        'variable' => '$value->production_inventory->bale_number',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Production Item',
+                        'variable' => '$value->production_item->name',
+                        'text' => ''
+                    ],
+                    [
+                        'name' => 'Production Grade',
+                        'variable' => '$value->production_grade->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Production Unit',
+                        'variable' => '$value->production_unit->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Production QTY',
+                        'variable' => '$value->production_qty',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Production Weight',
+                        'variable' => '$value->production_weight',
+                        'text' => 'text-end'
+                    ]
+                ],
+                'ITEM' => [
+                    [
+                        'name' => 'Date',
+                        'variable' => '$value->datetime',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Item',
+                        'variable' => '$value->item->name',
+                        'text' => ''
+                    ],
+                    [
+                        'name' => 'Unit',
+                        'variable' => '$value->unit->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'QTY',
+                        'variable' => '$value->qty',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Weight',
+                        'variable' => '$value->weight',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Production QTY',
+                        'variable' => '$value->production_qty',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Production Weight',
+                        'variable' => '$value->production_weight',
+                        'text' => 'text-end'
+                    ]
+                ],
+                'ITEM GRADE' => [
+                    [
+                        'name' => 'Date',
+                        'variable' => '$value->datetime',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Item',
+                        'variable' => '$value->item->name',
+                        'text' => ''
+                    ],
+                    [
+                        'name' => 'Grade',
+                        'variable' => '$value->grade->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'Unit',
+                        'variable' => '$value->unit->name',
+                        'text' => 'text-center'
+                    ],
+                    [
+                        'name' => 'QTY',
+                        'variable' => '$value->qty',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Weight',
+                        'variable' => '$value->weight',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Production QTY',
+                        'variable' => '$value->production_qty',
+                        'text' => 'text-end'
+                    ],
+                    [
+                        'name' => 'Production Weight',
+                        'variable' => '$value->production_weight',
+                        'text' => 'text-end'
+                    ]
+                ]
+            ];
+            $dataFooterTable = [
+                'DETAIL' => [
+                    [
+                        'variable' => '""',
+                        'text' => 'text-end',
+                        'colspan' => 6
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_qty,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_weight,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => '""',
+                        'text' => '',
+                        'colspan' => 4
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_production_qty,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_production_weight,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ]
+                ],
+                'ITEM' => [
+                    [
+                        'variable' => '""',
+                        'text' => 'text-end',
+                        'colspan' => 4
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_qty,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_weight,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_production_qty,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_production_weight,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ]
+                ],
+                'ITEM GRADE' => [
+                    [
+                        'variable' => '""',
+                        'text' => 'text-end',
+                        'colspan' => 5
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_qty,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_weight,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_production_qty,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ],
+                    [
+                        'variable' => 'number_format(round($total_production_weight,2))',
+                        'text' => 'text-end',
+                        'colspan' => 1
+                    ]
+                ]
+            ];
+            $textAPI = 'getHistoryMaterial';
+        }
+        $body = json_decode($this->curl->simple_get(api_produksi($textAPI . '?warehouseId=' . $warehouseId . '&dateStart=' . $date_start . '&dataProfile=' . urlencode($dataProfile))))->data;
         $spreadsheet = new Spreadsheet();
         $dataVariable = ['history_material_complete', 'history_material_on_process'];
         $dataVariableTitle = ['Complete', 'On Process'];
@@ -2008,9 +2177,26 @@ class Report extends CI_Controller
         // exit();
         for ($k = 0; $k < count($dataVariable); $k++) {
             $total_qty = 0;
-            $total_weight = 0;
-            $total_production_qty = 0;
-            $total_production_weight = 0;
+            if ($statusFile == 'NEW') {
+                $weightTotals = [
+                    'total_weight_deduction_purchase',
+                    'total_weight_gross_material',
+                    'total_weight_gross_purchase',
+                    'total_weight_net_material',
+                    'total_weight_net_purchase',
+                    'total_weight_packaging_material',
+                    'total_weight_packaging_purchase',
+                    'total_weight_paid'
+                ];
+
+                foreach ($weightTotals as $total) {
+                    $$total = 0; // Variabel variabel untuk membuat $total_weight_deduction_purchase = 0, dst.
+                }
+            } else {
+                $total_weight = 0;
+                $total_production_qty = 0;
+                $total_production_weight = 0;
+            }
             $jumlahColumnStart = 1;
             $jumlahColumn = $jumlahColumnStart;
             $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . '1', 'No');
@@ -2024,14 +2210,32 @@ class Report extends CI_Controller
                 if (!$value->qty) {
                     $value->qty = 0;
                 }
-                if (!$value->weight) {
-                    $value->weight = 0;
-                }
-                if (!$value->production_qty) {
-                    $value->production_qty = 0;
-                }
-                if (!$value->production_weight) {
-                    $value->production_weight = 0;
+                if ($statusFile == 'NEW') {
+                    $weights = [
+                        'weight_deduction_purchase',
+                        'weight_gross_material',
+                        'weight_gross_purchase',
+                        'weight_net_material',
+                        'weight_net_purchase',
+                        'weight_packaging_material',
+                        'weight_packaging_purchase',
+                        'weight_paid'
+                    ];
+                    foreach ($weights as $weight) {
+                        if (!isset($value->$weight) || $value->$weight === null) {
+                            $value->$weight = 0;
+                        }
+                    }
+                } else {
+                    if (!$value->weight) {
+                        $value->weight = 0;
+                    }
+                    if (!$value->production_qty) {
+                        $value->production_qty = 0;
+                    }
+                    if (!$value->production_weight) {
+                        $value->production_weight = 0;
+                    }
                 }
                 $worksheet[$k]->setCellValue(Coordinate::stringFromColumnIndex($jumlahColumn++) . $jumlahRow, $no++);
                 foreach ($dataFillTable[$dataProfile] as $key2 => $value2) {
@@ -2041,9 +2245,31 @@ class Report extends CI_Controller
                 }
                 $jumlahRow++;
                 $total_qty += $value->qty;
-                $total_weight += $value->weight;
-                $total_production_qty += $value->production_qty;
-                $total_production_weight += $value->production_weight;
+                if ($statusFile == 'NEW') {
+                    $weightFields = [
+                        'weight_deduction_purchase',
+                        'weight_gross_material',
+                        'weight_gross_purchase',
+                        'weight_net_material',
+                        'weight_net_purchase',
+                        'weight_packaging_material',
+                        'weight_packaging_purchase',
+                        'weight_paid'
+                    ];
+
+                    foreach ($weightFields as $field) {
+                        $$field = isset($value->$field) ? (float) $value->$field : 0;
+                    }
+
+                    foreach ($weightFields as $field) {
+                        $totalField = 'total_' . $field; // Membentuk variabel total_weight_deduction_purchase, dll.
+                        $$totalField += $$field; // Menambahkan nilai ke total
+                    }
+                } else {
+                    $total_weight += $value->weight;
+                    $total_production_qty += $value->production_qty;
+                    $total_production_weight += $value->production_weight;
+                }
             }
             $jumlahColumnEnd = $jumlahColumn - 1;
             $worksheet[$k]->getStyle(Coordinate::stringFromColumnIndex($jumlahColumnStart) . '1:' . Coordinate::stringFromColumnIndex($jumlahColumnEnd) . '1')->applyFromArray($this->templateHeader);
@@ -2065,7 +2291,11 @@ class Report extends CI_Controller
         $date_time = date('Y-m-d H:i:s');
         $epoch = strtotime($date_time);
         $writer = new Xlsx($spreadsheet);
-        $filename = 'MATERIAL HISTORY ' . $dataProfile . ' ' . $epoch;
+        if ($statusFile == 'NEW') {
+            $filename = 'MATERIAL HISTORY NEW ' . $dataProfile . ' ' . $epoch;
+        } else {
+            $filename = 'MATERIAL HISTORY ' . $dataProfile . ' ' . $epoch;
+        }
 
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');

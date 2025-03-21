@@ -483,36 +483,56 @@
         });
     }
     const weightLabelsRaw = [{
-            key: "weight_gross_send",
-            label: "Weight Gross Send",
+            key: "weight_deduction_purchase",
+            label: "Weight Deduction Purchase",
             total: 0
         },
         {
-            key: "weight_packaging_send",
-            label: "Weight Packaging Send",
+            key: "weight_gross_latest",
+            label: "Weight Gross Latest",
             total: 0
         },
         {
-            key: "weight_net_send",
-            label: "Weight Net Send",
+            key: "weight_gross_purchase",
+            label: "Weight Gross Purchase",
             total: 0
         },
         {
-            key: "weight_gross_receive",
-            label: "Weight Gross Receive",
+            key: "weight_gross_stock",
+            label: "Weight Gross Stock",
             total: 0
         },
         {
-            key: "weight_packaging_receive",
-            label: "Weight Packaging Receive",
+            key: "weight_net_latest",
+            label: "Weight Net Latest",
             total: 0
         },
         {
-            key: "weight_net_receive",
-            label: "Weight Net Receive",
+            key: "weight_net_stock",
+            label: "Weight Net Stock",
+            total: 0
+        },
+        {
+            key: "weight_packaging_latest",
+            label: "Weight Packaging Latest",
+            total: 0
+        },
+        {
+            key: "weight_packaging_purchase",
+            label: "Weight Packaging Purchase",
+            total: 0
+        },
+        {
+            key: "weight_packaging_stock",
+            label: "Weight Packaging Stock",
+            total: 0
+        },
+        {
+            key: "weight_paid",
+            label: "Weight Paid",
             total: 0
         }
-    ];
+    ]
 
     const weightLabels = weightLabelsRaw.map(item => ({
         ...item,

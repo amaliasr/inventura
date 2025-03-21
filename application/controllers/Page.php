@@ -252,6 +252,15 @@ class Page extends CI_Controller
         $data['roles'] = $this->roles;
         $this->template->views('page/recap_production', $data);
     }
+    public function recap_production_old()
+    {
+        $data['title'] = 'Production Recap';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/recap_production_old', $data);
+    }
     public function cetakSuratJalan()
     {
         $params = $this->input->get('params');
@@ -346,6 +355,15 @@ class Page extends CI_Controller
         $data['allRoles'] = $this->allRoles;
         $data['roles'] = $this->roles;
         $this->template->views('page/history_material', $data);
+    }
+    public function history_material_old()
+    {
+        $data['title'] = 'History Material';
+        $data['permission'] = $this->permission;
+        $data['warehouse_id'] = $this->warehouse_id;
+        $data['allRoles'] = $this->allRoles;
+        $data['roles'] = $this->roles;
+        $this->template->views('page/history_material_old', $data);
     }
     public function master_supplier()
     {
